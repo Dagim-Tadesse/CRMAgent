@@ -1,10 +1,28 @@
+using CRMAgent.Infrastructure.Jobs;
+using Hangfire;
+using Hangfire.MemoryStorage;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
+builder.Services.AddScoped<DailyPipelineCheckJob>();
+
+
 var app = builder.Build();
+
+app.UseHangfireDashboard("/hangfire");
+RecurringJob.AddOrUpdate<DailyPipelineCheckJob>(
+    "daily-pipeline-check",
+    job => job.ExecuteAsync(),
+    "0 8 * * *"); // Cron: 8:00 AM every day
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -21,7 +39,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
