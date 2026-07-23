@@ -1,0 +1,6 @@
+@CRMAgent.API_HostAddress = http://localhost:5087
+
+GET {{CRMAgent.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

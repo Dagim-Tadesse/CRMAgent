@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CRMAgent.API/CRMAgent.API.csproj" />
+    <Project Path="src/CRMAgent.Application/CRMAgent.Application.csproj" />
+    <Project Path="src/CRMAgent.Domain/CRMAgent.Domain.csproj" />
+    <Project Path="src/CRMAgent.Infrastructure/CRMAgent.Infrastructure.csproj" />
+  </Folder>
+</Solution>
