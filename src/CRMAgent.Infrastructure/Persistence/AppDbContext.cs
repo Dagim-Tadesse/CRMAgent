@@ -15,7 +15,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Interaction> Interactions => Set<Interaction>();
     public DbSet<EmailDraft> EmailDrafts => Set<EmailDraft>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
-
+    public DbSet<SocialSignal> SocialSignals => Set<SocialSignal>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder); // MUST call base — sets up Identity tables

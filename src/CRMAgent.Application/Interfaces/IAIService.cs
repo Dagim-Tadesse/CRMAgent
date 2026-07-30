@@ -6,4 +6,5 @@ public interface IAIService
 {
     Task<LeadScoreResult> ScoreLeadAsync(string inquiryText);
     Task<EmailDraftResult> GenerateEmailDraftAsync(string leadName, string company, string interactionHistory);
+    Task<SentimentResult> AnalyzeSentimentAsync(string content);
 }
