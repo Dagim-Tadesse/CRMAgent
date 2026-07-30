@@ -68,6 +68,23 @@ Recent interactions (last 5, newest first):
         return await CallGeminiAsync<EmailDraftResult>(prompt);
     }
 
+    public async Task<SentimentResult> AnalyzeSentimentAsync(string content)
+    {
+        var prompt = $$"""
+You are a sentiment classifier for social media comments and mentions about a company.
+Analyze this text and return ONLY valid JSON. No markdown. No backticks.
+
+JSON format:
+{
+  "sentiment": <"positive"|"negative"|"neutral">
+}
+
+Text: {{content}}
+""";
+
+        return await CallGeminiAsync<SentimentResult>(prompt);
+    }
+
     private async Task<T> CallGeminiAsync<T>(string prompt)
 {
     var requestBody = new
