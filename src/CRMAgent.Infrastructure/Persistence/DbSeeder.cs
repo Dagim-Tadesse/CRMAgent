@@ -7,8 +7,8 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
-        // Only seed if the database has no leads
-        if (db.Leads.Any()) return;
+        // Only seed if our mock data isn't already there
+        if (db.Leads.Any(l => l.Email == "jane.doe@example.com")) return;
 
         var lead1 = new Lead
         {
@@ -29,7 +29,7 @@ public static class DbSeeder
             Email = "john.smith@techstartup.io",
             Company = "Tech Startup IO",
             RawInquiryText = "Your pricing is way too high and the system is confusing! I want a refund.",
-            PipelineStage = PipelineStage.Triage,
+            PipelineStage = PipelineStage.Contacted,
             Emotion = EmotionType.Frustrated,
             Status = LeadStatus.Active,
             AIScore = 2,
@@ -56,21 +56,23 @@ public static class DbSeeder
         var interaction1 = new Interaction
         {
             LeadId = lead1.Id,
-            Channel = InteractionChannel.WebsiteForm,
-            Type = InteractionType.Inbound,
+            Channel = InteractionChannel.WebForm,
+            Type = InteractionType.FormSubmission,
+            Direction = InteractionDirection.Inbound,
             Content = lead1.RawInquiryText,
             Emotion = EmotionType.Neutral,
-            Timestamp = lead1.CreatedAt
+            CreatedAt = lead1.CreatedAt
         };
 
         var interaction2 = new Interaction
         {
             LeadId = lead2.Id,
             Channel = InteractionChannel.Email,
-            Type = InteractionType.Inbound,
+            Type = InteractionType.Email,
+            Direction = InteractionDirection.Inbound,
             Content = lead2.RawInquiryText,
             Emotion = EmotionType.Frustrated,
-            Timestamp = lead2.CreatedAt
+            CreatedAt = lead2.CreatedAt
         };
         
         db.Interactions.AddRange(interaction1, interaction2);
