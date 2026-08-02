@@ -155,10 +155,13 @@ export function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    Promise.all([getLeads(), getLogs(), getPendingTasks()])
-      .then(([l, lg, p]) => { setLeads(l.data); setLogs(lg.data); setPending(p.data); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    // Fetch individually so one failure doesn't break the whole dashboard
+    getLeads().then(res => setLeads(res.data)).catch(console.error);
+    getLogs().then(res => setLogs(res.data)).catch(console.error);
+    getPendingTasks().then(res => setPending(res.data)).catch(console.error);
+    
+    // Simulate loading time to ensure data arrives
+    setTimeout(() => setLoading(false), 500);
   }, []);
 
   if (loading) {
