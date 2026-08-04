@@ -4,6 +4,8 @@ import { LeadsPage } from './pages/LeadsPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { SchedulePage } from './pages/SchedulePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ReportsPage } from './pages/ReportsPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -14,6 +16,7 @@ function App() {
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/calendar" element={<SchedulePage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/reports" element={<ReportsPage />} />
       </Routes>
     </BrowserRouter>
   );
