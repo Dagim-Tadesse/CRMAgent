@@ -11,7 +11,7 @@ import {
   LayoutDashboard, FileText, Settings, User, Bell,
   Menu, X, BarChart3, Activity, Target, Calendar,
   ArrowUp, ArrowDown, TrendingUp, Zap, Shield,
-  Moon, Sun
+  Moon, Sun, Kanban, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -20,6 +20,8 @@ function Sidebar({ isOpen, toggleSidebar }) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
     { icon: Users, label: 'Leads', to: '/leads' },
+    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
+    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
     { icon: FileText, label: 'Reports', to: '/reports' },
     { icon: Activity, label: 'Activity', to: '/activity' },
     { icon: Target, label: 'Goals', to: '/goals' },

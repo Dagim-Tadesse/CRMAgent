@@ -6,12 +6,12 @@ import { useAuth } from '../hooks/useAuth';
 // { to: '/ai-tasks', label: 'AI Tasks', roles: ['Admin','SalesRep','SocialMediaRep'] }
 const links = [
   { to:'/dashboard',     label:'Dashboard',    roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
-  { to:'/leads',         label:'Leads',        roles:['Admin','SalesRep','SocialMediaRep'] },
-  { to:'/pipeline',      label:'Pipeline',     roles:['Admin','SalesRep'] },
-  { to:'/ai-tasks',      label:'AI Tasks',     roles:['Admin','SalesRep','SocialMediaRep'] },
-  { to:'/inbound-queue', label:'Inbound Queue',roles:['Admin','SocialMediaRep'] },
-  { to:'/logs',          label:'Activity Log', roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
-  { to:'/settings',      label:'Settings',     roles:['Admin'] },
+  { to:'/leads',         label:'Leads',        roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
+  { to:'/pipeline',      label:'Pipeline',     roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
+  { to:'/ai-tasks',      label:'AI Tasks',     roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
+  { to:'/inbound-queue', label:'Inbound Queue',roles:['Admin','SocialMediaRep','Manager'] },
+  { to:'/activity',      label:'Activity Log', roles:['Admin','SalesRep','SocialMediaRep','Manager'] },
+  { to:'/settings',      label:'Settings',     roles:['Admin','Manager'] },
 ];
 
 export function Navbar() {
