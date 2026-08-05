@@ -15,7 +15,10 @@ public class LeadRepository : ILeadRepository
     }
 
     public async Task<List<Lead>> GetAllAsync() =>
-        await _context.Leads.OrderByDescending(l => l.CreatedAt).ToListAsync();
+        await _context.Leads
+            .Include(l => l.Interactions)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync();
 
     public async Task<Lead?> GetByIdAsync(int id) =>
         await _context.Leads

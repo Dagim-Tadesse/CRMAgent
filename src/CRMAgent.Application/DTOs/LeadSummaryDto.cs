@@ -14,4 +14,5 @@ public class LeadSummaryDto
     public bool IsAtRisk { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastInteractionAt { get; set; }
+    public string Source { get; set; } = string.Empty;
 }

@@ -1,5 +1,6 @@
 using System.Text;
 using CRMAgent.Application.Interfaces;
+using CRMAgent.Infrastructure.Services;
 using CRMAgent.Application.UseCases.IngestLead;
 using CRMAgent.Infrastructure.AI;
 using CRMAgent.Infrastructure.Persistence;
@@ -56,6 +57,7 @@ builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
 builder.Services.AddScoped<IAIService, GeminiService>();
+builder.Services.AddScoped<IEmailService, ResendEmailService>();
 
 builder.Services.AddHttpClient();
 
