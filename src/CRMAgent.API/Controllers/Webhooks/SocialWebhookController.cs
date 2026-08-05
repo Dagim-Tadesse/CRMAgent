@@ -34,9 +34,17 @@ public class SocialWebhookController : ControllerBase
         var sentiment = SentimentType.Neutral;
         if (!string.IsNullOrWhiteSpace(dto.Content))
         {
-            var result = await _aiService.AnalyzeSentimentAsync(dto.Content);
-            if (Enum.TryParse<SentimentType>(result.Sentiment, true, out var parsed))
-                sentiment = parsed;
+            try
+            {
+                var result = await _aiService.AnalyzeSentimentAsync(dto.Content);
+                if (Enum.TryParse<SentimentType>(result.Sentiment, true, out var parsed))
+                    sentiment = parsed;
+            }
+            catch (Exception)
+            {
+                // Fallback to Neutral if Gemini API quota is exceeded or offline
+                sentiment = SentimentType.Neutral;
+            }
         }
 
         var signal = new SocialSignal
@@ -51,10 +59,15 @@ public class SocialWebhookController : ControllerBase
         };
         _db.SocialSignals.Add(signal);
 
+        var postInfo = string.IsNullOrWhiteSpace(dto.PostReference) ? "" : $" (post: {dto.PostReference})";
+        var reasonText = !string.IsNullOrWhiteSpace(dto.Content)
+            ? $"{dto.SignalType} from {dto.AuthorName} on {dto.PlatformSource}{postInfo} — sentiment: {sentiment}"
+            : $"{dto.SignalType} from {dto.AuthorName} on {dto.PlatformSource}{postInfo}";
+
         _db.ActivityLogs.Add(new ActivityLog
         {
             Action = "Social Signal Received",
-            Reason = $"{dto.SignalType} from {dto.AuthorName} on {dto.PlatformSource} — sentiment: {sentiment}",
+            Reason = reasonText,
             TriggeredBy = LogTrigger.SocialWebhook,
             CreatedAt = DateTime.UtcNow
         });

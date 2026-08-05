@@ -30,7 +30,9 @@ public class GetAllLeadsHandler : IRequestHandler<GetAllLeadsQuery, List<LeadSum
             IsStagnant = l.IsStagnant,
             IsAtRisk = l.IsAtRisk,
             CreatedAt = l.CreatedAt,
-            LastInteractionAt = l.LastInteractionAt
+            LastInteractionAt = l.LastInteractionAt,
+            Source = l.Interactions.OrderBy(i => i.CreatedAt).FirstOrDefault()?.Channel.ToString() ?? 
+                     (!string.IsNullOrEmpty(l.TelegramUsername) ? "Telegram" : "WebForm")
         }).ToList();
     }
 }

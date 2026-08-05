@@ -2,5 +2,9 @@ namespace CRMAgent.Domain.Enums;
 
 public enum SocialPlatform
 {
-    LinkedIn
+    LinkedIn,
+    Twitter,
+    Facebook,
+    Instagram,
+    TikTok
 }

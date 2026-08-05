@@ -405,6 +405,7 @@ export function LeadsPage() {
                   <th className="px-6 py-4 font-medium">Score</th>
                   <th className="px-6 py-4 font-medium">Emotion</th>
                   <th className="px-6 py-4 font-medium">Stage</th>
+                  <th className="px-6 py-4 font-medium">Source</th>
                   <th className="px-6 py-4 font-medium">Flags</th>
                   <th 
                     className="px-6 py-4 font-medium cursor-pointer hover:text-white transition"
@@ -421,39 +422,55 @@ export function LeadsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    onClick={() => navigate(`/leads/${lead.id}`)}
-                    className="border-b border-white/5 last:border-0 hover:bg-white/5 transition cursor-pointer group"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-white">{lead.fullName}</div>
-                      <div className="text-xs text-gray-500">{lead.email}</div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-400">{lead.company || '-'}</td>
-                    <td className="px-6 py-4">
-                      <ScoreBadge score={lead.aiScore} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <EmotionBadge emotion={lead.emotion} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <StageBadge stage={lead.pipelineStage} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-1 flex-wrap">
-                        {lead.isAtRisk && <FlagBadge flag="isAtRisk" />}
-                        {lead.isStagnant && <FlagBadge flag="isStagnant" />}
-                        {lead.isPriority && <FlagBadge flag="isPriority" />}
-                        {getFlagCount(lead) === 0 && (
-                          <span className="text-xs text-gray-500">-</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-gray-500">
-                      {new Date(lead.updatedAt).toLocaleDateString()}
-                    </td>
+                {filteredLeads.map((lead) => {
+                  const getLeadChannel = (l) => {
+                    return l.source || 'WebForm';
+                  };
+
+                  return (
+                    <tr
+                      key={lead.id}
+                      onClick={() => navigate(`/leads/${lead.id}`)}
+                      className="border-b border-white/5 last:border-0 hover:bg-white/5 transition cursor-pointer group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-white">{lead.fullName}</div>
+                        <div className="text-xs text-gray-500">{lead.email}</div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-400">{lead.company || '-'}</td>
+                      <td className="px-6 py-4">
+                        <ScoreBadge score={lead.aiScore} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <EmotionBadge emotion={lead.emotion} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <StageBadge stage={lead.pipelineStage} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                          getLeadChannel(lead) === 'Telegram' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' :
+                          getLeadChannel(lead) === 'Email' ? 'bg-green-500/20 text-green-300 border border-green-500/20' :
+                          'bg-purple-500/20 text-purple-300 border border-purple-500/20'
+                        }`}>
+                          {getLeadChannel(lead) === 'WebForm' ? 'Website Form' : getLeadChannel(lead)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-1 flex-wrap">
+                          {lead.isAtRisk && <FlagBadge flag="isAtRisk" />}
+                          {lead.isStagnant && <FlagBadge flag="isStagnant" />}
+                          {lead.isPriority && <FlagBadge flag="isPriority" />}
+                          {getFlagCount(lead) === 0 && (
+                            <span className="text-xs text-gray-500">-</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-500">
+                        {lead.lastInteractionAt 
+                          ? new Date(lead.lastInteractionAt).toLocaleDateString() 
+                          : new Date(lead.createdAt).toLocaleDateString()}
+                      </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -474,7 +491,8 @@ export function LeadsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

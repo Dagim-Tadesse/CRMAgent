@@ -24,7 +24,6 @@ import {
   ChevronUp,
   ExternalLink,
   MessageCircle,
-  // IMPORTANT: Use Share2 instead of Linkedin (Linkedin doesn't exist in lucide-react)
   Share2,
   Mail,
   Clock,
@@ -34,70 +33,59 @@ import {
   Award,
   Eye,
   Info,
+  ThumbsUp,
+  UserPlus
+} from 'lucide-react';
+import {
   PieChart,
+  Pie,
   Cell,
   ResponsiveContainer,
   BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
-  CartesianGrid,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
-} from 'lucide-react';
-import {
-  PieChart as RechartsPieChart,
-  Pie as RechartsPie,
-  Cell as RechartsCell,
-  ResponsiveContainer as RechartsResponsiveContainer,
-  BarChart as RechartsBarChart,
-  Bar as RechartsBar,
-  XAxis as RechartsXAxis,
-  YAxis as RechartsYAxis,
-  Tooltip as RechartsTooltip,
-  Legend as RechartsLegend,
-  CartesianGrid as RechartsCartesianGrid
+  CartesianGrid
 } from 'recharts';
 
 // =============== CONSTANTS ===============
 const CHANNEL_COLORS = {
   Telegram: '#3b82f6',
-  LinkedIn: '#0A66C2',
+  Website: '#8b5cf6',
   Email: '#22c55e'
 };
 
 const CHANNEL_ICONS = {
   Telegram: MessageCircle,
-  LinkedIn: Share2, // ← Using Share2 instead of Linkedin (which doesn't exist)
+  Website: ExternalLink,
   Email: Mail
 };
 
 const CHANNEL_LABELS = {
   Telegram: 'Telegram',
-  LinkedIn: 'LinkedIn',
+  Website: 'Website Form',
   Email: 'Email'
 };
 
 // =============== MOCK DATA ===============
 const mockChannelLeads = [
   { channel: 'Telegram', count: 42, color: '#3b82f6' },
-  { channel: 'LinkedIn', count: 28, color: '#0A66C2' },
+  { channel: 'Website', count: 28, color: '#8b5cf6' },
   { channel: 'Email', count: 15, color: '#22c55e' },
 ];
 
 const mockChannelClassification = [
   { channel: 'Telegram', hot: 18, medium: 15, low: 9, total: 42 },
-  { channel: 'LinkedIn', hot: 12, medium: 10, low: 6, total: 28 },
+  { channel: 'Website', hot: 12, medium: 10, low: 6, total: 28 },
   { channel: 'Email', hot: 4, medium: 6, low: 5, total: 15 },
 ];
 
 const mockHotLeadsByChannel = mockChannelClassification.map(c => ({
   channel: c.channel,
   value: c.hot,
-  color: c.channel === 'Telegram' ? '#3b82f6' : c.channel === 'LinkedIn' ? '#0A66C2' : '#22c55e'
+  color: c.channel === 'Telegram' ? '#3b82f6' : c.channel === 'Website' ? '#8b5cf6' : '#22c55e'
 }));
 
 const mockFullReport = [
@@ -113,7 +101,7 @@ const mockFullReport = [
     color: '#3b82f6'
   },
   { 
-    channel: 'LinkedIn', 
+    channel: 'Website', 
     totalLeads: 28, 
     hot: 12, 
     medium: 10, 
@@ -121,7 +109,7 @@ const mockFullReport = [
     avgScore: 6.1, 
     wonDeals: 3,
     conversionRate: '10.7%',
-    color: '#0A66C2'
+    color: '#8b5cf6'
   },
   { 
     channel: 'Email', 
@@ -142,7 +130,7 @@ const mockLeadsByChannel = {
     { id: 2, name: 'Bob Smith', score: 7, status: 'Medium', stage: 'Contacted', createdAt: '2026-03-02' },
     { id: 3, name: 'Carol White', score: 4, status: 'Low', stage: 'New', createdAt: '2026-03-03' },
   ],
-  LinkedIn: [
+  Website: [
     { id: 4, name: 'David Brown', score: 8, status: 'Hot', stage: 'Qualified', createdAt: '2026-03-01' },
     { id: 5, name: 'Eve Davis', score: 6, status: 'Medium', stage: 'Contacted', createdAt: '2026-03-04' },
   ],
@@ -650,6 +638,125 @@ export function ReportsPage() {
             </div>
           </div>
 
+          {/* ============ SOCIAL MEDIA ANALYTICS ============ */}
+          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-white">Social Media Brand Engagement</h3>
+              <p className="text-xs text-gray-500">Live signal metrics and sentiment tracking from n8n webhooks</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Chart 1: Platform Engagement */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-gray-400">Platform Volume</span>
+                  <Activity size={14} className="text-blue-400" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={[
+                    { name: 'LinkedIn', count: 18, color: '#0A66C2' },
+                    { name: 'Twitter', count: 24, color: '#1DA1F2' },
+                    { name: 'Facebook', count: 12, color: '#1877F2' },
+                    { name: 'Instagram', count: 15, color: '#E1306C' },
+                    { name: 'TikTok', count: 20, color: '#00f2fe' }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6b7280' }} />
+                    <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Chart 2: Sentiment Breakdown */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-gray-400">Social Sentiment</span>
+                  <TrendingUp size={14} className="text-green-400" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Positive', value: 35, color: '#22c55e' },
+                        { name: 'Neutral', value: 45, color: '#6b7280' },
+                        { name: 'Negative', value: 9, color: '#ef4444' }
+                      ]}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={2}
+                    >
+                      {[
+                        { name: 'Positive', value: 35, color: '#22c55e' },
+                        { name: 'Neutral', value: 45, color: '#6b7280' },
+                        { name: 'Negative', value: 9, color: '#ef4444' }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center gap-3 mt-1">
+                  <span className="text-[10px] text-green-400 font-medium">Positive (35)</span>
+                  <span className="text-[10px] text-gray-400 font-medium">Neutral (45)</span>
+                  <span className="text-[10px] text-red-400 font-medium">Negative (9)</span>
+                </div>
+              </div>
+
+              {/* Chart 3: Signal Type Distribution */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold text-gray-400">Signal Interaction Types</span>
+                  <ThumbsUp size={14} className="text-yellow-400" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Comment', value: 32, color: '#3b82f6' },
+                        { name: 'Mention', value: 18, color: '#8b5cf6' },
+                        { name: 'Like', value: 25, color: '#eab308' },
+                        { name: 'Share', value: 10, color: '#ec4899' },
+                        { name: 'Follow', value: 14, color: '#10b981' }
+                      ]}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={2}
+                    >
+                      {[
+                        { name: 'Comment', value: 32, color: '#3b82f6' },
+                        { name: 'Mention', value: 18, color: '#8b5cf6' },
+                        { name: 'Like', value: 25, color: '#eab308' },
+                        { name: 'Share', value: 10, color: '#ec4899' },
+                        { name: 'Follow', value: 14, color: '#10b981' }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center flex-wrap gap-2 mt-1">
+                  <span className="text-[9px] text-[#3b82f6]">Comment</span>
+                  <span className="text-[9px] text-[#8b5cf6]">Mention</span>
+                  <span className="text-[9px] text-[#eab308]">Like</span>
+                  <span className="text-[9px] text-[#ec4899]">Share</span>
+                  <span className="text-[9px] text-[#10b981]">Follow</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* ============ INSIGHTS SECTION ============ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -697,7 +804,7 @@ export function ReportsPage() {
                 </li>
                 <li className="flex items-start gap-2 text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                  <span><span className="text-white font-medium">LinkedIn</span> hot leads have high quality - prioritize them</span>
+                  <span><span className="text-white font-medium">Website Form</span> hot leads have high quality - prioritize them</span>
                 </li>
                 <li className="flex items-start gap-2 text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
