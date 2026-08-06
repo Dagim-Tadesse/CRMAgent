@@ -60,15 +60,47 @@ dotnet user-secrets set "GeminiSettings:ModelEndpoint" "https://generativelangua
 dotnet user-secrets set "GeminiSettings:ModelEndpoint" "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent" --project src/CRMAgent.API
 ```
 
-## Testing Inbound Email Webhooks Locally
+## Exposing Webhooks Locally (Tunneling)
 
-Since the backend runs on `localhost:5087`, public services (like Resend) cannot send webhooks to your local machine directly. Use **Serveo** (built into Windows via SSH) to expose your port:
+Since the backend runs on `localhost:5087`, public services (like Resend and Telegram) cannot send webhooks to your local machine directly. You must expose your port using one of the tunneling options below:
 
-1. Expose port `5087` to the public internet:
+### Option A: Ngrok (Recommended - Permanent URL)
+**When to use:** Use this for standard development so that your webhook endpoints never change and your bot/email registrations never break when you restart your terminal.
+
+**How to use:**
+1. Claim a **Free Static Domain** on [ngrok.com](https://ngrok.com) (e.g. `your-domain.ngrok-free.dev`).
+2. Authenticate ngrok in your terminal:
    ```bash
-   ssh -R 80:localhost:5087 serveo.net
+   .\ngrok config add-authtoken <YOUR_AUTHTOKEN>
+   ```
+3. Expose port `5087` using your static domain:
+   ```bash
+   .\ngrok http 5087 --domain=your-domain.ngrok-free.dev
+   ```
+
+### Option B: Serveo (Quick Run - No Installation)
+**When to use:** Use this if you want a fast tunnel without installing ngrok, though the URL will change if the connection drops.
+
+**How to use:**
+1. Expose port `5087` to the public internet using SSH:
+   ```bash
+   ssh -o ServerAliveInterval=60 -R 80:localhost:5087 serveo.net
    ```
 2. Copy the public forwarding URL provided (e.g., `https://xxxx.serveo.net`).
-3. Set your webhook URL in your Resend Dashboard pointing to:
-   `https://xxxx.serveo.net/api/webhooks/email`
-4. Send an email from your phone to trigger the webhook!
+
+---
+
+## Webhook Registration
+
+### 1. Inbound Emails (Resend Webhooks)
+- Go to your Resend.com dashboard under Webhooks.
+- Set the webhook endpoint URL pointing to:
+  `https://<YOUR_TUNNEL_URL>/api/webhooks/email`
+- Send an email to your inbound Resend address to test!
+
+### 2. Inbound Messages (Telegram Bot Webhooks)
+- Send a GET request to Telegram's API via your browser (replacing bot token and tunnel URL):
+  ```text
+  https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://<YOUR_TUNNEL_URL>/api/webhooks/telegram
+  ```
+- Send a message to your Telegram bot to test!
