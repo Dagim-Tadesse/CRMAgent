@@ -11,7 +11,7 @@ import {
   LayoutDashboard, FileText, Settings, User, Bell,
   Menu, X, BarChart3, Activity, Target, Calendar,
   ArrowUp, ArrowDown, TrendingUp, Zap, Shield,
-  Moon, Sun
+  Moon, Sun, Kanban, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -20,9 +20,10 @@ function Sidebar({ isOpen, toggleSidebar }) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
     { icon: Users, label: 'Leads', to: '/leads' },
+    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
+    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
     { icon: FileText, label: 'Reports', to: '/reports' },
     { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: Target, label: 'Goals', to: '/goals' },
     { icon: Calendar, label: 'Calendar', to: '/calendar' },
     { icon: Settings, label: 'Settings', to: '/settings' },
   ];
@@ -155,13 +156,20 @@ export function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch individually so one failure doesn't break the whole dashboard
-    getLeads().then(res => setLeads(res.data)).catch(console.error);
-    getLogs().then(res => setLogs(res.data)).catch(console.error);
-    getPendingTasks().then(res => setPending(res.data)).catch(console.error);
+    const fetchData = () => {
+      getLeads().then(res => setLeads(res.data)).catch(console.error);
+      getLogs().then(res => setLogs(res.data)).catch(console.error);
+      getPendingTasks().then(res => setPending(res.data)).catch(console.error);
+    };
+
+    fetchData();
     
-    // Simulate loading time to ensure data arrives
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(fetchData, 15000);
+
     setTimeout(() => setLoading(false), 500);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {

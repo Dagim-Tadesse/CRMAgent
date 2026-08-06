@@ -7,6 +7,9 @@ import { SchedulePage } from './pages/SchedulePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
 
+import PipelinePage from './pages/PipelinePage';
+import AITasksPage from './pages/AITasksPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -17,8 +20,10 @@ function App() {
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/calendar" element={<SchedulePage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/pipeline" element={<PipelinePage />} />
+        <Route path="/ai-tasks" element={<AITasksPage />} />
       </Routes>
     </BrowserRouter>
   );

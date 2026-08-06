@@ -52,7 +52,9 @@ import {
   Plus,
   X,
   Search,
-  Filter
+  Filter,
+  Kanban,
+  Sparkles
 } from 'lucide-react';
 
 // =============== CONSTANTS ===============
@@ -83,10 +85,11 @@ function Sidebar({ isOpen, toggleSidebar, accentColor, sidebarCollapsed }) {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
     { icon: Users, label: 'Leads', to: '/leads' },
+    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
+    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
     { icon: FileText, label: 'Reports', to: '/reports' },
     { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: Target, label: 'Goals', to: '/goals' },
-    { icon: CalendarIcon, label: 'Schedule', to: '/schedule' },
+    { icon: CalendarIcon, label: 'Calendar', to: '/calendar' },
     { icon: SettingsIcon, label: 'Settings', to: '/settings' },
   ];
 

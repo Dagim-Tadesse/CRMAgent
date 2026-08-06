@@ -67,6 +67,19 @@ The CRMAgent frontend is a modern React application built with TailwindCSS, Luci
   - **Interactive Calendar View:** Displays scheduled follow-ups, meetings, and automated reminder tasks.
   - **Task Timeline:** Day and week overview for sales representatives to manage daily interactions.
 
+### 6. Pipeline Tab (`/pipeline`)
+- **Component:** `PipelinePage.jsx`
+- **Features:**
+  - **Drag-and-Drop Kanban Board:** Visually track and manage leads across various stages (`New`, `Contacted`, `Qualified`, `ProposalSent`, `Negotiation`, `Won`, `Lost`).
+  - **DndContext Integration:** Powered by `@dnd-kit/core` and `@dnd-kit/utilities` for smooth drag handle interactions.
+  - **Optimistic Updates:** Moves lead stages instantly in the UI while making background API calls, reverting on failure.
+
+### 7. AI Tasks Tab (`/ai-tasks`)
+- **Component:** `AITasksPage.jsx`
+- **Features:**
+  - **AI Generated Email Drafts:** Shows list of email responses auto-drafted by Gemini.
+  - **Interactive Action Controls:** Sales reps can **Approve & Send** (sends email immediately via Resend), **Edit First** (live inline editor), or **Reject** drafts.
+
 ---
 
 ## Technical Stack & API Integration
