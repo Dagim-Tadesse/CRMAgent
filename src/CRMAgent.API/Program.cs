@@ -56,6 +56,7 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+builder.Services.AddScoped<IEmailDraftRepository, EmailDraftRepository>();
 builder.Services.AddScoped<IAIService, GeminiService>();
 builder.Services.AddScoped<IEmailService, ResendEmailService>();
 

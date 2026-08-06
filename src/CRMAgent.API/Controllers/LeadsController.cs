@@ -59,13 +59,6 @@ public class LeadsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}/stage")]
-    [Authorize(Roles = "SalesRep,Admin")]
-    public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
-    {
-        return Ok(new { message = "Stage update — Person B implements this" });
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -83,4 +76,3 @@ public class LeadsController : ControllerBase
 }
 
 public record IngestLeadRequest(string FullName, string Email, string Company, string RawInquiryText);
-public record UpdateStageRequest(string Stage);
