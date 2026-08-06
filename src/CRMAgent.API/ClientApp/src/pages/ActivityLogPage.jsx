@@ -61,6 +61,11 @@ export function ActivityLogPage() {
 
   useEffect(() => {
     fetchLogs();
+    
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(fetchLogs, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

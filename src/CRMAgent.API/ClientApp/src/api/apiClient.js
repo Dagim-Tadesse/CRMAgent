@@ -56,5 +56,8 @@ export const createScheduleEvent = (data) => api.post('/api/schedule', data);
 export const updateScheduleEvent = (id, data) => api.put(`/api/schedule/${id}`, data);
 export const deleteScheduleEvent = (id) => api.delete(`/api/schedule/${id}`);
 
+// ============ SOCIAL SIGNALS ============
+export const getSocialSignals = () => api.get('/api/social-signals');
+
 // ============ EXPORT DEFAULT ============
 export default api;

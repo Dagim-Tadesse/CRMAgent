@@ -156,13 +156,20 @@ export function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch individually so one failure doesn't break the whole dashboard
-    getLeads().then(res => setLeads(res.data)).catch(console.error);
-    getLogs().then(res => setLogs(res.data)).catch(console.error);
-    getPendingTasks().then(res => setPending(res.data)).catch(console.error);
+    const fetchData = () => {
+      getLeads().then(res => setLeads(res.data)).catch(console.error);
+      getLogs().then(res => setLogs(res.data)).catch(console.error);
+      getPendingTasks().then(res => setPending(res.data)).catch(console.error);
+    };
+
+    fetchData();
     
-    // Simulate loading time to ensure data arrives
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(fetchData, 15000);
+
     setTimeout(() => setLoading(false), 500);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
