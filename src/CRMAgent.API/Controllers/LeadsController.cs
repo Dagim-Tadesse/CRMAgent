@@ -64,25 +64,6 @@ public class LeadsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}/stage")]
-    [Authorize(Roles = "SalesRep,Admin")]
-    public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
-    {
-        try
-        {
-            await _mediator.Send(new UpdateLeadStageCommand(id, req.Stage));
-            return Ok(new { message = "Stage updated successfully" });
-        }
-        catch (LeadNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -141,4 +122,3 @@ public class LeadsController : ControllerBase
 }
 
 public record IngestLeadRequest(string FullName, string Email, string Company, string RawInquiryText);
-public record UpdateStageRequest(string Stage);
