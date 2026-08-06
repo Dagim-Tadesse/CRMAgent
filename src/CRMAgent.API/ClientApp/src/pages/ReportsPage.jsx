@@ -1,7 +1,7 @@
-// pages/ReportsPage.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { getLeads, getSocialSignals } from '../api/apiClient';
 import {
   LayoutDashboard,
   Users,
@@ -69,6 +69,30 @@ const CHANNEL_LABELS = {
   Telegram: 'Telegram',
   Website: 'Website Form',
   Email: 'Email'
+};
+
+// =============== NEWS & CAMPAIGN MAPPING ===============
+const NEWS_ITEMS = {
+  'news-1': 'Product Launch',
+  'news-2': 'Hiring Announcement',
+  'news-3': 'Price Increase',
+  'news-4': 'Company Anniversary'
+};
+
+const POST_TO_NEWS_MAPPING = {
+  'li-post-1': 'news-1',
+  'tw-post-1': 'news-1',
+  'fb-post-1': 'news-1',
+
+  'li-post-2': 'news-2',
+  'tw-post-2': 'news-2',
+
+  'ig-post-3': 'news-3',
+  'tt-post-3': 'news-3',
+  'tw-post-3': 'news-3',
+
+  'fb-post-4': 'news-4',
+  'ig-post-4': 'news-4'
 };
 
 // =============== MOCK DATA ===============
@@ -293,17 +317,227 @@ export function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [expandedChannel, setExpandedChannel] = useState(null);
 
+  // Social media signal states
+  const [signals, setSignals] = useState([]);
+  const [selectedNewsId, setSelectedNewsId] = useState(null);
+  const [platformData, setPlatformData] = useState([
+    { name: 'LinkedIn', count: 0, color: '#0A66C2' },
+    { name: 'Twitter', count: 0, color: '#1DA1F2' },
+    { name: 'Facebook', count: 0, color: '#1877F2' },
+    { name: 'Instagram', count: 0, color: '#E1306C' },
+    { name: 'TikTok', count: 0, color: '#00f2fe' }
+  ]);
+  const [sentimentData, setSentimentData] = useState([
+    { name: 'Positive', value: 0, color: '#22c55e' },
+    { name: 'Neutral', value: 0, color: '#6b7280' },
+    { name: 'Negative', value: 0, color: '#ef4444' }
+  ]);
+  const [interactionTypeData, setInteractionTypeData] = useState([
+    { name: 'Comment', value: 0, color: '#3b82f6' },
+    { name: 'Mention', value: 0, color: '#8b5cf6' },
+    { name: 'Like', value: 0, color: '#eab308' },
+    { name: 'Share', value: 0, color: '#ec4899' },
+    { name: 'Follow', value: 0, color: '#10b981' }
+  ]);
+
+  const getNewsIdForPost = (postRef) => {
+    if (!postRef) return null;
+    const normalized = postRef.toLowerCase().replace(/_/g, '-');
+    return POST_TO_NEWS_MAPPING[normalized] || null;
+  };
+
+  const uniqueNewsIds = [...new Set(signals.map(s => getNewsIdForPost(s.postReference)).filter(Boolean))];
+
+  useEffect(() => {
+    setLoading(true);
+    
+    Promise.all([getLeads(), getSocialSignals()])
+      .then(([leadsRes, signalsRes]) => {
+        const leads = leadsRes.data;
+        if (leads && leads.length > 0) {
+          processRealLeads(leads);
+        }
+        setSignals(signalsRes.data || []);
+      })
+      .catch(err => {
+        console.error("Error fetching report data:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    processRealSignals(signals, selectedNewsId);
+  }, [signals, selectedNewsId]);
+
+  const processRealSignals = (allSignals, newsId) => {
+    const filteredSignals = newsId 
+      ? allSignals.filter(s => getNewsIdForPost(s.postReference) === newsId)
+      : allSignals;
+
+    const platforms = { LinkedIn: 0, Twitter: 0, Facebook: 0, Instagram: 0, TikTok: 0 };
+    const sentiments = { Positive: 0, Neutral: 0, Negative: 0 };
+    const types = { Comment: 0, Mention: 0, Like: 0, Share: 0, Follow: 0 };
+
+    filteredSignals.forEach(s => {
+      // Map platform
+      const p = s.platformSource;
+      if (platforms[p] !== undefined) platforms[p]++;
+      else if (p === 'X' || p === 'Twitter') platforms.Twitter++;
+
+      // Map sentiment only for Mentions and Comments (Case-Insensitive)
+      if (s.signalType === 'Mention' || s.signalType === 'Comment') {
+        const sent = s.sentiment ? s.sentiment.toLowerCase() : 'neutral';
+        if (sent === 'positive') sentiments.Positive++;
+        else if (sent === 'negative') sentiments.Negative++;
+        else sentiments.Neutral++;
+      }
+      
+      // Map interaction type
+      const t = s.signalType;
+      if (types[t] !== undefined) types[t]++;
+    });
+
+    setPlatformData([
+      { name: 'LinkedIn', count: platforms.LinkedIn, color: '#0A66C2' },
+      { name: 'Twitter', count: platforms.Twitter, color: '#1DA1F2' },
+      { name: 'Facebook', count: platforms.Facebook, color: '#1877F2' },
+      { name: 'Instagram', count: platforms.Instagram, color: '#E1306C' },
+      { name: 'TikTok', count: platforms.TikTok, color: '#00f2fe' }
+    ]);
+
+    setSentimentData([
+      { name: 'Positive', value: sentiments.Positive, color: '#22c55e' },
+      { name: 'Neutral', value: sentiments.Neutral, color: '#6b7280' },
+      { name: 'Negative', value: sentiments.Negative, color: '#ef4444' }
+    ]);
+
+    setInteractionTypeData([
+      { name: 'Comment', value: types.Comment, color: '#3b82f6' },
+      { name: 'Mention', value: types.Mention, color: '#8b5cf6' },
+      { name: 'Like', value: types.Like, color: '#eab308' },
+      { name: 'Share', value: types.Share, color: '#ec4899' },
+      { name: 'Follow', value: types.Follow, color: '#10b981' }
+    ]);
+  };
+
+  const processRealLeads = (leads) => {
+    // 1. Channel Distribution
+    const counts = { Telegram: 0, Email: 0, Website: 0 };
+    leads.forEach(l => {
+      const src = l.source === 'WebForm' ? 'Website' : (l.source === 'Email' ? 'Email' : 'Telegram');
+      counts[src] = (counts[src] || 0) + 1;
+    });
+
+    const channelLeadsObj = [
+      { channel: 'Telegram', count: counts.Telegram, color: '#3b82f6' },
+      { channel: 'Website', count: counts.Website, color: '#8b5cf6' },
+      { channel: 'Email', count: counts.Email, color: '#22c55e' },
+    ];
+    setChannelLeads(channelLeadsObj);
+
+    // 2. Channel Classification
+    const classification = {
+      Telegram: { hot: 0, medium: 0, low: 0, total: 0 },
+      Website: { hot: 0, medium: 0, low: 0, total: 0 },
+      Email: { hot: 0, medium: 0, low: 0, total: 0 }
+    };
+
+    leads.forEach(l => {
+      const src = l.source === 'WebForm' ? 'Website' : (l.source === 'Email' ? 'Email' : 'Telegram');
+      const score = l.aiScore || 1;
+      
+      classification[src].total += 1;
+      if (score >= 8) classification[src].hot += 1;
+      else if (score >= 5) classification[src].medium += 1;
+      else classification[src].low += 1;
+    });
+
+    const classificationObj = [
+      { channel: 'Telegram', hot: classification.Telegram.hot, medium: classification.Telegram.medium, low: classification.Telegram.low, total: classification.Telegram.total },
+      { channel: 'Website', hot: classification.Website.hot, medium: classification.Website.medium, low: classification.Website.low, total: classification.Website.total },
+      { channel: 'Email', hot: classification.Email.hot, medium: classification.Email.medium, low: classification.Email.low, total: classification.Email.total },
+    ];
+    setClassificationData(classificationObj);
+
+    // 3. Hot Leads by Channel
+    const hotLeadsObj = [
+      { channel: 'Telegram', value: classification.Telegram.hot, color: '#3b82f6' },
+      { channel: 'Website', value: classification.Website.hot, color: '#8b5cf6' },
+      { channel: 'Email', value: classification.Email.hot, color: '#22c55e' }
+    ];
+    setHotLeadsData(hotLeadsObj);
+
+    // 4. Leads list grouped by channel
+    const groupedLeads = { Telegram: [], Website: [], Email: [] };
+    leads.forEach(l => {
+      const src = l.source === 'WebForm' ? 'Website' : (l.source === 'Email' ? 'Email' : 'Telegram');
+      const status = l.aiScore >= 8 ? 'Hot' : (l.aiScore >= 5 ? 'Medium' : 'Low');
+      groupedLeads[src].push({
+        id: l.id,
+        name: l.fullName,
+        score: l.aiScore,
+        status: status,
+        stage: l.pipelineStage,
+        createdAt: l.createdAt ? l.createdAt.split('T')[0] : ''
+      });
+    });
+    setLeadsByChannel(groupedLeads);
+
+    // 5. Full Report (for cards and table view)
+    const wonCount = { Telegram: 0, Email: 0, Website: 0 };
+    leads.forEach(l => {
+      const src = l.source === 'WebForm' ? 'Website' : (l.source === 'Email' ? 'Email' : 'Telegram');
+      if (l.pipelineStage === 'Won') {
+        wonCount[src] += 1;
+      }
+    });
+
+    const scoresSum = { Telegram: 0, Email: 0, Website: 0 };
+    leads.forEach(l => {
+      const src = l.source === 'WebForm' ? 'Website' : (l.source === 'Email' ? 'Email' : 'Telegram');
+      scoresSum[src] += l.aiScore || 1;
+    });
+
+    const fullReportObj = ['Telegram', 'Website', 'Email'].map(ch => {
+      const tot = counts[ch] || 0;
+      const avg = tot > 0 ? parseFloat((scoresSum[ch] / tot).toFixed(1)) : 0;
+      const won = wonCount[ch] || 0;
+      const conv = tot > 0 ? ((won / tot) * 100).toFixed(1) + '%' : '0.0%';
+      const color = ch === 'Telegram' ? '#3b82f6' : (ch === 'Website' ? '#8b5cf6' : '#22c55e');
+      return {
+        channel: ch,
+        totalLeads: tot,
+        hot: classification[ch].hot,
+        medium: classification[ch].medium,
+        low: classification[ch].low,
+        avgScore: avg,
+        wonDeals: won,
+        conversionRate: conv,
+        color: color
+      };
+    });
+    setReportData(fullReportObj);
+  };
+
   // Calculate totals
   const totalLeads = reportData.reduce((sum, r) => sum + r.totalLeads, 0);
   const totalHot = reportData.reduce((sum, r) => sum + r.hot, 0);
   const totalWon = reportData.reduce((sum, r) => sum + r.wonDeals, 0);
-  const avgScore = (reportData.reduce((sum, r) => sum + (r.avgScore * r.totalLeads), 0) / totalLeads).toFixed(1);
+  const avgScore = totalLeads > 0 
+    ? (reportData.reduce((sum, r) => sum + (r.avgScore * r.totalLeads), 0) / totalLeads).toFixed(1)
+    : '0.0';
 
   // Get top channel
-  const topChannel = reportData.reduce((a, b) => a.totalLeads > b.totalLeads ? a : b);
+  const topChannel = reportData.length > 0 
+    ? reportData.reduce((a, b) => a.totalLeads > b.totalLeads ? a : b)
+    : { channel: 'None', totalLeads: 0, hot: 0, conversionRate: '0.0%' };
 
   // Get channel with most hot leads
-  const topHotChannel = reportData.reduce((a, b) => a.hot > b.hot ? a : b);
+  const topHotChannel = reportData.length > 0 
+    ? reportData.reduce((a, b) => a.hot > b.hot ? a : b)
+    : { channel: 'None' };
 
   const toggleChannelExpand = (channel) => {
     setExpandedChannel(expandedChannel === channel ? null : channel);
@@ -643,9 +877,26 @@ export function ReportsPage() {
 
           {/* ============ SOCIAL MEDIA ANALYTICS ============ */}
           <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-white">Social Media Brand Engagement</h3>
-              <p className="text-xs text-gray-500">Live signal metrics and sentiment tracking from n8n webhooks</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Social Media Brand Engagement</h3>
+                <p className="text-xs text-gray-500">Live signal metrics and sentiment tracking from n8n webhooks</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Campaign Filter:</span>
+                <select 
+                  value={selectedNewsId || ''} 
+                  onChange={(e) => setSelectedNewsId(e.target.value || null)}
+                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                >
+                  <option value="" className="bg-[#0f0f16]">All Campaigns / News</option>
+                  {uniqueNewsIds.map((newsId, idx) => (
+                    <option key={idx} value={newsId} className="bg-[#0f0f16]">
+                      {NEWS_ITEMS[newsId] || newsId}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -656,13 +907,7 @@ export function ReportsPage() {
                   <Activity size={14} className="text-blue-400" />
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={[
-                    { name: 'LinkedIn', count: 18, color: '#0A66C2' },
-                    { name: 'Twitter', count: 24, color: '#1DA1F2' },
-                    { name: 'Facebook', count: 12, color: '#1877F2' },
-                    { name: 'Instagram', count: 15, color: '#E1306C' },
-                    { name: 'TikTok', count: 20, color: '#00f2fe' }
-                  ]}>
+                  <BarChart data={platformData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0a" />
                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#6b7280' }} />
                     <YAxis tick={{ fontSize: 10, fill: '#6b7280' }} />
@@ -681,11 +926,7 @@ export function ReportsPage() {
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: 'Positive', value: 35, color: '#22c55e' },
-                        { name: 'Neutral', value: 45, color: '#6b7280' },
-                        { name: 'Negative', value: 9, color: '#ef4444' }
-                      ]}
+                      data={sentimentData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -694,11 +935,7 @@ export function ReportsPage() {
                       outerRadius={65}
                       paddingAngle={2}
                     >
-                      {[
-                        { name: 'Positive', value: 35, color: '#22c55e' },
-                        { name: 'Neutral', value: 45, color: '#6b7280' },
-                        { name: 'Negative', value: 9, color: '#ef4444' }
-                      ].map((entry, index) => (
+                      {sentimentData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -706,9 +943,9 @@ export function ReportsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex justify-center gap-3 mt-1">
-                  <span className="text-[10px] text-green-400 font-medium">Positive (35)</span>
-                  <span className="text-[10px] text-gray-400 font-medium">Neutral (45)</span>
-                  <span className="text-[10px] text-red-400 font-medium">Negative (9)</span>
+                  <span className="text-[10px] text-green-400 font-medium">Positive ({sentimentData.find(s=>s.name==='Positive')?.value || 0})</span>
+                  <span className="text-[10px] text-gray-400 font-medium">Neutral ({sentimentData.find(s=>s.name==='Neutral')?.value || 0})</span>
+                  <span className="text-[10px] text-red-400 font-medium">Negative ({sentimentData.find(s=>s.name==='Negative')?.value || 0})</span>
                 </div>
               </div>
 
@@ -721,13 +958,7 @@ export function ReportsPage() {
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: 'Comment', value: 32, color: '#3b82f6' },
-                        { name: 'Mention', value: 18, color: '#8b5cf6' },
-                        { name: 'Like', value: 25, color: '#eab308' },
-                        { name: 'Share', value: 10, color: '#ec4899' },
-                        { name: 'Follow', value: 14, color: '#10b981' }
-                      ]}
+                      data={interactionTypeData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -736,13 +967,7 @@ export function ReportsPage() {
                       outerRadius={65}
                       paddingAngle={2}
                     >
-                      {[
-                        { name: 'Comment', value: 32, color: '#3b82f6' },
-                        { name: 'Mention', value: 18, color: '#8b5cf6' },
-                        { name: 'Like', value: 25, color: '#eab308' },
-                        { name: 'Share', value: 10, color: '#ec4899' },
-                        { name: 'Follow', value: 14, color: '#10b981' }
-                      ].map((entry, index) => (
+                      {interactionTypeData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -750,11 +975,11 @@ export function ReportsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex justify-center flex-wrap gap-2 mt-1">
-                  <span className="text-[9px] text-[#3b82f6]">Comment</span>
-                  <span className="text-[9px] text-[#8b5cf6]">Mention</span>
-                  <span className="text-[9px] text-[#eab308]">Like</span>
-                  <span className="text-[9px] text-[#ec4899]">Share</span>
-                  <span className="text-[9px] text-[#10b981]">Follow</span>
+                  {interactionTypeData.map((entry, index) => (
+                    <span key={index} className="text-[9px]" style={{ color: entry.color }}>
+                      {entry.name} ({entry.value})
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

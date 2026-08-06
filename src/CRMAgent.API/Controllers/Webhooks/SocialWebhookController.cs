@@ -4,6 +4,7 @@ using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRMAgent.API.Controllers.Webhooks;
 
@@ -20,6 +21,14 @@ public class SocialWebhookController : ControllerBase
         _db = db;
         _aiService = aiService;
         _config = config;
+    }
+
+    [HttpGet]
+    [Route("/api/social-signals")]
+    public async Task<IActionResult> GetSignals()
+    {
+        var signals = await _db.SocialSignals.OrderByDescending(s => s.CreatedAt).ToListAsync();
+        return Ok(signals);
     }
 
     [HttpPost]

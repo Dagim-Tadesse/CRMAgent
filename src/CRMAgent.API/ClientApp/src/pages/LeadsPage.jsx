@@ -212,22 +212,29 @@ export function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
+
+    // Silent background refresh every 15 seconds
+    const interval = setInterval(() => {
+      fetchLeads(true);
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     filterLeads();
   }, [leads, searchTerm, selectedStage, sortField, sortDirection]);
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const response = await getLeads();
       setLeads(response.data);
       setFilteredLeads(response.data);
     } catch (error) {
       console.error('Failed to fetch leads:', error);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 

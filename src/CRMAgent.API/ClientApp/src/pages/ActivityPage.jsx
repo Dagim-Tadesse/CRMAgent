@@ -17,10 +17,19 @@ export function ActivityPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getLogs()
-      .then((response) => setLogs(response.data || []))
-      .catch((error) => console.error('Failed to fetch activity:', error))
-      .finally(() => setLoading(false));
+    const fetchLogs = () => {
+      getLogs()
+        .then((response) => setLogs(response.data || []))
+        .catch((error) => console.error('Failed to fetch activity:', error))
+        .finally(() => setLoading(false));
+    };
+
+    fetchLogs();
+
+    // Auto-refresh every 15 seconds
+    const interval = setInterval(fetchLogs, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
