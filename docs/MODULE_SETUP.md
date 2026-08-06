@@ -39,6 +39,9 @@ Ensure Docker Desktop is running, then start n8n:
 # For Windows CMD:
 docker run -it --rm --name n8n -p 5678:5678 -v %USERPROFILE%\.n8n:/home/node/.n8n n8nio/n8n
 
+# For Windows PowerShell:
+docker run -it --rm --name n8n -p 5678:5678 -v ${env:USERPROFILE}\.n8n:/home/node/.n8n n8nio/n8n
+
 # For Mac/Linux Bash:
 docker run -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n n8nio/n8n
 ```

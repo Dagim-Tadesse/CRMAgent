@@ -2,6 +2,7 @@ using CRMAgent.Application.UseCases.DeleteLead;
 using CRMAgent.Application.UseCases.GetAllLeads;
 using CRMAgent.Application.UseCases.GetLeadById;
 using CRMAgent.Application.UseCases.IngestLead;
+using CRMAgent.Application.UseCases.UpdateLeadStage;
 using CRMAgent.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -63,7 +64,19 @@ public class LeadsController : ControllerBase
     [Authorize(Roles = "SalesRep,Admin")]
     public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
     {
-        return Ok(new { message = "Stage update — Person B implements this" });
+        try
+        {
+            await _mediator.Send(new UpdateLeadStageCommand(id, req.Stage));
+            return Ok(new { message = "Stage updated successfully" });
+        }
+        catch (LeadNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
