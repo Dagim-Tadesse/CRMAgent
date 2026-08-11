@@ -3,8 +3,11 @@ using CRMAgent.Application.Interfaces;
 using CRMAgent.Infrastructure.Services;
 using CRMAgent.Application.UseCases.IngestLead;
 using CRMAgent.Infrastructure.AI;
+using CRMAgent.Infrastructure.Jobs;
 using CRMAgent.Infrastructure.Persistence;
 using CRMAgent.Infrastructure.Repositories;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +64,11 @@ builder.Services.AddScoped<IAIService, GeminiService>();
 builder.Services.AddScoped<IEmailService, ResendEmailService>();
 
 builder.Services.AddHttpClient();
+
+// ── HANGFIRE ──────────────────────────────────────────────────
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
+builder.Services.AddScoped<DailyPipelineCheckJob>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -142,5 +150,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseHangfireDashboard("/hangfire");
+
+var hangfireSettings = app.Configuration.GetSection("HangfireSettings");
+var dailyJobHour = int.Parse(hangfireSettings["DailyJobHour"]!);
+var dailyJobMinute = int.Parse(hangfireSettings["DailyJobMinute"]!);
+
+RecurringJob.AddOrUpdate<DailyPipelineCheckJob>(
+    "daily-pipeline-check",
+    job => job.ExecuteAsync(),
+    $"{dailyJobMinute} {dailyJobHour} * * *");
 
 app.Run();
