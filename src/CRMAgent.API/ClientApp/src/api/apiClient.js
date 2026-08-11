@@ -15,6 +15,19 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// Auto-handle 401 Unauthorized responses (token expired or DB reset)
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Clear token and bounce to login
+      ['crm_token', 'crm_role', 'crm_email'].forEach(k => localStorage.removeItem(k));
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ============ AUTH ============
 export const login = (email, password) =>
   api.post('/api/auth/login', { email, password });
