@@ -521,6 +521,51 @@ export function ReportsPage() {
     setReportData(fullReportObj);
   };
 
+  // Export function
+  const handleExport = () => {
+    // Create CSV data
+    const headers = ['Channel', 'Total Leads', 'Hot (8+)', 'Medium (5-7)', 'Low (1-4)', 'Avg Score', 'Won Deals', 'Conversion Rate'];
+    
+    const rows = reportData.map(r => [
+      r.channel,
+      r.totalLeads,
+      r.hot,
+      r.medium,
+      r.low,
+      r.avgScore,
+      r.wonDeals,
+      r.conversionRate
+    ]);
+
+    // Add summary row
+    const totalLeads = reportData.reduce((sum, r) => sum + r.totalLeads, 0);
+    const totalHot = reportData.reduce((sum, r) => sum + r.hot, 0);
+    const totalWon = reportData.reduce((sum, r) => sum + r.wonDeals, 0);
+    const avgScore = totalLeads > 0 
+      ? (reportData.reduce((sum, r) => sum + (r.avgScore * r.totalLeads), 0) / totalLeads).toFixed(1)
+      : '0.0';
+    const totalConv = totalLeads > 0 ? ((totalWon / totalLeads) * 100).toFixed(1) + '%' : '0.0%';
+
+    rows.push(['TOTAL', totalLeads, totalHot, '-', '-', avgScore, totalWon, totalConv]);
+
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => {
+      csvContent += row.join(',') + '\n';
+    });
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leadflow-report-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Calculate totals
   const totalLeads = reportData.reduce((sum, r) => sum + r.totalLeads, 0);
   const totalHot = reportData.reduce((sum, r) => sum + r.hot, 0);
@@ -568,7 +613,10 @@ export function ReportsPage() {
                 <Bell size={20} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]"></span>
               </button>
-              <button className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
+              <button 
+                onClick={handleExport}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/25 transition flex items-center gap-2 text-sm font-medium"
+              >
                 <Download size={16} />
                 Export
               </button>
