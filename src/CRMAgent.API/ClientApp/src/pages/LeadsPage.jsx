@@ -233,23 +233,20 @@ export function LeadsPage() {
   const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
   const [selectedStage, setSelectedStage] = useState('All');
-  const [viewMode, setViewMode] = useState('active'); // 'active' | 'archived'
+  const [viewMode, setViewMode] = useState('active');
   const [staleLeadsCount, setStaleLeadsCount] = useState(0);
   
-  // Pagination state
-  const [visibleCount, setVisibleCount] = useState(15); // Start with 15 leads
-  const INCREMENT = 15; // Load 15 more each time
+  const [visibleCount, setVisibleCount] = useState(15);
+  const INCREMENT = 15;
 
+  // Define stages inside the component
   const stages = ['All', 'New', 'Contacted', 'Qualified', 'ProposalSent', 'Negotiation', 'Won', 'Lost'];
 
   useEffect(() => {
     fetchLeads();
-
-    // Silent background refresh every 15 seconds
     const interval = setInterval(() => {
       fetchLeads(true);
     }, 15000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -258,7 +255,6 @@ export function LeadsPage() {
   }, [leads, searchTerm, selectedStage, sortField, sortDirection, viewMode]);
 
   useEffect(() => {
-    // Update displayed leads when filtered leads change or visible count changes
     updateDisplayedLeads();
   }, [filteredLeads, visibleCount]);
 
@@ -267,7 +263,6 @@ export function LeadsPage() {
       if (!isBackground) setLoading(true);
       const response = await getLeads();
       
-      // Add isArchived field if not present (for backward compatibility)
       const leadsWithArchive = response.data.map(lead => ({
         ...lead,
         isArchived: lead.isArchived || false,
@@ -276,11 +271,7 @@ export function LeadsPage() {
       
       setLeads(leadsWithArchive);
       setFilteredLeads(leadsWithArchive);
-      
-      // Reset visible count when data loads
       setVisibleCount(15);
-      
-      // Calculate stale leads count
       calculateStaleLeads(leadsWithArchive);
     } catch (error) {
       console.error('Failed to fetch leads:', error);
@@ -310,12 +301,10 @@ export function LeadsPage() {
   const filterLeads = () => {
     let filtered = [...leads];
 
-    // Archive/Active filter
     filtered = filtered.filter(lead => 
       viewMode === 'active' ? !lead.isArchived : lead.isArchived
     );
 
-    // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(lead =>
@@ -325,12 +314,10 @@ export function LeadsPage() {
       );
     }
 
-    // Stage filter (only for active leads)
     if (selectedStage !== 'All' && viewMode === 'active') {
       filtered = filtered.filter(lead => lead.pipelineStage === selectedStage);
     }
 
-    // Sort
     filtered.sort((a, b) => {
       let aVal = a[sortField] || '';
       let bVal = b[sortField] || '';
@@ -349,7 +336,6 @@ export function LeadsPage() {
     });
 
     setFilteredLeads(filtered);
-    // Reset visible count when filters change
     setVisibleCount(15);
   };
 
@@ -375,7 +361,6 @@ export function LeadsPage() {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       try {
         await deleteLead(id);
-        // Refresh the leads list after deletion
         await fetchLeads();
       } catch (error) {
         console.error('Failed to delete lead:', error);
@@ -385,7 +370,6 @@ export function LeadsPage() {
 
   const handleArchive = async (id, e) => {
     e.stopPropagation();
-    // TODO: Add backend call to archive lead
     const updatedLeads = leads.map(lead => 
       lead.id === id 
         ? { ...lead, isArchived: true, archivedAt: new Date().toISOString() } 
@@ -398,7 +382,6 @@ export function LeadsPage() {
 
   const handleUnarchive = async (id, e) => {
     e.stopPropagation();
-    // TODO: Add backend call to unarchive lead
     const updatedLeads = leads.map(lead => 
       lead.id === id 
         ? { ...lead, isArchived: false, archivedAt: null } 
@@ -480,7 +463,6 @@ export function LeadsPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* View Toggle */}
             <div className="flex rounded-xl bg-white/5 border border-white/10 p-1">
               <button
                 onClick={() => setViewMode('active')}
@@ -517,7 +499,7 @@ export function LeadsPage() {
           </div>
         </div>
 
-        {/* Archive Suggestion Banner (only in active view) */}
+        {/* Archive Suggestion Banner */}
         {viewMode === 'active' && (
           <ArchiveSuggestionBanner 
             staleLeadsCount={staleLeadsCount}
@@ -542,17 +524,30 @@ export function LeadsPage() {
               />
             </div>
 
-            {/* Stage Filter - only for active leads */}
+            {/* Stage Filter */}
             {viewMode === 'active' && (
               <div className="flex items-center gap-2">
                 <Filter size={16} className="text-gray-500" />
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none transition"
+                  className="bg-[#1a1a24] border border-white/10 rounded-xl px-3 py-2.5 
+                             text-white text-sm min-w-[140px]
+                             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 
+                             focus:outline-none transition
+                             appearance-none cursor-pointer
+                             hover:border-white/20"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 12px center',
+                    paddingRight: '36px'
+                  }}
                 >
-                  {stages.map(stage => (
-                    <option key={stage} value={stage}>{stage}</option>
+                  {stages.map((stage) => (
+                    <option key={stage} value={stage} className="bg-[#1a1a24] text-white hover:bg-blue-500">
+                      {stage}
+                    </option>
                   ))}
                 </select>
               </div>
