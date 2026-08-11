@@ -208,8 +208,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
     { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
     { icon: FileText, label: 'Reports', to: '/reports' },
     { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: Target, label: 'Goals', to: '/goals' },
-    { icon: CalendarIcon, label: 'Schedule', to: '/schedule' },
+    { icon: CalendarIcon, label: 'Calendar', to: '/calendar' },
     { icon: Settings, label: 'Settings', to: '/settings' },
   ];
 

@@ -1,8 +1,13 @@
+using CRMAgent.Application.Interfaces;
 using CRMAgent.Application.UseCases.DeleteLead;
 using CRMAgent.Application.UseCases.GetAllLeads;
 using CRMAgent.Application.UseCases.GetLeadById;
 using CRMAgent.Application.UseCases.IngestLead;
+using CRMAgent.Application.UseCases.UpdateLeadStage;
+using CRMAgent.Domain.Entities;
+using CRMAgent.Domain.Enums;
 using CRMAgent.Domain.Exceptions;
+using CRMAgent.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -59,13 +64,6 @@ public class LeadsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}/stage")]
-    [Authorize(Roles = "SalesRep,Admin")]
-    public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
-    {
-        return Ok(new { message = "Stage update — Person B implements this" });
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -80,7 +78,47 @@ public class LeadsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpPost("re-score-pending")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ReScorePending(
+        [FromServices] AppDbContext db, 
+        [FromServices] IAIService ai, 
+        [FromServices] IActivityLogRepository logs)
+    {
+        var pendingLeads = db.Leads.Where(l => l.Status == LeadStatus.PendingManualTriage).ToList();
+        int count = 0;
+        foreach (var lead in pendingLeads)
+        {
+            try
+            {
+                var result = await ai.ScoreLeadAsync(lead.RawInquiryText);
+                lead.AIScore = result.Score;
+                lead.Emotion = Enum.Parse<EmotionType>(result.Emotion, true);
+                lead.Status = LeadStatus.Active;
+                if (result.Score >= 7)
+                {
+                    lead.PipelineStage = PipelineStage.Contacted;
+                }
+                db.Leads.Update(lead);
+
+                await logs.AddAsync(new ActivityLog
+                {
+                    LeadId = lead.Id,
+                    Action = "Lead Re-Scored",
+                    Reason = $"AI Re-Score: {result.Score}/10. Emotion: {result.Emotion}. {result.Summary}",
+                    TriggeredBy = LogTrigger.Agent
+                });
+                count++;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error re-scoring lead {lead.Id}: {ex.Message}");
+            }
+        }
+        await db.SaveChangesAsync();
+        return Ok(new { message = $"{count} leads successfully re-scored by Gemini AI." });
+    }
 }
 
 public record IngestLeadRequest(string FullName, string Email, string Company, string RawInquiryText);
-public record UpdateStageRequest(string Stage);
