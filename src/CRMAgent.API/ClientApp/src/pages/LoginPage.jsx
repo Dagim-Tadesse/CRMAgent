@@ -17,7 +17,13 @@ export function LoginPage() {
       const res = await login(email, password);
       storeLogin(res.data.token, res.data.role, res.data.email);
       navigate('/dashboard');
-    } catch { setError('Invalid email or password. Please try again.'); }
+    } catch (err) {
+      if (!err.response) {
+        setError(`Cannot connect to Backend API. Check your connection or API configuration. (API URL: ${process.env.REACT_APP_API_BASE_URL || 'https://localhost:7001'})`);
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
+    }
     finally { setLoading(false); }
   };
 

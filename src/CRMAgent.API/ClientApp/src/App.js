@@ -10,20 +10,32 @@ import { ReportsPage } from './pages/ReportsPage';
 import PipelinePage from './pages/PipelinePage';
 import AITasksPage from './pages/AITasksPage';
 
+import { useAuth } from './hooks/useAuth';
+
+function ProtectedRoute({ children }) {
+  const { isLoggedIn } = useAuth();
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/leads" element={<LeadsPage />} />
-        <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/calendar" element={<SchedulePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/pipeline" element={<PipelinePage />} />
-        <Route path="/ai-tasks" element={<AITasksPage />} />
+        
+        {/* Protected Dashboard Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
+        <Route path="/activity" element={<ProtectedRoute><ActivityPage /></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/pipeline" element={<ProtectedRoute><PipelinePage /></ProtectedRoute>} />
+        <Route path="/ai-tasks" element={<ProtectedRoute><AITasksPage /></ProtectedRoute>} />
+        
+        {/* Catch-all wildcard redirect */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
