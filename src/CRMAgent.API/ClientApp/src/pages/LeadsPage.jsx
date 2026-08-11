@@ -5,7 +5,7 @@ import {
   Search, Plus, X, Eye, Trash2, Filter,
   ChevronDown, ChevronUp, User, Building2, Mail,
   FileText, Calendar, AlertCircle, CheckCircle, Clock, Users,
-  ArrowLeft
+  ArrowLeft, Archive, ArchiveRestore, ChevronRight
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 import { useAuth } from '../hooks/useAuth';
@@ -196,17 +196,49 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
   );
 }
 
+// Archive Suggestion Banner Component
+function ArchiveSuggestionBanner({ staleLeadsCount, onReview }) {
+  if (staleLeadsCount === 0) return null;
+
+  return (
+    <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Archive size={18} className="text-amber-400" />
+        <div>
+          <p className="text-sm text-white">
+            <span className="font-medium">{staleLeadsCount}</span> stagnant lead{staleLeadsCount !== 1 ? 's' : ''} with no activity in 90+ days
+          </p>
+          <p className="text-xs text-gray-400">These leads may be candidates for archiving</p>
+        </div>
+      </div>
+      <button
+        onClick={onReview}
+        className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-sm font-medium transition border border-amber-500/20"
+      >
+        Review & Archive
+      </button>
+    </div>
+  );
+}
+
 export function LeadsPage() {
   const navigate = useNavigate();
   const { email } = useAuth();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
+  const [displayedLeads, setDisplayedLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
   const [selectedStage, setSelectedStage] = useState('All');
+  const [viewMode, setViewMode] = useState('active'); // 'active' | 'archived'
+  const [staleLeadsCount, setStaleLeadsCount] = useState(0);
+  
+  // Pagination state
+  const [visibleCount, setVisibleCount] = useState(15); // Start with 15 leads
+  const INCREMENT = 15; // Load 15 more each time
 
   const stages = ['All', 'New', 'Contacted', 'Qualified', 'ProposalSent', 'Negotiation', 'Won', 'Lost'];
 
@@ -223,14 +255,33 @@ export function LeadsPage() {
 
   useEffect(() => {
     filterLeads();
-  }, [leads, searchTerm, selectedStage, sortField, sortDirection]);
+  }, [leads, searchTerm, selectedStage, sortField, sortDirection, viewMode]);
+
+  useEffect(() => {
+    // Update displayed leads when filtered leads change or visible count changes
+    updateDisplayedLeads();
+  }, [filteredLeads, visibleCount]);
 
   const fetchLeads = async (isBackground = false) => {
     try {
       if (!isBackground) setLoading(true);
       const response = await getLeads();
-      setLeads(response.data);
-      setFilteredLeads(response.data);
+      
+      // Add isArchived field if not present (for backward compatibility)
+      const leadsWithArchive = response.data.map(lead => ({
+        ...lead,
+        isArchived: lead.isArchived || false,
+        archivedAt: lead.archivedAt || null
+      }));
+      
+      setLeads(leadsWithArchive);
+      setFilteredLeads(leadsWithArchive);
+      
+      // Reset visible count when data loads
+      setVisibleCount(15);
+      
+      // Calculate stale leads count
+      calculateStaleLeads(leadsWithArchive);
     } catch (error) {
       console.error('Failed to fetch leads:', error);
     } finally {
@@ -238,8 +289,31 @@ export function LeadsPage() {
     }
   };
 
+  const calculateStaleLeads = (leadsData) => {
+    const now = new Date();
+    const ninetyDaysAgo = new Date(now.setDate(now.getDate() - 90));
+    
+    const stale = leadsData.filter(lead => 
+      !lead.isArchived &&
+      !lead.isPriority &&
+      !lead.isAtRisk &&
+      lead.pipelineStage !== 'Qualified' &&
+      lead.pipelineStage !== 'ProposalSent' &&
+      lead.pipelineStage !== 'Negotiation' &&
+      lead.isStagnant &&
+      new Date(lead.lastInteractionAt || lead.updatedAt) < ninetyDaysAgo
+    );
+    
+    setStaleLeadsCount(stale.length);
+  };
+
   const filterLeads = () => {
     let filtered = [...leads];
+
+    // Archive/Active filter
+    filtered = filtered.filter(lead => 
+      viewMode === 'active' ? !lead.isArchived : lead.isArchived
+    );
 
     // Search filter
     if (searchTerm) {
@@ -251,8 +325,8 @@ export function LeadsPage() {
       );
     }
 
-    // Stage filter
-    if (selectedStage !== 'All') {
+    // Stage filter (only for active leads)
+    if (selectedStage !== 'All' && viewMode === 'active') {
       filtered = filtered.filter(lead => lead.pipelineStage === selectedStage);
     }
 
@@ -275,6 +349,16 @@ export function LeadsPage() {
     });
 
     setFilteredLeads(filtered);
+    // Reset visible count when filters change
+    setVisibleCount(15);
+  };
+
+  const updateDisplayedLeads = () => {
+    setDisplayedLeads(filteredLeads.slice(0, visibleCount));
+  };
+
+  const handleSeeMore = () => {
+    setVisibleCount(prev => Math.min(prev + INCREMENT, filteredLeads.length));
   };
 
   const handleSort = (field) => {
@@ -299,12 +383,65 @@ export function LeadsPage() {
     }
   };
 
+  const handleArchive = async (id, e) => {
+    e.stopPropagation();
+    // TODO: Add backend call to archive lead
+    const updatedLeads = leads.map(lead => 
+      lead.id === id 
+        ? { ...lead, isArchived: true, archivedAt: new Date().toISOString() } 
+        : lead
+    );
+    setLeads(updatedLeads);
+    setFilteredLeads(updatedLeads);
+    calculateStaleLeads(updatedLeads);
+  };
+
+  const handleUnarchive = async (id, e) => {
+    e.stopPropagation();
+    // TODO: Add backend call to unarchive lead
+    const updatedLeads = leads.map(lead => 
+      lead.id === id 
+        ? { ...lead, isArchived: false, archivedAt: null } 
+        : lead
+    );
+    setLeads(updatedLeads);
+    setFilteredLeads(updatedLeads);
+    calculateStaleLeads(updatedLeads);
+  };
+
+  const handleReviewStaleLeads = () => {
+    const now = new Date();
+    const ninetyDaysAgo = new Date(now.setDate(now.getDate() - 90));
+    
+    const staleLeads = leads.filter(lead => 
+      !lead.isArchived &&
+      !lead.isPriority &&
+      !lead.isAtRisk &&
+      lead.pipelineStage !== 'Qualified' &&
+      lead.pipelineStage !== 'ProposalSent' &&
+      lead.pipelineStage !== 'Negotiation' &&
+      lead.isStagnant &&
+      new Date(lead.lastInteractionAt || lead.updatedAt) < ninetyDaysAgo
+    );
+    
+    setSearchTerm('');
+    setSelectedStage('All');
+    setFilteredLeads(staleLeads);
+    setVisibleCount(15);
+    
+    console.log(`Showing ${staleLeads.length} stale leads for review`);
+  };
+
   const getFlagCount = (lead) => {
     let count = 0;
     if (lead.isAtRisk) count++;
     if (lead.isStagnant) count++;
     if (lead.isPriority) count++;
     return count;
+  };
+
+  const getLeadChannel = (lead) => {
+    return lead.source || 'WebForm';
   };
 
   if (loading) {
@@ -317,6 +454,8 @@ export function LeadsPage() {
       </div>
     );
   }
+
+  const hasMoreLeads = visibleCount < filteredLeads.length;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] p-6">
@@ -333,17 +472,58 @@ export function LeadsPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-white">Leads</h1>
-              <p className="text-sm text-gray-500">Manage and track your leads</p>
+              <p className="text-sm text-gray-500">
+                {viewMode === 'active' 
+                  ? 'Manage and track your active leads' 
+                  : 'View archived leads'}
+              </p>
             </div>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition"
-          >
-            <Plus size={18} />
-            Add Lead
-          </button>
+          <div className="flex items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex rounded-xl bg-white/5 border border-white/10 p-1">
+              <button
+                onClick={() => setViewMode('active')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  viewMode === 'active'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setViewMode('archived')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                  viewMode === 'archived'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Archive size={14} />
+                Archived
+              </button>
+            </div>
+            
+            {viewMode === 'active' && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition"
+              >
+                <Plus size={18} />
+                Add Lead
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Archive Suggestion Banner (only in active view) */}
+        {viewMode === 'active' && (
+          <ArchiveSuggestionBanner 
+            staleLeadsCount={staleLeadsCount}
+            onReview={handleReviewStaleLeads}
+          />
+        )}
 
         {/* Filters */}
         <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4">
@@ -355,28 +535,32 @@ export function LeadsPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name, company, or email..."
+                placeholder={viewMode === 'active' 
+                  ? "Search by name, company, or email..." 
+                  : "Search archived leads..."}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
               />
             </div>
 
-            {/* Stage Filter */}
-            <div className="flex items-center gap-2">
-              <Filter size={16} className="text-gray-500" />
-              <select
-                value={selectedStage}
-                onChange={(e) => setSelectedStage(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none transition"
-              >
-                {stages.map(stage => (
-                  <option key={stage} value={stage}>{stage}</option>
-                ))}
-              </select>
-            </div>
+            {/* Stage Filter - only for active leads */}
+            {viewMode === 'active' && (
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-gray-500" />
+                <select
+                  value={selectedStage}
+                  onChange={(e) => setSelectedStage(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none transition"
+                >
+                  {stages.map(stage => (
+                    <option key={stage} value={stage}>{stage}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Results count */}
             <div className="text-sm text-gray-500 ml-auto">
-              {filteredLeads.length} lead{filteredLeads.length !== 1 ? 's' : ''}
+              Showing {displayedLeads.length} of {filteredLeads.length} lead{filteredLeads.length !== 1 ? 's' : ''}
             </div>
           </div>
         </div>
@@ -409,17 +593,23 @@ export function LeadsPage() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-4 font-medium">Score</th>
-                  <th className="px-6 py-4 font-medium">Emotion</th>
-                  <th className="px-6 py-4 font-medium">Stage</th>
+                  {viewMode === 'active' && (
+                    <>
+                      <th className="px-6 py-4 font-medium">Score</th>
+                      <th className="px-6 py-4 font-medium">Emotion</th>
+                      <th className="px-6 py-4 font-medium">Stage</th>
+                    </>
+                  )}
                   <th className="px-6 py-4 font-medium">Source</th>
-                  <th className="px-6 py-4 font-medium">Flags</th>
+                  {viewMode === 'active' && (
+                    <th className="px-6 py-4 font-medium">Flags</th>
+                  )}
                   <th 
                     className="px-6 py-4 font-medium cursor-pointer hover:text-white transition"
                     onClick={() => handleSort('updatedAt')}
                   >
                     <div className="flex items-center gap-1">
-                      Last Contact
+                      {viewMode === 'active' ? 'Last Contact' : 'Archived Date'}
                       {sortField === 'updatedAt' && (
                         sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
                       )}
@@ -429,40 +619,43 @@ export function LeadsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map((lead) => {
-                  const getLeadChannel = (l) => {
-                    return l.source || 'WebForm';
-                  };
-
-                  return (
-                    <tr
-                      key={lead.id}
-                      onClick={() => navigate(`/leads/${lead.id}`)}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/5 transition cursor-pointer group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-white">{lead.fullName}</div>
-                        <div className="text-xs text-gray-500">{lead.email}</div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-400">{lead.company || '-'}</td>
-                      <td className="px-6 py-4">
-                        <ScoreBadge score={lead.aiScore} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <EmotionBadge emotion={lead.emotion} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <StageBadge stage={lead.pipelineStage} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                          getLeadChannel(lead) === 'Telegram' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' :
-                          getLeadChannel(lead) === 'Email' ? 'bg-green-500/20 text-green-300 border border-green-500/20' :
-                          'bg-purple-500/20 text-purple-300 border border-purple-500/20'
-                        }`}>
-                          {getLeadChannel(lead) === 'WebForm' ? 'Website Form' : getLeadChannel(lead)}
-                        </span>
-                      </td>
+                {displayedLeads.map((lead) => (
+                  <tr
+                    key={lead.id}
+                    onClick={() => navigate(`/leads/${lead.id}`)}
+                    className="border-b border-white/5 last:border-0 hover:bg-white/5 transition cursor-pointer group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-white">{lead.fullName}</div>
+                      <div className="text-xs text-gray-500">{lead.email}</div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{lead.company || '-'}</td>
+                    
+                    {viewMode === 'active' && (
+                      <>
+                        <td className="px-6 py-4">
+                          <ScoreBadge score={lead.aiScore} />
+                        </td>
+                        <td className="px-6 py-4">
+                          <EmotionBadge emotion={lead.emotion} />
+                        </td>
+                        <td className="px-6 py-4">
+                          <StageBadge stage={lead.pipelineStage} />
+                        </td>
+                      </>
+                    )}
+                    
+                    <td className="px-6 py-4">
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        getLeadChannel(lead) === 'Telegram' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' :
+                        getLeadChannel(lead) === 'Email' ? 'bg-green-500/20 text-green-300 border border-green-500/20' :
+                        'bg-purple-500/20 text-purple-300 border border-purple-500/20'
+                      }`}>
+                        {getLeadChannel(lead) === 'WebForm' ? 'Website Form' : getLeadChannel(lead)}
+                      </span>
+                    </td>
+                    
+                    {viewMode === 'active' && (
                       <td className="px-6 py-4">
                         <div className="flex gap-1 flex-wrap">
                           {lead.isAtRisk && <FlagBadge flag="isAtRisk" />}
@@ -473,11 +666,19 @@ export function LeadsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-500">
-                        {lead.lastInteractionAt 
-                          ? new Date(lead.lastInteractionAt).toLocaleDateString() 
-                          : new Date(lead.createdAt).toLocaleDateString()}
-                      </td>
+                    )}
+                    
+                    <td className="px-6 py-4 text-xs text-gray-500">
+                      {viewMode === 'active' 
+                        ? (lead.lastInteractionAt 
+                            ? new Date(lead.lastInteractionAt).toLocaleDateString() 
+                            : new Date(lead.createdAt).toLocaleDateString())
+                        : (lead.archivedAt 
+                            ? new Date(lead.archivedAt).toLocaleDateString()
+                            : 'N/A')
+                      }
+                    </td>
+                    
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -489,28 +690,76 @@ export function LeadsPage() {
                         >
                           <Eye size={16} />
                         </button>
-                        <button
-                          onClick={(e) => handleDelete(lead.id, e)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        
+                        {viewMode === 'active' ? (
+                          <>
+                            <button
+                              onClick={(e) => handleArchive(lead.id, e)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition"
+                              title="Archive lead"
+                            >
+                              <Archive size={16} />
+                            </button>
+                            <button
+                              onClick={(e) => handleDelete(lead.id, e)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={(e) => handleUnarchive(lead.id, e)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition"
+                            title="Restore from archive"
+                          >
+                            <ArchiveRestore size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>
 
+          {/* See More Button */}
+          {hasMoreLeads && (
+            <div className="border-t border-white/5 p-4">
+              <button
+                onClick={handleSeeMore}
+                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition flex items-center justify-center gap-2 text-sm font-medium group"
+              >
+                <span>See More Leads</span>
+                <ChevronRight 
+                  size={16} 
+                  className="group-hover:translate-x-1 transition-transform" 
+                />
+                <span className="text-xs text-gray-500">
+                  ({filteredLeads.length - visibleCount} more)
+                </span>
+              </button>
+            </div>
+          )}
+
           {filteredLeads.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <Users size={24} className="text-gray-500" />
+                {viewMode === 'active' ? (
+                  <Users size={24} className="text-gray-500" />
+                ) : (
+                  <Archive size={24} className="text-gray-500" />
+                )}
               </div>
-              <p className="text-gray-400">No leads found</p>
-              <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+              <p className="text-gray-400">
+                {viewMode === 'active' ? 'No active leads found' : 'No archived leads'}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {viewMode === 'active' 
+                  ? 'Try adjusting your search or filters' 
+                  : 'Archived leads will appear here'}
+              </p>
             </div>
           )}
         </div>
