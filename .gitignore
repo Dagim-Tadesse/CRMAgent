@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Docker Compose Configuration (contains private secrets)
+docker-compose.yml
