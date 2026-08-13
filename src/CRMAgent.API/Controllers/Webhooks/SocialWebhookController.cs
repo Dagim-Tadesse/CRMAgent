@@ -31,6 +31,50 @@ public class SocialWebhookController : ControllerBase
         return Ok(signals);
     }
 
+    /// <summary>
+    /// Re-analyzes all social signals that are currently Neutral using Gemini AI.
+    /// Useful to fix signals that were saved as Neutral due to an invalid API key.
+    /// </summary>
+    [HttpPost]
+    [Route("/api/social-signals/re-analyze")]
+    public async Task<IActionResult> ReAnalyzeSignals()
+    {
+        var signals = await _db.SocialSignals
+            .Where(s => s.Sentiment == SentimentType.Neutral && !string.IsNullOrEmpty(s.Content))
+            .ToListAsync();
+
+        int updated = 0;
+        int failed = 0;
+
+        foreach (var signal in signals)
+        {
+            try
+            {
+                var result = await _aiService.AnalyzeSentimentAsync(signal.Content);
+                if (Enum.TryParse<SentimentType>(result.Sentiment, true, out var parsed))
+                {
+                    signal.Sentiment = parsed;
+                    updated++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error re-analyzing signal {signal.Id}: {ex.Message}");
+                failed++;
+            }
+        }
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = $"{updated} signals re-analyzed by Gemini AI. {failed} failed.",
+            total = signals.Count,
+            updated,
+            failed
+        });
+    }
+
     [HttpPost]
     public async Task<IActionResult> ReceiveSocialEvent(
         [FromHeader(Name = "X-Webhook-Secret")] string? secret,
