@@ -5,7 +5,8 @@ import {
   getPendingTasks,
   approveDraft,
   rejectDraft,
-  editDraft
+  editDraft,
+  generateDraft
 } from '../api/apiClient';
 
 function formatTimestamp(value) {
@@ -64,6 +65,10 @@ function TaskCard({ task, onRefresh }) {
     setBody(task.body || '');
     setEditing(false);
     setError('');
+  };
+
+  const handleRegenerate = () => {
+    run(() => generateDraft(task.leadId));
   };
 
   return (
@@ -157,6 +162,14 @@ function TaskCard({ task, onRefresh }) {
               className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               Edit First
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={handleRegenerate}
+              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+            >
+              Regenerate
             </button>
             <button
               type="button"
