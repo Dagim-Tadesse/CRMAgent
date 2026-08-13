@@ -99,8 +99,8 @@ public class LeadsController : ControllerBase
     [HttpPost("re-score-pending")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ReScorePending(
-        [FromServices] AppDbContext db, 
-        [FromServices] IAIService ai, 
+        [FromServices] AppDbContext db,
+        [FromServices] IAIService ai,
         [FromServices] IActivityLogRepository logs)
     {
         var pendingLeads = db.Leads.Where(l => l.Status == LeadStatus.PendingManualTriage).ToList();
