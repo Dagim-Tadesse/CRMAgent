@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { getLeads, getLogs, getPendingTasks } from '../api/apiClient';

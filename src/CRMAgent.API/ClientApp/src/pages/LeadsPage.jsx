@@ -4,11 +4,10 @@ import { getLeads, createLead, deleteLead } from '../api/apiClient';
 import { 
   Search, Plus, X, Eye, Trash2, Filter,
   ChevronDown, ChevronUp, User, Building2, Mail,
-  FileText, Calendar, AlertCircle, CheckCircle, Clock, Users,
+  FileText, AlertCircle, CheckCircle, Clock, Users,
   ArrowLeft, Archive, ArchiveRestore, ChevronRight
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
-import { useAuth } from '../hooks/useAuth';
 
 // Stage Badge Component
 function StageBadge({ stage }) {
@@ -223,7 +222,6 @@ function ArchiveSuggestionBanner({ staleLeadsCount, onReview }) {
 
 export function LeadsPage() {
   const navigate = useNavigate();
-  const { email } = useAuth();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [displayedLeads, setDisplayedLeads] = useState([]);
@@ -251,15 +249,18 @@ export function LeadsPage() {
     }, 15000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     filterLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leads, searchTerm, selectedStage, sortField, sortDirection, viewMode]);
 
   useEffect(() => {
     // Update displayed leads when filtered leads change or visible count changes
     updateDisplayedLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredLeads, visibleCount]);
 
   const fetchLeads = async (isBackground = false) => {

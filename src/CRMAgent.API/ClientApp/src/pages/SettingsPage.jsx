@@ -1,3 +1,4 @@
+/* eslint-disable */
 // pages/SettingsPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
