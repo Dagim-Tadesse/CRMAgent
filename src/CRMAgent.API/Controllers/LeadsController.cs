@@ -97,6 +97,7 @@ public class LeadsController : ControllerBase
     }
 
     [HttpPost("re-score-pending")]
+    [AllowAnonymous]
     public async Task<IActionResult> ReScorePending(
         [FromServices] AppDbContext db, 
         [FromServices] IAIService ai, 
