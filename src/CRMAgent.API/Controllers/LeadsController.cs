@@ -103,7 +103,7 @@ public class LeadsController : ControllerBase
         [FromServices] IAIService ai,
         [FromServices] IActivityLogRepository logs)
     {
-        var pendingLeads = db.Leads.Where(l => l.Status == LeadStatus.PendingManualTriage).ToList();
+        var pendingLeads = db.Leads.Where(l => l.Status == LeadStatus.PendingManualTriage || l.AIScore == 0).ToList();
         int count = 0;
         foreach (var lead in pendingLeads)
         {

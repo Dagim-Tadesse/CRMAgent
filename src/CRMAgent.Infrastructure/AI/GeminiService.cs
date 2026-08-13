@@ -86,51 +86,51 @@ Text: {{content}}
     }
 
     private async Task<T> CallGeminiAsync<T>(string prompt)
-{
-    var requestBody = new
     {
-        contents = new[] { new { parts = new[] { new { text = prompt } } } },
-        generationConfig = new
-    {
-        thinkingConfig = new { thinkingLevel = "low" }
-    }
-    };
-    var json = JsonSerializer.Serialize(requestBody);
-
-    const int maxRetries = 3;
-    for (int attempt = 1; attempt <= maxRetries; attempt++)
-    {
-        try
+        var requestBody = new
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, _endpoint);
-            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            request.Headers.Add("x-goog-api-key", _apiKey);
-
-            var response = await _http.SendAsync(request);
-            var responseJson = await response.Content.ReadAsStringAsync();
-
-            if ((int)response.StatusCode is 503 or 429 && attempt < maxRetries)
+            contents = new[] { new { parts = new[] { new { text = prompt } } } },
+            generationConfig = new
             {
-                await Task.Delay(TimeSpan.FromSeconds(2 * attempt)); // 2s, then 4s
-                continue;
+                thinkingConfig = new { thinkingLevel = "low" }
             }
+        };
+        var json = JsonSerializer.Serialize(requestBody);
 
-            if (!response.IsSuccessStatusCode)
-                throw new AIServiceException($"Gemini API error {(int)response.StatusCode}: {responseJson}");
-
-            using var doc = JsonDocument.Parse(responseJson);
-            var text = doc.RootElement.GetProperty("candidates")[0]
-                .GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString()!;
-
-            return JsonSerializer.Deserialize<T>(text,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
-        }
-        catch (Exception ex) when (ex is not AIServiceException && attempt < maxRetries)
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
-        }
-    }
+            try
+            {
+                var url = $"{_endpoint}?key={_apiKey}";
+                using var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-    throw new AIServiceException("Gemini API call failed after retries.");
-}
+                var response = await _http.SendAsync(request);
+                var responseJson = await response.Content.ReadAsStringAsync();
+
+                if ((int)response.StatusCode is 503 or 429 && attempt < maxRetries)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2 * attempt)); // 2s, then 4s
+                    continue;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                    throw new AIServiceException($"Gemini API error {(int)response.StatusCode}: {responseJson}");
+
+                using var doc = JsonDocument.Parse(responseJson);
+                var text = doc.RootElement.GetProperty("candidates")[0]
+                    .GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString()!;
+
+                return JsonSerializer.Deserialize<T>(text,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            }
+            catch (Exception ex) when (ex is not AIServiceException && attempt < maxRetries)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
+            }
+        }
+
+        throw new AIServiceException("Gemini API call failed after retries.");
+    }
 }
