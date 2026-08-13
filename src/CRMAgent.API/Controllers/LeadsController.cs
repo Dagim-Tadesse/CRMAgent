@@ -20,10 +20,27 @@ namespace CRMAgent.API.Controllers;
 public class LeadsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly AppDbContext _db;
 
-    public LeadsController(IMediator mediator)
+    public LeadsController(IMediator mediator, AppDbContext db)
     {
         _mediator = mediator;
+        _db = db;
+    }
+
+    [HttpPost("seed-mock-data")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SeedMockData()
+    {
+        try
+        {
+            await DbSeeder.SeedAsync(_db, force: true);
+            return Ok(new { message = "Successfully seeded 50 mock leads with related interactions, drafts, signals, and activity logs." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error seeding database", error = ex.Message });
+        }
     }
 
     [HttpGet]
