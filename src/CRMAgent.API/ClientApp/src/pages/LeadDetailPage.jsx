@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getLeadById, updateLeadStage, getInteractions, 
@@ -7,8 +7,8 @@ import {
 } from '../api/apiClient';
 import { 
   ArrowLeft, Mail, MessageCircle, AlertCircle, 
-  CheckCircle, Clock, Save, RefreshCw, Send, X,
-  User, Building2, Activity, Webhook
+  Clock, Save, RefreshCw, Send,
+  Building2, Activity, Webhook
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 
@@ -29,7 +29,7 @@ export default function LeadDetailPage() {
   const [body, setBody] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchLeadData = async () => {
+  const fetchLeadData = useCallback(async () => {
     try {
       setLoading(true);
       const [leadRes, interactionsRes, logsRes, draftsRes] = await Promise.all([
@@ -63,11 +63,11 @@ export default function LeadDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchLeadData();
-  }, [id]);
+  }, [fetchLeadData]);
 
   const handleStageChange = async (e) => {
     const newStage = e.target.value;
