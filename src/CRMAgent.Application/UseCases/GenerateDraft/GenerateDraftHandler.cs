@@ -33,6 +33,16 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
         var lead = await _leads.GetByIdAsync(cmd.LeadId)
             ?? throw new LeadNotFoundException(cmd.LeadId);
 
+        // Reject existing pending drafts for this lead to ensure only one active
+        var existingDrafts = await _drafts.GetByLeadIdAsync(lead.Id);
+        var pendingDrafts = existingDrafts.Where(d => d.Status == DraftStatus.PendingApproval).ToList();
+        
+        foreach(var oldDraft in pendingDrafts)
+        {
+            oldDraft.Status = DraftStatus.Rejected;
+            await _drafts.UpdateAsync(oldDraft);
+        }
+
         var interactions = await _interactions.GetByLeadIdAsync(lead.Id);
         var history = interactions.Count > 0
             ? string.Join("\n", interactions.Take(5).Select(i =>

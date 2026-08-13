@@ -1,4 +1,5 @@
 using CRMAgent.Application.Interfaces;
+using CRMAgent.Application.UseCases.GenerateDraft;
 using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Domain.Exceptions;
@@ -10,11 +11,15 @@ public class UpdateLeadStageHandler : IRequestHandler<UpdateLeadStageCommand>
 {
     private readonly ILeadRepository _leads;
     private readonly IActivityLogRepository _logs;
+    private readonly IEmailDraftRepository _drafts;
+    private readonly IMediator _mediator;
 
-    public UpdateLeadStageHandler(ILeadRepository leads, IActivityLogRepository logs)
+    public UpdateLeadStageHandler(ILeadRepository leads, IActivityLogRepository logs, IEmailDraftRepository drafts, IMediator mediator)
     {
         _leads = leads;
         _logs = logs;
+        _drafts = drafts;
+        _mediator = mediator;
     }
 
     public async Task Handle(UpdateLeadStageCommand cmd, CancellationToken ct)
@@ -45,6 +50,19 @@ public class UpdateLeadStageHandler : IRequestHandler<UpdateLeadStageCommand>
                 Reason = $"Pipeline stage manually changed from {previousStage} to {parsedStage}.",
                 TriggeredBy = LogTrigger.User
             });
+
+            // If stage is Contacted or Qualified, check if we need to auto-generate a draft
+            if (parsedStage == PipelineStage.Contacted || parsedStage == PipelineStage.Qualified)
+            {
+                var drafts = await _drafts.GetByLeadIdAsync(lead.Id);
+                var hasPendingDraft = drafts.Any(d => d.Status == DraftStatus.PendingApproval);
+                
+                if (!hasPendingDraft)
+                {
+                    // Trigger the draft generation
+                    await _mediator.Send(new GenerateDraftCommand(lead.Id), ct);
+                }
+            }
         }
     }
 }
