@@ -39,10 +39,15 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
 
         try
         {
-            bool isTelegram = draft.Lead.TelegramChatId.HasValue;
+            bool isTelegram = draft.Lead.TelegramChatId.HasValue || draft.Lead.Email.EndsWith("@telegram.com");
 
             if (isTelegram)
             {
+                if (!draft.Lead.TelegramChatId.HasValue)
+                {
+                    return new ApproveDraftResult(false, "Cannot send via Telegram: The Chat ID is missing. This usually happens if the lead was created manually or before the bot was fully configured.");
+                }
+                
                 await _telegram.SendMessageAsync(draft.Lead.TelegramChatId.Value, draft.Body);
             }
             else
