@@ -26,6 +26,7 @@ COPY --from=build /app/out ./
 # Disable file watchers to prevent inotify limit exhaustion on Render
 ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 ENV DOTNET_hostBuilder:reloadConfigOnChange=false
+ENV ASPNETCORE_HTTP_PORTS=5087
 ENV ASPNETCORE_URLS=http://+:5087
 EXPOSE 5087
 

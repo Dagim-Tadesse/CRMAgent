@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   DndContext,
@@ -13,7 +13,9 @@ import { ArrowLeft } from 'lucide-react';
 import { getLeads, updateLeadStage } from '../api/apiClient';
 import LeadCard, { STAGE_COLORS } from '../components/LeadCard';
 import { ScoreBadge } from '../components/Badges';
+import PaginationControls from '../components/PaginationControls';
 import { ConfirmModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 const STAGES = [
   'New',
@@ -25,9 +27,25 @@ const STAGES = [
   'Lost'
 ];
 
-function DroppableColumn({ stage, leads, onCardClick }) {
+const PAGE_SIZE = 5;
+
+const initialPageByStage = () =>
+  Object.fromEntries(STAGES.map((stage) => [stage, 1]));
+
+function DroppableColumn({
+  stage,
+  leads,
+  page,
+  onPageChange,
+  onCardClick
+}) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
   const color = STAGE_COLORS[stage] || '#6b7280';
+
+  const totalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visibleLeads = leads.slice(start, start + PAGE_SIZE);
 
   return (
     <div className="w-72 flex-shrink-0 flex flex-col">
@@ -38,7 +56,7 @@ function DroppableColumn({ stage, leads, onCardClick }) {
             {stage}
           </span>
         </div>
-        <span className="bg-white/10 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+        <span className="bg-white/10 text-white text-xs min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center font-bold flex-shrink-0">
           {leads.length}
         </span>
       </div>
@@ -61,9 +79,18 @@ function DroppableColumn({ stage, leads, onCardClick }) {
         {leads.length === 0 ? (
           <p className="text-xs text-gray-500 text-center py-6">No leads</p>
         ) : (
-          leads.map((lead) => (
-            <LeadCard key={lead.id} lead={lead} onClick={onCardClick} />
-          ))
+          <>
+            {visibleLeads.map((lead) => (
+              <LeadCard key={lead.id} lead={lead} onClick={onCardClick} />
+            ))}
+            <PaginationControls
+              page={currentPage}
+              totalPages={totalPages}
+              totalItems={leads.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={onPageChange}
+            />
+          </>
         )}
       </div>
     </div>
@@ -96,6 +123,7 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(true);
   const [activeLead, setActiveLead] = useState(null);
   const [error, setError] = useState('');
+  const [pageByStage, setPageByStage] = useState(initialPageByStage);
   const [confirmMove, setConfirmMove] = useState(null);
 
   const sensors = useSensors(
@@ -119,10 +147,38 @@ export default function PipelinePage() {
     fetchLeads();
   }, [fetchLeads]);
 
-  const leadsByStage = STAGES.reduce((acc, stage) => {
-    acc[stage] = leads.filter((l) => l.pipelineStage === stage);
-    return acc;
-  }, {});
+  const leadsByStage = useMemo(
+    () =>
+      STAGES.reduce((acc, stage) => {
+        acc[stage] = leads.filter((l) => l.pipelineStage === stage);
+        return acc;
+      }, {}),
+    [leads]
+  );
+
+  // Keep each column's page in range after drag / refresh
+  useEffect(() => {
+    setPageByStage((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      for (const stage of STAGES) {
+        const total = leadsByStage[stage]?.length ?? 0;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const clamped = Math.min(Math.max(prev[stage] || 1, 1), totalPages);
+        if (clamped !== prev[stage]) {
+          next[stage] = clamped;
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
+    });
+  }, [leadsByStage]);
+
+  const handlePageChange = (stage, page) => {
+    setPageByStage((prev) => ({ ...prev, [stage]: page }));
+  };
 
   const handleDragStart = (event) => {
     const lead = event.active.data.current?.lead;
@@ -175,19 +231,19 @@ export default function PipelinePage() {
   const handleCardClick = (id) => navigate(`/leads/${id}`);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading pipeline...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading pipeline..." />;
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] p-6">
-      <ConfirmModal isOpen={!!confirmMove} onClose={() => setConfirmMove(null)} onConfirm={executeMove} title="Move Pipeline Stage" message={"Are you sure you want to move this lead to ? This may automatically generate an AI draft."} confirmText="Move" />
+      <ConfirmModal
+        isOpen={!!confirmMove}
+        onClose={() => setConfirmMove(null)}
+        onConfirm={executeMove}
+        title="Move Pipeline Stage"
+        message={`Are you sure you want to move this lead to ${confirmMove?.newStage}? This may automatically generate an AI draft.`}
+        confirmText="Move"
+      />
       <div className="max-w-[1600px] mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
@@ -202,6 +258,7 @@ export default function PipelinePage() {
               <h1 className="text-2xl font-bold text-white">Pipeline</h1>
               <p className="text-sm text-gray-500">
                 {leads.length} lead{leads.length !== 1 ? 's' : ''} across {STAGES.length} stages
+                <span className="text-gray-600"> · {PAGE_SIZE} per column page</span>
               </p>
             </div>
           </div>
@@ -225,6 +282,8 @@ export default function PipelinePage() {
                 key={stage}
                 stage={stage}
                 leads={leadsByStage[stage] || []}
+                page={pageByStage[stage] || 1}
+                onPageChange={(page) => handlePageChange(stage, page)}
                 onCardClick={handleCardClick}
               />
             ))}

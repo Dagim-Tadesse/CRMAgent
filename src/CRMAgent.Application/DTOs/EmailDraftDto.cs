@@ -14,6 +14,9 @@ public class EmailDraftDto
     public string AIReason { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? SentAt { get; set; }
+    /// <summary>Most recent inbound message that prompted this draft (optional).</summary>
+    public string? TriggerMessage { get; set; }
+    public string? PipelineStage { get; set; }
 
     public static EmailDraftDto FromEntity(EmailDraft d) => new()
     {
@@ -21,11 +24,12 @@ public class EmailDraftDto
         LeadId = d.LeadId,
         LeadName = d.Lead?.FullName ?? string.Empty,
         LeadEmail = d.Lead?.Email ?? string.Empty,
-        Subject = d.Subject,
-        Body = d.Body,
+        Subject = d.Subject ?? string.Empty,
+        Body = d.Body ?? string.Empty,
         Status = d.Status.ToString(),
-        AIReason = d.AIReason,
+        AIReason = d.AIReason ?? string.Empty,
         CreatedAt = d.CreatedAt,
-        SentAt = d.SentAt
+        SentAt = d.SentAt,
+        PipelineStage = d.Lead?.PipelineStage.ToString()
     };
 }

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 import { ConfirmModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 // Stage Badge Component
 function StageBadge({ stage }) {
@@ -453,14 +454,7 @@ export function LeadsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading leads...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading leads database..." />;
   }
 
   const hasMoreLeads = visibleCount < filteredLeads.length;

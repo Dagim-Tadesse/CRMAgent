@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { useEffect, useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getLeads, getLogs, getPendingTasks } from '../api/apiClient';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, 
@@ -9,99 +9,13 @@ import {
 } from 'recharts';
 import { 
   Users, Flame, AlertTriangle, Clock, Trophy, Ghost,
-  LayoutDashboard, FileText, Settings, User, Bell,
-  Menu, X, BarChart3, Activity, Target, Calendar,
-  ArrowUp, ArrowDown, TrendingUp, Zap, Shield,
-  Moon, Sun, Kanban, Sparkles
+  User, Bell, Menu, BarChart3, Activity, Target,
+  ArrowUp, ArrowDown, TrendingUp, Shield,
+  Moon, Sun
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-
-// Sidebar Component - Dark Version
-function Sidebar({ isOpen, toggleSidebar }) {
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
-    { icon: Users, label: 'Leads', to: '/leads' },
-    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
-    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
-    { icon: FileText, label: 'Reports', to: '/reports' },
-    { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: Calendar, label: 'Calendar', to: '/calendar' },
-    { icon: Settings, label: 'Settings', to: '/settings' },
-  ];
-
-  return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-sm"
-          onClick={toggleSidebar}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div className={`
-        fixed lg:sticky top-0 left-0 h-screen w-64 bg-[#0a0a0f] border-r border-white/5
-        text-white z-50 transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
-      `}>
-        <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Zap size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">LeadFlow</h1>
-              <p className="text-xs text-gray-500">Analytics Dashboard</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item, idx) => (
-            <NavLink
-              key={idx}
-              to={item.to}
-              onClick={toggleSidebar}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                ${isActive
-                  ? 'bg-white/10 text-white shadow-lg shadow-blue-500/10 border border-white/5' 
-                  : 'text-gray-500 hover:bg-white/5 hover:text-white'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={20} className={isActive ? 'text-blue-400' : ''} />
-                  <span className="font-medium">{item.label}</span>
-                  {isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <User size={16} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">john@example.com</p>
-            </div>
-            <button className="text-gray-500 hover:text-white transition">
-              <Settings size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+import AppSidebar from '../components/AppSidebar';
+import { Loader } from '../components/Loader';
 
 // Stat Card Component - Dark Version
 function StatCard({ icon: Icon, label, value, sub, iconBg, trend, trendValue }) {
@@ -157,7 +71,24 @@ export function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
+      try {
+        const [leadsRes, logsRes, pendingRes] = await Promise.all([
+          getLeads(),
+          getLogs(),
+          getPendingTasks()
+        ]);
+        setLeads(leadsRes.data);
+        setLogs(logsRes.data);
+        setPending(pendingRes.data);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const refreshData = () => {
       getLeads().then(res => setLeads(res.data)).catch(console.error);
       getLogs().then(res => setLogs(res.data)).catch(console.error);
       getPendingTasks().then(res => setPending(res.data)).catch(console.error);
@@ -165,23 +96,14 @@ export function DashboardPage() {
 
     fetchData();
     
-    // Auto-refresh every 15 seconds
-    const interval = setInterval(fetchData, 15000);
-
-    setTimeout(() => setLoading(false), 500);
+    // Auto-refresh in background every 15 seconds
+    const interval = setInterval(refreshData, 15000);
 
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading dashboard data..." />;
   }
 
   const hotLeads = leads.filter(l => l.aiScore >= 8).length;
@@ -248,7 +170,7 @@ export function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       {/* Main Content */}
       <div className="flex-1 min-w-0">
@@ -277,7 +199,13 @@ export function DashboardPage() {
                   <p className="text-sm font-medium text-white">{email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/25">
+                <div
+                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))',
+                    boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                  }}
+                >
                   {email ? email[0].toUpperCase() : '?'}
                 </div>
               </div>

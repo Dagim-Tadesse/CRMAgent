@@ -9,6 +9,7 @@ import {
   generateDraft
 } from '../api/apiClient';
 import { ConfirmModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 function formatTimestamp(value) {
   if (!value) return '';
@@ -98,17 +99,32 @@ function TaskCard({ task, onRefresh }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <div className="text-white font-semibold truncate">{task.leadName || 'Unknown lead'}</div>
-          <div className="text-gray-500 text-sm truncate">{task.leadEmail}</div>
-          <div className="text-gray-500 text-xs mt-1">{formatTimestamp(task.createdAt)}</div>
+          <div className="text-white font-semibold truncate">{task?.leadName || 'Unknown lead'}</div>
+          <div className="text-gray-500 text-sm truncate">{task?.leadEmail || '—'}</div>
+          <div className="text-gray-500 text-xs mt-1 flex flex-wrap items-center gap-2">
+            <span>{formatTimestamp(task?.createdAt)}</span>
+            {task?.pipelineStage && (
+              <span className="bg-white/5 border border-white/10 text-gray-400 px-2 py-0.5 rounded-full">
+                {task.pipelineStage}
+              </span>
+            )}
+          </div>
         </div>
         <span className="bg-yellow-500/20 text-yellow-300 border border-yellow-500/20 text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
           Awaiting Approval
         </span>
       </div>
 
+      {/* Inbound trigger message */}
+      {task?.triggerMessage && (
+        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-3">
+          <div className="text-gray-400 text-xs font-semibold mb-1">Inbound message</div>
+          <p className="text-gray-300 text-xs whitespace-pre-wrap">{task.triggerMessage}</p>
+        </div>
+      )}
+
       {/* AI Reason */}
-      {task.aiReason && (
+      {task?.aiReason && (
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
           <div className="text-blue-400 text-xs font-semibold mb-1">AI Reason</div>
           <p className="text-blue-300 text-xs">{task.aiReason}</p>
@@ -135,11 +151,11 @@ function TaskCard({ task, onRefresh }) {
         </div>
       ) : (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="font-bold text-white mb-2">{task.subject}</div>
-          <div className="text-gray-400 text-xs whitespace-pre-wrap">{task.body}</div>
+          <div className="text-gray-400 text-xs font-semibold mb-1">Generated reply</div>
+          <div className="font-bold text-white mb-2">{task?.subject || '(No subject)'}</div>
+          <div className="text-gray-400 text-xs whitespace-pre-wrap">{task?.body || ''}</div>
         </div>
       )}
-
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-400">
           {error}
@@ -216,29 +232,23 @@ export default function AITasksPage() {
   const refresh = useCallback(async () => {
     try {
       const res = await getPendingTasks();
-      setTasks(res.data || []);
+      const list = Array.isArray(res?.data) ? res.data.filter((t) => t && t.id != null) : [];
+      setTasks(list);
       setError('');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Failed to load pending tasks');
+      setTasks([]);
     } finally {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading AI tasks...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading AI tasks..." />;
   }
 
   return (

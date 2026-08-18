@@ -1,10 +1,10 @@
-using CRMAgent.Application.Interfaces;
+using CRMAgent.Application.UseCases.GenerateDraft;
+using CRMAgent.Application.UseCases.IngestLead;
 using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using CRMAgent.Application.UseCases.IngestLead;
 
 namespace CRMAgent.API.Controllers.Webhooks;
 
@@ -15,12 +15,18 @@ public class EmailWebhookController : ControllerBase
     private readonly IMediator _mediator;
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ILogger<EmailWebhookController> _logger;
 
-    public EmailWebhookController(IMediator mediator, AppDbContext db, IConfiguration config)
+    public EmailWebhookController(
+        IMediator mediator,
+        AppDbContext db,
+        IConfiguration config,
+        ILogger<EmailWebhookController> logger)
     {
         _mediator = mediator;
         _db = db;
         _config = config;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -57,10 +63,20 @@ public class EmailWebhookController : ControllerBase
                     "Unknown Company",
                     payload.Data.Text ?? payload.Data.Subject ?? "No content"
                 ));
+
+                var newLead = _db.Leads.Find(leadId);
+                if (newLead != null)
+                {
+                    newLead.LastInteractionAt = DateTime.UtcNow;
+                    _db.Leads.Update(newLead);
+                }
             }
             else
             {
                 leadId = existingLead.Id;
+                existingLead.LastInteractionAt = DateTime.UtcNow;
+                existingLead.IsStagnant = false;
+                _db.Leads.Update(existingLead);
             }
 
             // 2. Add an inbound email Interaction so the system recognizes the source as Email
@@ -89,10 +105,26 @@ public class EmailWebhookController : ControllerBase
 
             await _db.SaveChangesAsync();
 
+            // Auto-generate AI draft reply; never fail the webhook if generation fails
+            try
+            {
+                var draftId = await _mediator.Send(new GenerateDraftCommand(leadId));
+                _logger.LogInformation(
+                    "Auto-generated draft {DraftId} for lead {LeadId} after inbound email",
+                    draftId, leadId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to auto-generate draft for lead {LeadId} after inbound email",
+                    leadId);
+            }
+
             return Ok(new { leadId, message = "Inbound email lead successfully processed!" });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Email webhook processing failed");
             // Return 200/Ok to Resend so it stops retrying the webhook, but return the error in JSON
             return Ok(new { error = ex.Message, details = ex.ToString() });
         }

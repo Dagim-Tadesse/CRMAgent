@@ -1,10 +1,11 @@
 using CRMAgent.Application.Interfaces;
+using CRMAgent.Application.UseCases.GenerateDraft;
+using CRMAgent.Application.UseCases.IngestLead;
 using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using CRMAgent.Application.UseCases.IngestLead;
 
 namespace CRMAgent.API.Controllers.Webhooks;
 
@@ -14,11 +15,13 @@ public class TelegramWebhookController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly AppDbContext _db;
+    private readonly ILogger<TelegramWebhookController> _logger;
 
-    public TelegramWebhookController(IMediator mediator, AppDbContext db)
+    public TelegramWebhookController(IMediator mediator, AppDbContext db, ILogger<TelegramWebhookController> logger)
     {
         _mediator = mediator;
         _db = db;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -57,6 +60,7 @@ public class TelegramWebhookController : ControllerBase
             {
                 lead.TelegramUsername = from.Username;
                 lead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
+                lead.LastInteractionAt = DateTime.UtcNow;
                 _db.Leads.Update(lead);
             }
         }
@@ -64,6 +68,8 @@ public class TelegramWebhookController : ControllerBase
         {
             leadId = existingLead.Id;
             existingLead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
+            existingLead.LastInteractionAt = DateTime.UtcNow;
+            existingLead.IsStagnant = false;
             _db.Leads.Update(existingLead);
         }
 
@@ -92,6 +98,21 @@ public class TelegramWebhookController : ControllerBase
         _db.ActivityLogs.Add(log);
 
         await _db.SaveChangesAsync();
+
+        // Auto-generate AI draft reply; never fail the webhook if generation fails
+        try
+        {
+            var draftId = await _mediator.Send(new GenerateDraftCommand(leadId));
+            _logger.LogInformation(
+                "Auto-generated draft {DraftId} for lead {LeadId} after inbound Telegram message",
+                draftId, leadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to auto-generate draft for lead {LeadId} after inbound Telegram message",
+                leadId);
+        }
 
         return Ok();
     }

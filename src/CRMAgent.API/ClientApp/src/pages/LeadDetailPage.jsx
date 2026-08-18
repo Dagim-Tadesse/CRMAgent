@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 import { ConfirmModal, AlertModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 export default function LeadDetailPage() {
   const { id } = useParams();
@@ -150,8 +151,18 @@ export default function LeadDetailPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-white">Loading...</div>;
-  if (error || !lead) return <div className="p-8 text-red-400">{error || 'Lead not found'}</div>;
+  if (loading) return <Loader fullScreen={true} message="Loading lead details..." />;
+  if (error || !lead) return (
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 mx-auto bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle size={28} className="text-red-400" />
+        </div>
+        <p className="text-red-400 font-medium text-lg">{error || 'Lead not found'}</p>
+        <p className="text-gray-500 text-sm mt-1">Please check the URL or go back to leads.</p>
+      </div>
+    </div>
+  );
 
   const stages = ['New', 'Contacted', 'Qualified', 'ProposalSent', 'Negotiation', 'Won', 'Lost'];
 

@@ -1,7 +1,7 @@
 /* eslint-disable */
 // pages/SchedulePage.tsx
 import { useState, useEffect } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -17,15 +17,8 @@ import {
   Trash2,
   Calendar as CalendarIcon,
   Menu,
-  LayoutDashboard,
   Users,
-  FileText,
-  Activity,
-  Target,
-  Settings,
   Bell,
-  Zap,
-  User as UserIcon,
   CheckCircle,
   AlertCircle,
   Filter,
@@ -40,8 +33,6 @@ import {
   Star,
   Tag,
   Briefcase,
-  Kanban,
-  Sparkles,
   Building2,
   MessageSquare,
   Paperclip,
@@ -49,6 +40,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import AppSidebar from '../components/AppSidebar';
 import { ConfirmModal } from '../components/Modal';
 
 // =============== MOCK DATA ===============
@@ -201,94 +193,27 @@ const EVENT_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const EVENT_STATUSES = ['Scheduled', 'Completed', 'Cancelled', 'Rescheduled'];
 const TAGS = ['Enterprise', 'SaaS', 'Startup', 'Tech', 'Renewable', 'Cloud', 'AI', 'Legal', 'Ongoing'];
 
-// =============== SIDEBAR ===============
-function Sidebar({ isOpen, toggleSidebar }) {
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
-    { icon: Users, label: 'Leads', to: '/leads' },
-    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
-    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
-    { icon: FileText, label: 'Reports', to: '/reports' },
-    { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: CalendarIcon, label: 'Calendar', to: '/calendar' },
-    { icon: Settings, label: 'Settings', to: '/settings' },
-  ];
-
-  return (
-    <>
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-sm"
-          onClick={toggleSidebar}
-        />
-      )}
-      
-      <div className={`
-        fixed lg:sticky top-0 left-0 h-screen w-64 bg-[#0a0a0f] border-r border-white/5
-        text-white z-50 transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
-      `}>
-        <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Zap size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">LeadFlow</h1>
-              <p className="text-xs text-gray-500">Analytics Dashboard</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item, idx) => (
-            <NavLink
-              key={idx}
-              to={item.to}
-              onClick={toggleSidebar}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                ${isActive
-                  ? 'bg-white/10 text-white shadow-lg shadow-blue-500/10 border border-white/5' 
-                  : 'text-gray-500 hover:bg-white/5 hover:text-white'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={20} className={isActive ? 'text-blue-400' : ''} />
-                  <span className="font-medium">{item.label}</span>
-                  {isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <UserIcon size={16} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">john@example.com</p>
-            </div>
-            <button className="text-gray-500 hover:text-white transition">
-              <Settings size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+// Helper to safely format Date to YYYY-MM-DDTHH:MM local time for inputs
+const formatDateTimeLocal = (dateVal) => {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+};
 
 // =============== EVENT MODAL ===============
 function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   const [formData, setFormData] = useState({
+    id: null,
     title: '',
     lead: '',
     leadEmail: '',
@@ -313,6 +238,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   useEffect(() => {
     if (event) {
       setFormData({
+        id: event.id || null,
         title: event.title || '',
         lead: event.lead || '',
         leadEmail: event.leadEmail || '',
@@ -338,6 +264,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
       now.setHours(hour, 0, 0, 0);
       
       setFormData({
+        id: null,
         title: '',
         lead: '',
         leadEmail: '',
@@ -372,8 +299,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
 
   const confirmDeleteHandler = () => {
     onDelete(event.id);
-    onClose();
     setConfirmDelete(false);
+    onClose();
   };
 
   const addTag = (tag) => {
@@ -388,18 +315,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   };
 
   return (
-    <>
-      <ConfirmModal
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={confirmDeleteHandler}
-        title="Delete Event"
-        message="Are you sure you want to permanently delete this event?"
-        isDestructive={true}
-        confirmText="Delete"
-      />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-2xl bg-[#14141a] border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-[#14141a] border-b border-white/5 p-6 rounded-t-2xl flex items-center justify-between">
@@ -544,7 +461,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
               <input
                 type="datetime-local"
                 required
-                value={formData.start.toISOString().slice(0, 16)}
+                value={formatDateTimeLocal(formData.start)}
                 onChange={(e) => setFormData({ ...formData, start: new Date(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
@@ -558,8 +475,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
               <input
                 type="datetime-local"
                 required
-                value={formData.end.toISOString().slice(0, 16)}
-                onChange={(e) => setFormData({ ...formData, end: new Date(e.target.value) })}
+                value={formatDateTimeLocal(formData.end)}
+                onChange={(e) => setFormData({ ...formData, start: formData.start, end: new Date(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
             </div>
@@ -705,8 +622,17 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={confirmDeleteHandler}
+        title="Delete Event"
+        message="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+      />
     </div>
-    </>
   );
 }
 
@@ -793,10 +719,10 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
             <Clock size={16} className="text-gray-500" />
             <span className="text-gray-400">Time:</span>
             <span className="text-white">
-              {event.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
+              {new Date(event.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
               {' '}
-              {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-              {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+              {new Date(event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
 
@@ -807,7 +733,7 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <UserIcon size={16} className="text-gray-500" />
+            <User size={16} className="text-gray-500" />
             <span className="text-gray-400">Assigned:</span>
             <span className="text-white">{event.assignedTo}</span>
           </div>
@@ -896,14 +822,37 @@ export function SchedulePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month');
-  const [events, setEvents] = useState(mockEvents);
+
+  // Load events from localStorage, fall back to mockEvents for first-time users
+  const [events, setEvents] = useState(() => {
+    try {
+      const saved = localStorage.getItem('crm_calendar_events');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
+      }
+    } catch (e) {
+      console.error('Failed to load saved events:', e);
+    }
+    return mockEvents;
+  });
+
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+
+  // Persist events to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('crm_calendar_events', JSON.stringify(events));
+    } catch (e) {
+      console.error('Failed to save events:', e);
+    }
+  }, [events]);
+
 
   const goToToday = () => setCurrentDate(new Date());
   const goToPrevious = () => {
@@ -953,11 +902,12 @@ export function SchedulePage() {
   };
 
   const getEventsForDay = (date) => {
-    return events.filter(event => 
-      event.start.getDate() === date.getDate() &&
-      event.start.getMonth() === date.getMonth() &&
-      event.start.getFullYear() === date.getFullYear()
-    );
+    return events.filter(event => {
+      const d = new Date(event.start);
+      return d.getDate() === date.getDate() &&
+             d.getMonth() === date.getMonth() &&
+             d.getFullYear() === date.getFullYear();
+    });
   };
 
   const isToday = (date) => {
@@ -970,9 +920,9 @@ export function SchedulePage() {
   // Filter events based on search and filters
   const getFilteredEvents = () => {
     return events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.lead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.company.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (event.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.lead || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.company || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === 'all' || event.type === filterType;
       const matchesPriority = filterPriority === 'all' || event.priority === filterPriority;
       return matchesSearch && matchesType && matchesPriority;
@@ -1004,19 +954,23 @@ export function SchedulePage() {
     setEvents(events.filter(e => e.id !== eventId));
   };
 
+  const openDetails = (event) => {
+    setSelectedEvent(event);
+  };
+
+  const closeDetails = () => {
+    setSelectedEvent(null);
+  };
+
   const openCreateModal = () => {
     setEditingEvent(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (event) => {
+    setSelectedEvent(null); // close details first
     setEditingEvent(event);
     setIsModalOpen(true);
-  };
-
-  const openDetails = (event) => {
-    setSelectedEvent(event);
-    setIsDetailsOpen(true);
   };
 
   // Get stats
@@ -1027,7 +981,7 @@ export function SchedulePage() {
 
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="flex-1 min-w-0">
         {/* Header */}
@@ -1055,7 +1009,13 @@ export function SchedulePage() {
                   <p className="text-sm font-medium text-white">{email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/25">
+                <div
+                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))',
+                    boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                  }}
+                >
                   {email ? email[0].toUpperCase() : '?'}
                 </div>
               </div>
@@ -1371,9 +1331,9 @@ export function SchedulePage() {
 
       <EventDetails
         event={selectedEvent}
-        onClose={() => setIsDetailsOpen(false)}
+        onClose={closeDetails}
         onEdit={openEditModal}
-        onDelete={handleDeleteEvent}
+        onDelete={(id) => { handleDeleteEvent(id); closeDetails(); }}
       />
     </div>
   );
