@@ -57,6 +57,7 @@ import {
   Kanban,
   Sparkles
 } from 'lucide-react';
+import { ConfirmModal, AlertModal } from '../components/Modal';
 
 // =============== CONSTANTS ===============
 const TIMEZONES = [
@@ -572,15 +573,18 @@ function SecuritySection({ accentColor }) {
     confirmPassword: ''
   });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [alertState, setAlertState] = useState({ isOpen: false, title: '', message: '', variant: 'info' });
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
-    alert('Password updated successfully! (Mock)');
+    setAlertState({ isOpen: true, title: 'Success', message: 'Password updated successfully! (Mock)', variant: 'success' });
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <>
+      <AlertModal isOpen={alertState.isOpen} onClose={() => setAlertState({ ...alertState, isOpen: false })} title={alertState.title} message={alertState.message} variant={alertState.variant} />
+      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-white">Security & Authentication</h3>
@@ -677,6 +681,7 @@ function SecuritySection({ accentColor }) {
         )}
       </div>
     </div>
+    </>
   );
 }
 
@@ -1023,6 +1028,10 @@ export function SettingsPage() {
     return saved !== 'false';
   });
 
+  // Alert and Confirm state
+  const [alertState, setAlertState] = useState({ isOpen: false, title: '', message: '', variant: 'info' });
+  const [confirmState, setConfirmState] = useState({ isOpen: false, onConfirm: null });
+
   // Profile state
   const [profile, setProfile] = useState({
     name: 'John Doe',
@@ -1035,7 +1044,7 @@ export function SettingsPage() {
 
   const handleProfileUpdate = (updatedProfile) => {
     setProfile(updatedProfile);
-    alert('Profile updated successfully! (Mock)');
+    setAlertState({ isOpen: true, title: 'Success', message: 'Profile updated successfully! (Mock)', variant: 'success' });
   };
 
   // Save appearance settings
@@ -1045,24 +1054,27 @@ export function SettingsPage() {
     localStorage.setItem('appearance_fontSize', fontSize);
     localStorage.setItem('appearance_sidebarCollapsed', String(sidebarCollapsed));
     localStorage.setItem('appearance_animations', String(animations));
-    alert('Appearance preferences saved! 🎨');
+    setAlertState({ isOpen: true, title: 'Saved', message: 'Appearance preferences saved! 🎨', variant: 'success' });
   };
 
   // Reset appearance settings
   const handleResetAppearance = () => {
-    if (window.confirm('Are you sure you want to reset all appearance settings?')) {
-      setTheme('dark');
-      setAccentColor('blue');
-      setFontSize('medium');
-      setSidebarCollapsed(false);
-      setAnimations(true);
-      localStorage.removeItem('appearance_theme');
-      localStorage.removeItem('appearance_accent');
-      localStorage.removeItem('appearance_fontSize');
-      localStorage.removeItem('appearance_sidebarCollapsed');
-      localStorage.removeItem('appearance_animations');
-      alert('Appearance reset to defaults! 🔄');
-    }
+    setConfirmState({
+      isOpen: true,
+      onConfirm: () => {
+        setTheme('dark');
+        setAccentColor('blue');
+        setFontSize('medium');
+        setSidebarCollapsed(false);
+        setAnimations(true);
+        localStorage.removeItem('appearance_theme');
+        localStorage.removeItem('appearance_accent');
+        localStorage.removeItem('appearance_fontSize');
+        localStorage.removeItem('appearance_sidebarCollapsed');
+        localStorage.removeItem('appearance_animations');
+        setAlertState({ isOpen: true, title: 'Reset', message: 'Appearance reset to defaults! 🔄', variant: 'info' });
+      }
+    });
   };
 
   const sections = [
@@ -1115,7 +1127,10 @@ export function SettingsPage() {
   };
 
   return (
-    <div className={`flex min-h-screen bg-[#0a0a0f] ${theme === 'light' ? 'light' : 'dark'}`}>
+    <>
+      <AlertModal isOpen={alertState.isOpen} onClose={() => setAlertState({ ...alertState, isOpen: false })} title={alertState.title} message={alertState.message} variant={alertState.variant} />
+      <ConfirmModal isOpen={confirmState.isOpen} onClose={() => setConfirmState({ isOpen: false, onConfirm: null })} onConfirm={confirmState.onConfirm} title="Reset Appearance" message="Are you sure you want to reset all appearance settings?" isDestructive={true} />
+      <div className={`flex min-h-screen bg-[#0a0a0f] ${theme === 'light' ? 'light' : 'dark'}`}>
       <Sidebar 
         isOpen={sidebarOpen} 
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -1188,5 +1203,6 @@ export function SettingsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

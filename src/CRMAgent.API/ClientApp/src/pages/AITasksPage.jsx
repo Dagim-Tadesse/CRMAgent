@@ -8,6 +8,7 @@ import {
   editDraft,
   generateDraft
 } from '../api/apiClient';
+import { ConfirmModal } from '../components/Modal';
 
 function formatTimestamp(value) {
   if (!value) return '';
@@ -29,6 +30,8 @@ function TaskCard({ task, onRefresh }) {
   const [body, setBody] = useState(task.body || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmApprove, setConfirmApprove] = useState(false);
+  const [confirmReject, setConfirmReject] = useState(false);
 
   const run = async (fn) => {
     setBusy(true);
@@ -41,15 +44,16 @@ function TaskCard({ task, onRefresh }) {
       setError(err.response?.data?.message || 'Action failed');
     } finally {
       setBusy(false);
+      setConfirmApprove(false);
+      setConfirmReject(false);
     }
   };
 
-  const handleApprove = () => {
-    if (!window.confirm('Approve and send this email?')) return;
+  const handleApproveConfirm = () => {
     run(() => approveDraft(task.id));
   };
 
-  const handleReject = () => {
+  const handleRejectConfirm = () => {
     run(() => rejectDraft(task.id));
   };
 
@@ -73,6 +77,24 @@ function TaskCard({ task, onRefresh }) {
 
   return (
     <div className="bg-[#14141a] border border-white/5 rounded-2xl p-5 space-y-4">
+      <ConfirmModal
+        isOpen={confirmApprove}
+        onClose={() => setConfirmApprove(false)}
+        onConfirm={handleApproveConfirm}
+        title="Approve & Send Draft"
+        message="Are you sure you want to approve and send this message? It will be sent immediately via the lead's original channel."
+        confirmText="Approve & Send"
+      />
+      <ConfirmModal
+        isOpen={confirmReject}
+        onClose={() => setConfirmReject(false)}
+        onConfirm={handleRejectConfirm}
+        title="Reject Draft"
+        message="Are you sure you want to reject this draft? It will be permanently discarded."
+        isDestructive={true}
+        confirmText="Reject"
+      />
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
@@ -150,7 +172,7 @@ function TaskCard({ task, onRefresh }) {
             <button
               type="button"
               disabled={busy}
-              onClick={handleApprove}
+              onClick={() => setConfirmApprove(true)}
               className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               {busy ? 'Working...' : 'Approve & Send'}
@@ -174,7 +196,7 @@ function TaskCard({ task, onRefresh }) {
             <button
               type="button"
               disabled={busy}
-              onClick={handleReject}
+              onClick={() => setConfirmReject(true)}
               className="border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               Reject

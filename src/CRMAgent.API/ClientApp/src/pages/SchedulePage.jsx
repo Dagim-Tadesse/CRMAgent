@@ -49,6 +49,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { ConfirmModal } from '../components/Modal';
 
 // =============== MOCK DATA ===============
 const mockEvents = [
@@ -307,6 +308,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
 
   const [selectedTags, setSelectedTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (event) {
@@ -365,10 +367,13 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      onDelete(event.id);
-      onClose();
-    }
+    setConfirmDelete(true);
+  };
+
+  const confirmDeleteHandler = () => {
+    onDelete(event.id);
+    onClose();
+    setConfirmDelete(false);
   };
 
   const addTag = (tag) => {
@@ -383,8 +388,18 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <>
+      <ConfirmModal
+        isOpen={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={confirmDeleteHandler}
+        title="Delete Event"
+        message="Are you sure you want to permanently delete this event?"
+        isDestructive={true}
+        confirmText="Delete"
+      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
       <div className="relative w-full max-w-2xl bg-[#14141a] border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-[#14141a] border-b border-white/5 p-6 rounded-t-2xl flex items-center justify-between">
@@ -691,6 +706,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
         </form>
       </div>
     </div>
+    </>
   );
 }
 

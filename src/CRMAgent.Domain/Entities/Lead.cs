@@ -9,6 +9,7 @@ public class Lead
     public string Email { get; set; } = string.Empty;
     public string Company { get; set; } = string.Empty;
     public string? TelegramUsername { get; set; }
+    public long? TelegramChatId { get; set; }
     public string RawInquiryText { get; set; } = string.Empty;
     public int AIScore { get; set; } = 0;
     public EmotionType Emotion { get; set; } = EmotionType.Neutral;
