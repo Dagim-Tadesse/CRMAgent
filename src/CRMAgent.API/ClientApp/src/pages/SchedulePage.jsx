@@ -193,10 +193,27 @@ const EVENT_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const EVENT_STATUSES = ['Scheduled', 'Completed', 'Cancelled', 'Rescheduled'];
 const TAGS = ['Enterprise', 'SaaS', 'Startup', 'Tech', 'Renewable', 'Cloud', 'AI', 'Legal', 'Ongoing'];
 
+// Helper to safely format Date to YYYY-MM-DDTHH:MM local time for inputs
+const formatDateTimeLocal = (dateVal) => {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+};
 
 // =============== EVENT MODAL ===============
 function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   const [formData, setFormData] = useState({
+    id: null,
     title: '',
     lead: '',
     leadEmail: '',
@@ -221,6 +238,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   useEffect(() => {
     if (event) {
       setFormData({
+        id: event.id || null,
         title: event.title || '',
         lead: event.lead || '',
         leadEmail: event.leadEmail || '',
@@ -246,6 +264,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
       now.setHours(hour, 0, 0, 0);
       
       setFormData({
+        id: null,
         title: '',
         lead: '',
         leadEmail: '',
@@ -442,7 +461,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
               <input
                 type="datetime-local"
                 required
-                value={formData.start.toISOString().slice(0, 16)}
+                value={formatDateTimeLocal(formData.start)}
                 onChange={(e) => setFormData({ ...formData, start: new Date(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
@@ -456,8 +475,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
               <input
                 type="datetime-local"
                 required
-                value={formData.end.toISOString().slice(0, 16)}
-                onChange={(e) => setFormData({ ...formData, end: new Date(e.target.value) })}
+                value={formatDateTimeLocal(formData.end)}
+                onChange={(e) => setFormData({ ...formData, start: formData.start, end: new Date(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
             </div>
@@ -700,10 +719,10 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
             <Clock size={16} className="text-gray-500" />
             <span className="text-gray-400">Time:</span>
             <span className="text-white">
-              {event.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
+              {new Date(event.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
               {' '}
-              {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-              {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+              {new Date(event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
 
@@ -860,11 +879,12 @@ export function SchedulePage() {
   };
 
   const getEventsForDay = (date) => {
-    return events.filter(event => 
-      event.start.getDate() === date.getDate() &&
-      event.start.getMonth() === date.getMonth() &&
-      event.start.getFullYear() === date.getFullYear()
-    );
+    return events.filter(event => {
+      const d = new Date(event.start);
+      return d.getDate() === date.getDate() &&
+             d.getMonth() === date.getMonth() &&
+             d.getFullYear() === date.getFullYear();
+    });
   };
 
   const isToday = (date) => {
@@ -877,9 +897,9 @@ export function SchedulePage() {
   // Filter events based on search and filters
   const getFilteredEvents = () => {
     return events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.lead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           event.company.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (event.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.lead || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.company || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === 'all' || event.type === filterType;
       const matchesPriority = filterPriority === 'all' || event.priority === filterPriority;
       return matchesSearch && matchesType && matchesPriority;
