@@ -56,6 +56,8 @@ export function ActivityLogPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTriggers, setSelectedTriggers] = useState([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   const triggerOptions = ['Agent', 'User', 'BackgroundJob', 'TelegramWebhook', 'EmailWebhook'];
 
@@ -70,7 +72,8 @@ export function ActivityLogPage() {
 
   useEffect(() => {
     filterLogs();
-  }, [logs, searchTerm, selectedTriggers, dateRange]);
+    setCurrentPage(1);
+  }, [logs, searchTerm, selectedTriggers, dateRange, itemsPerPage]);
 
   const fetchLogs = async () => {
     try {
@@ -135,6 +138,10 @@ export function ActivityLogPage() {
     setDateRange({ start: '', end: '' });
   };
 
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">
@@ -155,6 +162,17 @@ export function ActivityLogPage() {
           <p className="text-sm text-gray-500">Monitor all system events and actions</p>
         </div>
         <div className="flex items-center gap-3">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
+          >
+            <option value={10} className="bg-[#14141a]">10 per page</option>
+            <option value={15} className="bg-[#14141a]">15 per page</option>
+            <option value={25} className="bg-[#14141a]">25 per page</option>
+            <option value={50} className="bg-[#14141a]">50 per page</option>
+            <option value={100} className="bg-[#14141a]">100 per page</option>
+          </select>
           <button
             onClick={fetchLogs}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
@@ -244,7 +262,7 @@ export function ActivityLogPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log) => (
+              {paginatedLogs.map((log) => (
                 <tr
                   key={log.id}
                   className="border-b border-white/5 last:border-0 hover:bg-white/5 transition"
@@ -278,6 +296,54 @@ export function ActivityLogPage() {
             </tbody>
           </table>
         </div>
+
+        {filteredLogs.length > 0 && (
+          <div className="bg-white/2 px-6 py-4 flex items-center justify-between border-t border-white/5 flex-wrap gap-4 text-xs text-gray-500">
+            <div>
+              Showing <span className="text-white font-medium">{startIndex + 1}</span> to <span className="text-white font-medium">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="text-white font-medium">{filteredLogs.length}</span> entries
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .map((p, i, arr) => {
+                  return (
+                    <span key={p} className="flex items-center gap-1">
+                      {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 text-gray-600">...</span>}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-7 h-7 rounded-lg font-medium transition cursor-pointer ${
+                          currentPage === p
+                            ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    </span>
+                  );
+                })}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
 
         {filteredLogs.length === 0 && (
           <div className="text-center py-12">
