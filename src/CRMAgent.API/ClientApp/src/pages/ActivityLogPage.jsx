@@ -5,6 +5,7 @@ import {
   User, Bot, Database, Send, Mail, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { Loader } from '../components/Loader';
 
 // Trigger Badge Component
 function TriggerBadge({ trigger }) {
@@ -143,14 +144,7 @@ export function ActivityLogPage() {
   const paginatedLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading activity logs...</p>
-        </div>
-      </div>
-    );
+    return <Loader message="Loading activity logs..." />;
   }
 
   return (

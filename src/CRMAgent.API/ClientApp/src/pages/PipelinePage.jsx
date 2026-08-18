@@ -15,6 +15,7 @@ import LeadCard, { STAGE_COLORS } from '../components/LeadCard';
 import { ScoreBadge } from '../components/Badges';
 import PaginationControls from '../components/PaginationControls';
 import { ConfirmModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 const STAGES = [
   'New',
@@ -230,14 +231,7 @@ export default function PipelinePage() {
   const handleCardClick = (id) => navigate(`/leads/${id}`);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading pipeline...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading pipeline..." />;
   }
 
   return (

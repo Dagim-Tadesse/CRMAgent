@@ -9,6 +9,7 @@ import {
   generateDraft
 } from '../api/apiClient';
 import { ConfirmModal } from '../components/Modal';
+import { Loader } from '../components/Loader';
 
 function formatTimestamp(value) {
   if (!value) return '';
@@ -231,14 +232,7 @@ export default function AITasksPage() {
   }, [refresh]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading AI tasks...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading AI tasks..." />;
   }
 
   return (

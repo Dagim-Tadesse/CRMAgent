@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AppSidebar from '../components/AppSidebar';
+import { Loader } from '../components/Loader';
 
 // Stat Card Component - Dark Version
 function StatCard({ icon: Icon, label, value, sub, iconBg, trend, trendValue }) {
@@ -70,7 +71,24 @@ export function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
+      try {
+        const [leadsRes, logsRes, pendingRes] = await Promise.all([
+          getLeads(),
+          getLogs(),
+          getPendingTasks()
+        ]);
+        setLeads(leadsRes.data);
+        setLogs(logsRes.data);
+        setPending(pendingRes.data);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const refreshData = () => {
       getLeads().then(res => setLeads(res.data)).catch(console.error);
       getLogs().then(res => setLogs(res.data)).catch(console.error);
       getPendingTasks().then(res => setPending(res.data)).catch(console.error);
@@ -78,23 +96,14 @@ export function DashboardPage() {
 
     fetchData();
     
-    // Auto-refresh every 15 seconds
-    const interval = setInterval(fetchData, 15000);
-
-    setTimeout(() => setLoading(false), 500);
+    // Auto-refresh in background every 15 seconds
+    const interval = setInterval(refreshData, 15000);
 
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#0a0a0f]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-blue-500/20" />
-          <p className="text-gray-500 text-sm">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <Loader fullScreen={true} message="Loading dashboard data..." />;
   }
 
   const hotLeads = leads.filter(l => l.aiScore >= 8).length;
