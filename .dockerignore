@@ -1,0 +1,14 @@
+**/.git
+**/.github
+**/node_modules
+**/dist
+**/build
+**/out
+**/bin
+**/obj
+**/.env
+**/.vs
+**/.vscode
+**/*.user
+**/*.suo
+**/ClientApp/build

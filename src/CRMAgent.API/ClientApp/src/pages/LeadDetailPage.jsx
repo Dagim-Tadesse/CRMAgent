@@ -192,6 +192,14 @@ export default function LeadDetailPage() {
               )}
             </div>
 
+            {/* Original Context */}
+            <div className="mt-6 pt-6 border-t border-white/5">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Original Context</h3>
+              <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                <p className="text-sm text-gray-300 italic whitespace-pre-wrap">"{lead.rawInquiryText}"</p>
+              </div>
+            </div>
+
             <div className="mt-6 pt-6 border-t border-white/5 flex gap-2 flex-wrap">
               <ScoreBadge score={lead.aiScore} />
               <EmotionBadge emotion={lead.emotion} />
