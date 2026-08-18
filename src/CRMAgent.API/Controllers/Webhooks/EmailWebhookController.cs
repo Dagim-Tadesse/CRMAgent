@@ -4,11 +4,13 @@ using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRMAgent.API.Controllers.Webhooks;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/webhooks/email")]
 public class EmailWebhookController : ControllerBase
 {
@@ -36,7 +38,6 @@ public class EmailWebhookController : ControllerBase
     {
         try
         {
-            // Verify webhook secret if configured
             var expectedSecret = _config["ResendSettings:InboundSecret"];
             if (!string.IsNullOrEmpty(expectedSecret) && expectedSecret != "placeholder" && secret != expectedSecret)
             {
@@ -48,20 +49,27 @@ public class EmailWebhookController : ControllerBase
                 return BadRequest(new { message = "Invalid email payload" });
             }
 
-            var (senderEmail, senderName) = ParseFromAddress(payload.Data.From);
+            // Only inbound lead mail — ignore sent/delivered/opened/bounced outbound events
+            var eventType = payload.Type ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(eventType) && !IsInboundEmailEvent(eventType))
+            {
+                _logger.LogInformation("Ignoring non-inbound email webhook event {Type}", eventType);
+                return Ok(new { message = "Ignored non-inbound event", type = eventType });
+            }
 
-            // 1. Check if lead already exists to avoid 500 error from IngestLeadCommand
+            var (senderEmail, senderName) = ParseFromAddress(payload.Data.From);
+            var content = ResolveInboundContent(payload.Data);
+
             var existingLead = _db.Leads.FirstOrDefault(l => l.Email == senderEmail);
             int leadId;
 
             if (existingLead == null)
             {
-                // Ingest the lead
                 leadId = await _mediator.Send(new IngestLeadCommand(
                     senderName,
                     senderEmail,
                     "Unknown Company",
-                    payload.Data.Text ?? payload.Data.Subject ?? "No content"
+                    string.IsNullOrWhiteSpace(content) ? (payload.Data.Subject ?? "No content") : content
                 ));
 
                 var newLead = _db.Leads.Find(leadId);
@@ -79,20 +87,18 @@ public class EmailWebhookController : ControllerBase
                 _db.Leads.Update(existingLead);
             }
 
-            // 2. Add an inbound email Interaction so the system recognizes the source as Email
             var interaction = new Interaction
             {
                 LeadId = leadId,
                 Channel = InteractionChannel.Email,
                 Type = InteractionType.Email,
-                Content = payload.Data.Text ?? payload.Data.Subject ?? string.Empty,
+                Content = content,
                 Direction = InteractionDirection.Inbound,
                 Emotion = EmotionType.Neutral,
                 CreatedAt = DateTime.UtcNow
             };
             _db.Interactions.Add(interaction);
 
-            // Update ActivityLog to reflect Inbound Email trigger
             var log = new ActivityLog
             {
                 LeadId = leadId,
@@ -105,12 +111,11 @@ public class EmailWebhookController : ControllerBase
 
             await _db.SaveChangesAsync();
 
-            // Auto-generate AI draft reply; never fail the webhook if generation fails
             try
             {
                 var draftId = await _mediator.Send(new GenerateDraftCommand(leadId));
                 _logger.LogInformation(
-                    "Auto-generated draft {DraftId} for lead {LeadId} after inbound email",
+                    "Auto-generated draft {DraftId} (PendingApproval) for lead {LeadId} after inbound email",
                     draftId, leadId);
             }
             catch (Exception ex)
@@ -125,14 +130,33 @@ public class EmailWebhookController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Email webhook processing failed");
-            // Return 200/Ok to Resend so it stops retrying the webhook, but return the error in JSON
             return Ok(new { error = ex.Message, details = ex.ToString() });
         }
     }
 
+    private static bool IsInboundEmailEvent(string type) =>
+        type.Equals("email.received", StringComparison.OrdinalIgnoreCase)
+        || type.Equals("email.inbound", StringComparison.OrdinalIgnoreCase)
+        || type.Contains("inbound", StringComparison.OrdinalIgnoreCase)
+        || type.Contains("received", StringComparison.OrdinalIgnoreCase);
+
+    private static string ResolveInboundContent(ResendEmailData data)
+    {
+        if (!string.IsNullOrWhiteSpace(data.Text)) return data.Text;
+        if (!string.IsNullOrWhiteSpace(data.Html))
+        {
+            // Lightweight strip so AI still has readable context when Resend only sends HTML
+            var plain = System.Text.RegularExpressions.Regex.Replace(data.Html, "<[^>]+>", " ");
+            plain = System.Net.WebUtility.HtmlDecode(plain);
+            plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s+", " ").Trim();
+            if (!string.IsNullOrWhiteSpace(plain)) return plain;
+        }
+
+        return data.Subject ?? string.Empty;
+    }
+
     private (string Email, string Name) ParseFromAddress(string from)
     {
-        // Matches "Name <email@domain.com>"
         var match = System.Text.RegularExpressions.Regex.Match(from, @"(.*?)<(.*?)>");
         if (match.Success)
         {

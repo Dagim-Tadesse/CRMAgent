@@ -1,15 +1,17 @@
-using CRMAgent.Application.Interfaces;
+using System.Text.Json.Serialization;
 using CRMAgent.Application.UseCases.GenerateDraft;
 using CRMAgent.Application.UseCases.IngestLead;
 using CRMAgent.Domain.Entities;
 using CRMAgent.Domain.Enums;
 using CRMAgent.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRMAgent.API.Controllers.Webhooks;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/webhooks/telegram")]
 public class TelegramWebhookController : ControllerBase
 {
@@ -27,12 +29,14 @@ public class TelegramWebhookController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> ReceiveUpdate([FromBody] TelegramUpdate update)
     {
-        if (update?.Message == null || string.IsNullOrEmpty(update.Message.Text))
+        // Prefer new messages; also accept edits so inbound replies still trigger drafts
+        var message = update?.Message ?? update?.EditedMessage;
+        if (message == null || string.IsNullOrWhiteSpace(message.Text))
         {
             return Ok(); // Return 200 to Telegram so it doesn't retry
         }
 
-        var from = update.Message.From;
+        var from = message.From;
         if (from == null) return Ok();
 
         var fullName = $"{from.FirstName} {from.LastName}".Trim();
@@ -42,24 +46,25 @@ public class TelegramWebhookController : ControllerBase
         var email = $"tg-{from.Id}@telegram.com";
 
         // Check if lead already exists
-        var existingLead = _db.Leads.FirstOrDefault(l => l.Email == email || (!string.IsNullOrEmpty(from.Username) && l.TelegramUsername == from.Username));
+        var existingLead = _db.Leads.FirstOrDefault(l =>
+            l.Email == email ||
+            (!string.IsNullOrEmpty(from.Username) && l.TelegramUsername == from.Username));
 
         int leadId;
         if (existingLead == null)
         {
-            // Ingest new lead
             leadId = await _mediator.Send(new IngestLeadCommand(
                 fullName,
                 email,
                 "Telegram Prospect",
-                update.Message.Text
+                message.Text
             ));
 
             var lead = _db.Leads.Find(leadId);
             if (lead != null)
             {
                 lead.TelegramUsername = from.Username;
-                lead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
+                lead.TelegramChatId = message.Chat?.Id ?? from.Id;
                 lead.LastInteractionAt = DateTime.UtcNow;
                 _db.Leads.Update(lead);
             }
@@ -67,31 +72,30 @@ public class TelegramWebhookController : ControllerBase
         else
         {
             leadId = existingLead.Id;
-            existingLead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
+            existingLead.TelegramChatId = message.Chat?.Id ?? from.Id;
             existingLead.LastInteractionAt = DateTime.UtcNow;
             existingLead.IsStagnant = false;
             _db.Leads.Update(existingLead);
         }
 
-        // Add the Telegram interaction
+        // Inbound only — never treat bot/outbound echoes as lead replies here
         var interaction = new Interaction
         {
             LeadId = leadId,
             Channel = InteractionChannel.Telegram,
             Type = InteractionType.TelegramMessage,
-            Content = update.Message.Text,
+            Content = message.Text,
             Direction = InteractionDirection.Inbound,
             Emotion = EmotionType.Neutral,
             CreatedAt = DateTime.UtcNow
         };
         _db.Interactions.Add(interaction);
 
-        // Add Activity Log
         var log = new ActivityLog
         {
             LeadId = leadId,
             Action = "Telegram Message Inbound",
-            Reason = $"Message from @{from.Username ?? "unknown"}: {update.Message.Text}",
+            Reason = $"Message from @{from.Username ?? "unknown"}: {message.Text}",
             TriggeredBy = LogTrigger.TelegramWebhook,
             CreatedAt = DateTime.UtcNow
         };
@@ -99,12 +103,11 @@ public class TelegramWebhookController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        // Auto-generate AI draft reply; never fail the webhook if generation fails
         try
         {
             var draftId = await _mediator.Send(new GenerateDraftCommand(leadId));
             _logger.LogInformation(
-                "Auto-generated draft {DraftId} for lead {LeadId} after inbound Telegram message",
+                "Auto-generated draft {DraftId} (PendingApproval) for lead {LeadId} after inbound Telegram",
                 draftId, leadId);
         }
         catch (Exception ex)
@@ -120,27 +123,48 @@ public class TelegramWebhookController : ControllerBase
 
 public class TelegramUpdate
 {
+    [JsonPropertyName("update_id")]
     public int UpdateId { get; set; }
+
+    [JsonPropertyName("message")]
     public TelegramMessage? Message { get; set; }
+
+    [JsonPropertyName("edited_message")]
+    public TelegramMessage? EditedMessage { get; set; }
 }
 
 public class TelegramMessage
 {
+    [JsonPropertyName("message_id")]
     public int MessageId { get; set; }
+
+    [JsonPropertyName("from")]
     public TelegramUser? From { get; set; }
+
+    [JsonPropertyName("chat")]
     public TelegramChat? Chat { get; set; }
+
+    [JsonPropertyName("text")]
     public string? Text { get; set; }
 }
 
 public class TelegramChat
 {
+    [JsonPropertyName("id")]
     public long Id { get; set; }
 }
 
 public class TelegramUser
 {
+    [JsonPropertyName("id")]
     public long Id { get; set; }
+
+    [JsonPropertyName("first_name")]
     public string FirstName { get; set; } = string.Empty;
+
+    [JsonPropertyName("last_name")]
     public string? LastName { get; set; }
+
+    [JsonPropertyName("username")]
     public string? Username { get; set; }
 }
