@@ -127,8 +127,14 @@ Text: {{content}}
                 var text = doc.RootElement.GetProperty("candidates")[0]
                     .GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString()!;
 
-                return JsonSerializer.Deserialize<T>(text,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+                var cleaned = StripMarkdownFences(text);
+                var parsed = JsonSerializer.Deserialize<T>(cleaned,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (parsed is null)
+                    throw new AIServiceException("Gemini returned empty or unparsable JSON.");
+
+                return parsed;
             }
             catch (Exception ex) when (ex is not AIServiceException && attempt < maxRetries)
             {
@@ -137,5 +143,21 @@ Text: {{content}}
         }
 
         throw new AIServiceException("Gemini API call failed after retries.");
+    }
+
+    /// <summary>Models often wrap JSON in ```json ... ``` — strip before deserialize.</summary>
+    private static string StripMarkdownFences(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text ?? string.Empty;
+        var trimmed = text.Trim();
+        if (!trimmed.StartsWith("```", StringComparison.Ordinal)) return trimmed;
+
+        var firstNewline = trimmed.IndexOf('\n');
+        if (firstNewline < 0) return trimmed.Trim('`');
+
+        trimmed = trimmed[(firstNewline + 1)..];
+        var fence = trimmed.LastIndexOf("```", StringComparison.Ordinal);
+        if (fence >= 0) trimmed = trimmed[..fence];
+        return trimmed.Trim();
     }
 }

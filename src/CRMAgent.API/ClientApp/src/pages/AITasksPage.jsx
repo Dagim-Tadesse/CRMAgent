@@ -227,24 +227,43 @@ function TaskCard({ task, onRefresh }) {
 export default function AITasksPage() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async ({ silent } = {}) => {
+    if (!silent) {
+      // keep full-screen loader only on first load
+    } else {
+      setRefreshing(true);
+    }
     try {
       const res = await getPendingTasks();
+      // API returns PendingApproval drafts only — tolerate null/odd payloads
       const list = Array.isArray(res?.data) ? res.data.filter((t) => t && t.id != null) : [];
       setTasks(list);
       setError('');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Failed to load pending tasks');
-      setTasks([]);
+      if (!silent) setTasks([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
+
   useEffect(() => {
     refresh();
+
+    // Poll so inbound-triggered drafts appear without a full remount
+    const intervalId = setInterval(() => refresh({ silent: true }), 12000);
+    const onFocus = () => refresh({ silent: true });
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+    };
   }, [refresh]);
 
   if (loading) {
@@ -270,6 +289,14 @@ export default function AITasksPage() {
               </p>
             </div>
           </div>
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => refresh({ silent: true })}
+            className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+          >
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
 
         {error && (
@@ -280,12 +307,12 @@ export default function AITasksPage() {
 
         {tasks.length === 0 ? (
           <div className="bg-[#14141a] border border-white/5 rounded-2xl p-12 text-center">
-            <p className="text-gray-400">No pending AI drafts. Generate one from a lead to get started.</p>
+            <p className="text-gray-400">No pending AI drafts. New inbound messages will appear here automatically.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onRefresh={refresh} />
+              <TaskCard key={task.id} task={task} onRefresh={() => refresh({ silent: true })} />
             ))}
           </div>
         )}
