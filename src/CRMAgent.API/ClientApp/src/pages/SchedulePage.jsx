@@ -1,7 +1,7 @@
 /* eslint-disable */
 // pages/SchedulePage.tsx
 import { useState, useEffect } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -17,15 +17,8 @@ import {
   Trash2,
   Calendar as CalendarIcon,
   Menu,
-  LayoutDashboard,
   Users,
-  FileText,
-  Activity,
-  Target,
-  Settings,
   Bell,
-  Zap,
-  User as UserIcon,
   CheckCircle,
   AlertCircle,
   Filter,
@@ -40,8 +33,6 @@ import {
   Star,
   Tag,
   Briefcase,
-  Kanban,
-  Sparkles,
   Building2,
   MessageSquare,
   Paperclip,
@@ -49,6 +40,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import AppSidebar from '../components/AppSidebar';
 
 // =============== MOCK DATA ===============
 const mockEvents = [
@@ -200,90 +192,6 @@ const EVENT_PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const EVENT_STATUSES = ['Scheduled', 'Completed', 'Cancelled', 'Rescheduled'];
 const TAGS = ['Enterprise', 'SaaS', 'Startup', 'Tech', 'Renewable', 'Cloud', 'AI', 'Legal', 'Ongoing'];
 
-// =============== SIDEBAR ===============
-function Sidebar({ isOpen, toggleSidebar }) {
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
-    { icon: Users, label: 'Leads', to: '/leads' },
-    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
-    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
-    { icon: FileText, label: 'Reports', to: '/reports' },
-    { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: CalendarIcon, label: 'Calendar', to: '/calendar' },
-    { icon: Settings, label: 'Settings', to: '/settings' },
-  ];
-
-  return (
-    <>
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-sm"
-          onClick={toggleSidebar}
-        />
-      )}
-      
-      <div className={`
-        fixed lg:sticky top-0 left-0 h-screen w-64 bg-[#0a0a0f] border-r border-white/5
-        text-white z-50 transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
-      `}>
-        <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Zap size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">LeadFlow</h1>
-              <p className="text-xs text-gray-500">Analytics Dashboard</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item, idx) => (
-            <NavLink
-              key={idx}
-              to={item.to}
-              onClick={toggleSidebar}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                ${isActive
-                  ? 'bg-white/10 text-white shadow-lg shadow-blue-500/10 border border-white/5' 
-                  : 'text-gray-500 hover:bg-white/5 hover:text-white'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={20} className={isActive ? 'text-blue-400' : ''} />
-                  <span className="font-medium">{item.label}</span>
-                  {isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <UserIcon size={16} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">john@example.com</p>
-            </div>
-            <button className="text-gray-500 hover:text-white transition">
-              <Settings size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 // =============== EVENT MODAL ===============
 function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
@@ -791,7 +699,7 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <UserIcon size={16} className="text-gray-500" />
+            <User size={16} className="text-gray-500" />
             <span className="text-gray-400">Assigned:</span>
             <span className="text-white">{event.assignedTo}</span>
           </div>
@@ -1011,7 +919,7 @@ export function SchedulePage() {
 
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="flex-1 min-w-0">
         {/* Header */}
@@ -1039,7 +947,13 @@ export function SchedulePage() {
                   <p className="text-sm font-medium text-white">{email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/25">
+                <div
+                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))',
+                    boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                  }}
+                >
                   {email ? email[0].toUpperCase() : '?'}
                 </div>
               </div>

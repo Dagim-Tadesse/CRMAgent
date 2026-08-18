@@ -1,20 +1,15 @@
 /* eslint-disable */
 // pages/SettingsPage.jsx
 import { useState, useEffect } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useAppearance } from '../context/AppearanceContext';
+import AppSidebar from '../components/AppSidebar';
+import { getLeads } from '../api/apiClient';
 import {
-  LayoutDashboard,
   Users,
-  FileText,
-  Activity,
-  Target,
-  Calendar as CalendarIcon,
-  Settings as SettingsIcon,
-  Zap,
   User,
   Mail,
-  Phone,
   Shield,
   Moon,
   Sun,
@@ -40,23 +35,64 @@ import {
   Video,
   Lock,
   CheckCircle,
-  AlertCircle,
-  Key,
-  Clock,
-  Globe,
-  Smartphone,
-  Star,
-  Award,
-  Briefcase,
-  Building2,
-  ChevronRight,
-  Plus,
-  X,
-  Search,
-  Filter,
-  Kanban,
-  Sparkles
+  Calendar as CalendarIcon
 } from 'lucide-react';
+
+// =============== HELPERS ===============
+function loadJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    return { ...fallback, ...JSON.parse(raw) };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore quota / private mode errors
+  }
+}
+
+function loadJsonArray(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function leadsToCsv(leads) {
+  if (!Array.isArray(leads) || leads.length === 0) {
+    return 'id,name,email,company,status,phone\n';
+  }
+  const keys = Object.keys(leads[0]);
+  const escape = (v) => {
+    const s = v == null ? '' : String(v);
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+  const rows = leads.map((row) => keys.map((k) => escape(row[k])).join(','));
+  return [keys.join(','), ...rows].join('\n');
+}
+
+function downloadCsv(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // =============== CONSTANTS ===============
 const TIMEZONES = [
@@ -81,113 +117,89 @@ const LANGUAGE_OPTIONS = [
   'Arabic'
 ];
 
-// =============== SIDEBAR ===============
-function Sidebar({ isOpen, toggleSidebar, accentColor, sidebarCollapsed }) {
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
-    { icon: Users, label: 'Leads', to: '/leads' },
-    { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
-    { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
-    { icon: FileText, label: 'Reports', to: '/reports' },
-    { icon: Activity, label: 'Activity', to: '/activity' },
-    { icon: CalendarIcon, label: 'Calendar', to: '/calendar' },
-    { icon: SettingsIcon, label: 'Settings', to: '/settings' },
-  ];
+const DEFAULT_PROFILE = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  phone: '+1 (555) 123-4567',
+  title: 'Sales Manager',
+  bio: 'Sales professional with 10+ years of experience in B2B SaaS.',
+  role: 'Admin'
+};
 
+const DEFAULT_NOTIFICATIONS = {
+  email: true,
+  push: true,
+  desktop: false,
+  sms: false,
+  leadUpdates: true,
+  taskReminders: true,
+  systemAlerts: true,
+  marketing: false
+};
+
+const DEFAULT_PREFERENCES = {
+  language: 'English (US)',
+  timezone: 'UTC-08:00',
+  currency: 'USD',
+  dateFormat: 'MM/DD/YYYY',
+  startOfWeek: 'Monday',
+  defaultView: 'Month'
+};
+
+const DEFAULT_INTEGRATIONS = {
+  slack: true,
+  google: true,
+  zoom: false,
+  outlook: false,
+  hubspot: true,
+  salesforce: false
+};
+
+const DEFAULT_TEAM = [
+  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', avatar: 'JD' },
+  { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Sales Rep', avatar: 'SJ' },
+  { id: 3, name: 'Mike Peters', email: 'mike@example.com', role: 'Sales Rep', avatar: 'MP' },
+  { id: 4, name: 'Emily Davis', email: 'emily@example.com', role: 'Manager', avatar: 'ED' }
+];
+
+const accentGradientStyle = {
+  background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))'
+};
+
+const accentSoftBg = { background: 'color-mix(in srgb, var(--accent-color) 10%, transparent)' };
+const accentSoftBorder = { borderColor: 'color-mix(in srgb, var(--accent-color) 20%, transparent)' };
+const accentSoftText = { color: 'var(--accent-color)' };
+
+function Toggle({ on, onToggle }) {
   return (
-    <>
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-sm"
-          onClick={toggleSidebar}
-        />
-      )}
-      
-      <div className={`
-        fixed lg:sticky top-0 left-0 h-screen bg-[#0a0a0f] border-r border-white/5
-        text-white z-50 transition-all duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        ${sidebarCollapsed ? 'w-20' : 'w-64'}
-        flex flex-col
-      `}>
-        <div className={`p-6 border-b border-white/5 ${sidebarCollapsed ? 'px-4' : ''}`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 flex items-center justify-center shadow-lg shadow-${accentColor}-500/25 flex-shrink-0`}>
-              <Zap size={20} className="text-white" />
-            </div>
-            {!sidebarCollapsed && (
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">LeadFlow</h1>
-                <p className="text-xs text-gray-500">Analytics Dashboard</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <nav className={`flex-1 p-4 space-y-1 overflow-y-auto ${sidebarCollapsed ? 'px-2' : ''}`}>
-          {menuItems.map((item, idx) => (
-            <NavLink
-              key={idx}
-              to={item.to}
-              onClick={toggleSidebar}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                ${sidebarCollapsed ? 'justify-center px-2' : ''}
-                ${isActive
-                  ? `bg-${accentColor}-500/10 text-white shadow-lg shadow-${accentColor}-500/10 border border-${accentColor}-500/20` 
-                  : 'text-gray-500 hover:bg-white/5 hover:text-white'}
-              `}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={20} className={isActive ? `text-${accentColor}-400` : ''} />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span className="font-medium">{item.label}</span>
-                      {isActive && (
-                        <span className={`ml-auto w-1.5 h-1.5 rounded-full bg-${accentColor}-400 animate-pulse`} />
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className={`p-4 border-t border-white/5 ${sidebarCollapsed ? 'px-2' : ''}`}>
-          <div className={`flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition ${sidebarCollapsed ? 'justify-center px-2' : ''}`}>
-            <div className={`w-9 h-9 rounded-full bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 flex items-center justify-center shadow-lg shadow-${accentColor}-500/25 flex-shrink-0`}>
-              <User size={16} className="text-white" />
-            </div>
-            {!sidebarCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">John Doe</p>
-                <p className="text-xs text-gray-500 truncate">john@example.com</p>
-              </div>
-            )}
-            {!sidebarCollapsed && (
-              <button className="text-gray-500 hover:text-white transition">
-                <SettingsIcon size={18} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
+    <button
+      type="button"
+      onClick={onToggle}
+      className="relative w-10 h-5 rounded-full transition-colors"
+      style={{ background: on ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)' }}
+    >
+      <div
+        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+          on ? 'translate-x-5' : 'translate-x-0'
+        }`}
+      />
+    </button>
   );
 }
 
 // =============== APPEARANCE SECTION ===============
-function AppearanceSection({ 
-  theme, setTheme, 
-  accentColor, setAccentColor, 
-  fontSize, setFontSize,
-  sidebarCollapsed, setSidebarCollapsed,
-  animations, setAnimations,
-  onSave,
-  onReset
-}) {
+function AppearanceSection() {
+  const {
+    theme, setTheme,
+    accentColor, setAccentColor,
+    fontSize, setFontSize,
+    sidebarCollapsed, setSidebarCollapsed,
+    animations, setAnimations,
+    resetAppearance
+  } = useAppearance();
+
+  const [savedFlash, setSavedFlash] = useState(false);
+
   const themes = [
     { id: 'dark', icon: Moon, label: 'Dark', description: 'Easy on the eyes' },
     { id: 'light', icon: Sun, label: 'Light', description: 'Bright and clean' },
@@ -211,106 +223,81 @@ function AppearanceSection({
     { id: 'large', label: 'Large', size: '18px', preview: 'Large text preview' }
   ];
 
-  const getColorClass = (colorId) => {
-    return `bg-${colorId}-500`;
+  const handleSaveConfirm = () => {
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 2000);
   };
 
-  const getBorderClass = (colorId) => {
-    return `border-${colorId}-500`;
+  const selectedBorder = {
+    borderColor: 'var(--accent-color)',
+    background: 'color-mix(in srgb, var(--accent-color) 10%, transparent)'
   };
-
-  const getTextClass = (colorId) => {
-    return `text-${colorId}-400`;
-  };
-
-  const getGradientClass = (colorId) => {
-    if (colorId === 'blue') return 'from-blue-500 to-purple-600';
-    if (colorId === 'purple') return 'from-purple-500 to-pink-600';
-    if (colorId === 'green') return 'from-green-500 to-teal-600';
-    if (colorId === 'orange') return 'from-orange-500 to-red-600';
-    if (colorId === 'red') return 'from-red-500 to-pink-600';
-    if (colorId === 'pink') return 'from-pink-500 to-purple-600';
-    if (colorId === 'teal') return 'from-teal-500 to-green-600';
-    if (colorId === 'indigo') return 'from-indigo-500 to-purple-600';
-    return 'from-blue-500 to-purple-600';
-  };
-
-  // Apply theme to body
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      // System theme
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.classList.toggle('dark', prefersDark);
-      document.documentElement.classList.toggle('light', !prefersDark);
-    }
-  }, [theme]);
 
   return (
     <div className="space-y-6">
-      {/* Main Appearance Card */}
       <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-semibold text-white">Appearance</h3>
             <p className="text-sm text-gray-500">Customize how the app looks and feels</p>
           </div>
-          <Palette size={20} className={`text-${accentColor}-400`} />
+          <Palette size={20} style={{ color: 'var(--accent-color)' }} />
         </div>
 
-        {/* Theme Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-400 mb-3">Theme</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {themes.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={`
-                  p-4 rounded-xl border-2 transition-all text-left
-                  ${theme === t.id
-                    ? `border-${accentColor}-500 bg-${accentColor}-500/10`
-                    : 'border-white/10 bg-white/5 hover:bg-white/10'}
-                `}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <t.icon size={24} className={theme === t.id ? `text-${accentColor}-400` : 'text-gray-400'} />
-                  <div>
-                    <p className={`text-sm font-medium ${theme === t.id ? 'text-white' : 'text-gray-400'}`}>
-                      {t.label}
-                    </p>
-                    <p className="text-xs text-gray-500">{t.description}</p>
+            {themes.map((t) => {
+              const selected = theme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTheme(t.id)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    selected ? '' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                  }`}
+                  style={selected ? selectedBorder : undefined}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <t.icon
+                      size={24}
+                      style={selected ? { color: 'var(--accent-color)' } : undefined}
+                      className={selected ? '' : 'text-gray-400'}
+                    />
+                    <div>
+                      <p className={`text-sm font-medium ${selected ? 'text-white' : 'text-gray-400'}`}>
+                        {t.label}
+                      </p>
+                      <p className="text-xs text-gray-500">{t.description}</p>
+                    </div>
                   </div>
-                </div>
-                {theme === t.id && (
-                  <div className={`w-full h-0.5 bg-gradient-to-r ${getGradientClass(accentColor)} rounded-full`} />
-                )}
-              </button>
-            ))}
+                  {selected && (
+                    <div className="w-full h-0.5 rounded-full" style={accentGradientStyle} />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Accent Color */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-400 mb-3">Accent Color</label>
           <div className="flex flex-wrap gap-3">
             {accentColors.map((color) => (
               <button
                 key={color.id}
+                type="button"
                 onClick={() => setAccentColor(color.id)}
                 className="group relative"
                 title={color.label}
               >
                 <div
-                  className={`
-                    w-10 h-10 rounded-full transition-all duration-200
-                    ${accentColor === color.id ? 'ring-2 ring-white ring-offset-2 ring-offset-[#14141a] scale-110' : 'hover:scale-105'}
-                  `}
+                  className={`w-10 h-10 rounded-full transition-all duration-200 ${
+                    accentColor === color.id
+                      ? 'ring-2 ring-white ring-offset-2 ring-offset-[#14141a] scale-110'
+                      : 'hover:scale-105'
+                  }`}
                   style={{ backgroundColor: color.color }}
                 />
                 {accentColor === color.id && (
@@ -321,33 +308,33 @@ function AppearanceSection({
           </div>
         </div>
 
-        {/* Font Size */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-400 mb-3">Font Size</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {fontSizes.map((size) => (
-              <button
-                key={size.id}
-                onClick={() => setFontSize(size.id)}
-                className={`
-                  p-4 rounded-xl border-2 transition-all text-center
-                  ${fontSize === size.id
-                    ? `border-${accentColor}-500 bg-${accentColor}-500/10`
-                    : 'border-white/10 bg-white/5 hover:bg-white/10'}
-                `}
-              >
-                <p className={`font-medium ${fontSize === size.id ? 'text-white' : 'text-gray-400'}`}>
-                  {size.label}
-                </p>
-                <p className="text-gray-500 mt-1" style={{ fontSize: size.size }}>
-                  {size.preview}
-                </p>
-              </button>
-            ))}
+            {fontSizes.map((size) => {
+              const selected = fontSize === size.id;
+              return (
+                <button
+                  key={size.id}
+                  type="button"
+                  onClick={() => setFontSize(size.id)}
+                  className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    selected ? '' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                  }`}
+                  style={selected ? selectedBorder : undefined}
+                >
+                  <p className={`font-medium ${selected ? 'text-white' : 'text-gray-400'}`}>
+                    {size.label}
+                  </p>
+                  <p className="text-gray-500 mt-1" style={{ fontSize: size.size }}>
+                    {size.preview}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Additional Settings */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-white/5 border border-white/5">
             <div className="flex items-center justify-between">
@@ -355,16 +342,10 @@ function AppearanceSection({
                 <p className="text-sm font-medium text-white">Collapsed Sidebar</p>
                 <p className="text-xs text-gray-500">Minimize sidebar for more space</p>
               </div>
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${sidebarCollapsed ? `bg-${accentColor}-500` : 'bg-white/10'}`}
-              >
-                <div
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    sidebarCollapsed ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
+              <Toggle
+                on={sidebarCollapsed}
+                onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+              />
             </div>
           </div>
 
@@ -374,57 +355,77 @@ function AppearanceSection({
                 <p className="text-sm font-medium text-white">Animations</p>
                 <p className="text-xs text-gray-500">Enable smooth transitions</p>
               </div>
-              <button
-                onClick={() => setAnimations(!animations)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${animations ? `bg-${accentColor}-500` : 'bg-white/10'}`}
-              >
-                <div
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    animations ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
+              <Toggle
+                on={animations}
+                onToggle={() => setAnimations(!animations)}
+              />
             </div>
           </div>
         </div>
 
-        {/* Live Preview */}
         <div className="mt-6">
           <label className="block text-sm font-medium text-gray-400 mb-3">Live Preview</label>
-          <div className={`p-6 rounded-2xl border border-white/10 bg-white/5 transition-all duration-300 ${animations ? '' : 'transition-none'}`}>
+          <div
+            className={`p-6 rounded-2xl border border-white/10 bg-white/5 ${
+              animations ? 'transition-all duration-300' : 'transition-none'
+            }`}
+          >
             <div className="flex items-center gap-4 mb-4">
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${getGradientClass(accentColor)} flex items-center justify-center shadow-lg shadow-${accentColor}-500/25`}>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+                style={{
+                  ...accentGradientStyle,
+                  boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                }}
+              >
                 <User size={24} className="text-white" />
               </div>
               <div>
-                <p className="font-semibold text-white" style={{ fontSize: fontSize === 'small' ? '14px' : fontSize === 'large' ? '18px' : '16px' }}>
+                <p
+                  className="font-semibold text-white"
+                  style={{
+                    fontSize: fontSize === 'small' ? '14px' : fontSize === 'large' ? '18px' : '16px'
+                  }}
+                >
                   John Doe
                 </p>
-                <p className={`text-sm text-${accentColor}-400`}>Sales Manager</p>
+                <p className="text-sm" style={{ color: 'var(--accent-color)' }}>Sales Manager</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <div className={`p-3 rounded-xl bg-${accentColor}-500/10 border border-${accentColor}-500/20`}>
-                <p className={`text-${accentColor}-400 text-sm font-medium`}>12</p>
-                <p className="text-xs text-gray-500">Leads</p>
-              </div>
-              <div className={`p-3 rounded-xl bg-${accentColor}-500/10 border border-${accentColor}-500/20`}>
-                <p className={`text-${accentColor}-400 text-sm font-medium`}>5</p>
-                <p className="text-xs text-gray-500">Meetings</p>
-              </div>
-              <div className={`p-3 rounded-xl bg-${accentColor}-500/10 border border-${accentColor}-500/20`}>
-                <p className={`text-${accentColor}-400 text-sm font-medium`}>85%</p>
-                <p className="text-xs text-gray-500">Conversion</p>
-              </div>
+              {[
+                { value: '12', label: 'Leads' },
+                { value: '5', label: 'Meetings' },
+                { value: '85%', label: 'Conversion' }
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="p-3 rounded-xl border"
+                  style={{ ...accentSoftBg, ...accentSoftBorder }}
+                >
+                  <p className="text-sm font-medium" style={accentSoftText}>{stat.value}</p>
+                  <p className="text-xs text-gray-500">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-end">
+        <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-end gap-3">
+          {savedFlash && (
+            <span className="text-sm text-green-400 flex items-center gap-1.5">
+              <CheckCircle size={16} />
+              Appearance applied
+            </span>
+          )}
           <button
-            onClick={onSave}
-            className={`px-6 py-2.5 rounded-xl bg-gradient-to-r ${getGradientClass(accentColor)} text-white font-medium hover:shadow-lg hover:shadow-${accentColor}-500/25 transition-all flex items-center gap-2`}
+            type="button"
+            onClick={handleSaveConfirm}
+            className="px-6 py-2.5 rounded-xl text-white font-medium transition-all flex items-center gap-2 hover:opacity-90"
+            style={{
+              ...accentGradientStyle,
+              boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+            }}
           >
             <Save size={18} />
             Save Appearance
@@ -432,7 +433,6 @@ function AppearanceSection({
         </div>
       </div>
 
-      {/* Reset to Defaults */}
       <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -440,7 +440,8 @@ function AppearanceSection({
             <p className="text-xs text-gray-500">Restore all appearance settings to default</p>
           </div>
           <button
-            onClick={onReset}
+            type="button"
+            onClick={() => resetAppearance()}
             className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition text-sm"
           >
             Reset Defaults
@@ -452,13 +453,33 @@ function AppearanceSection({
 }
 
 // =============== PROFILE SECTION ===============
-function ProfileSection({ profile, onUpdate, accentColor, theme }) {
+function ProfileSection({ authEmail, authRole }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [profile, setProfile] = useState(() => loadJson('settings_profile', DEFAULT_PROFILE));
   const [formData, setFormData] = useState(profile);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!authEmail) return;
+    setProfile((prev) => {
+      if (prev.email === authEmail) return prev;
+      const next = {
+        ...prev,
+        email: authEmail,
+        role: authRole || prev.role
+      };
+      saveJson('settings_profile', next);
+      setFormData(next);
+      return next;
+    });
+  }, [authEmail, authRole]);
 
   const handleSave = () => {
-    onUpdate(formData);
+    setProfile(formData);
+    saveJson('settings_profile', formData);
     setIsEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -468,22 +489,45 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
           <h3 className="text-lg font-semibold text-white">Profile Information</h3>
           <p className="text-sm text-gray-500">Update your personal information</p>
         </div>
-        <button
-          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          className={`px-4 py-2 rounded-xl bg-${accentColor}-500/10 hover:bg-${accentColor}-500/20 text-${accentColor}-400 transition flex items-center gap-2`}
-        >
-          {isEditing ? <Save size={16} /> : <Edit2 size={16} />}
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
-        </button>
+        <div className="flex items-center gap-3">
+          {saved && (
+            <span className="text-sm text-green-400 flex items-center gap-1.5">
+              <CheckCircle size={16} />
+              Saved
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+            className="px-4 py-2 rounded-xl transition flex items-center gap-2"
+            style={{
+              ...accentSoftBg,
+              color: 'var(--accent-color)'
+            }}
+          >
+            {isEditing ? <Save size={16} /> : <Edit2 size={16} />}
+            {isEditing ? 'Save Changes' : 'Edit Profile'}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-6 mb-6">
         <div className="relative">
-          <div className={`w-24 h-24 rounded-full bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-${accentColor}-500/25`}>
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg"
+            style={{
+              ...accentGradientStyle,
+              boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+            }}
+          >
             {profile.name ? profile.name[0].toUpperCase() : 'JD'}
           </div>
           {isEditing && (
-            <button className={`absolute bottom-0 right-0 p-1.5 rounded-full bg-${accentColor}-500 text-white hover:bg-${accentColor}-600 transition`}>
+            <button
+              type="button"
+              className="absolute bottom-0 right-0 p-1.5 rounded-full text-white hover:opacity-90 transition"
+              style={{ background: 'var(--accent-color)' }}
+            >
               <Edit2 size={14} />
             </button>
           )}
@@ -504,8 +548,15 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             disabled={!isEditing}
             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? `focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500` : 'opacity-70'
+              isEditing ? 'focus:ring-1' : 'opacity-70'
             }`}
+            style={isEditing ? { '--tw-ring-color': 'var(--accent-color)' } : undefined}
+            onFocus={(e) => {
+              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '';
+            }}
           />
         </div>
         <div>
@@ -516,8 +567,14 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             disabled={!isEditing}
             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? `focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500` : 'opacity-70'
+              isEditing ? '' : 'opacity-70'
             }`}
+            onFocus={(e) => {
+              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '';
+            }}
           />
         </div>
         <div>
@@ -528,8 +585,14 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             disabled={!isEditing}
             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? `focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500` : 'opacity-70'
+              isEditing ? '' : 'opacity-70'
             }`}
+            onFocus={(e) => {
+              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '';
+            }}
           />
         </div>
         <div>
@@ -540,8 +603,14 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             disabled={!isEditing}
             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? `focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500` : 'opacity-70'
+              isEditing ? '' : 'opacity-70'
             }`}
+            onFocus={(e) => {
+              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '';
+            }}
           />
         </div>
         <div className="md:col-span-2">
@@ -552,9 +621,15 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             disabled={!isEditing}
             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition resize-none ${
-              isEditing ? `focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500` : 'opacity-70'
+              isEditing ? '' : 'opacity-70'
             }`}
             placeholder="Tell us about yourself..."
+            onFocus={(e) => {
+              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '';
+            }}
           />
         </div>
       </div>
@@ -563,7 +638,7 @@ function ProfileSection({ profile, onUpdate, accentColor, theme }) {
 }
 
 // =============== SECURITY SECTION ===============
-function SecuritySection({ accentColor }) {
+function SecuritySection() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -572,11 +647,13 @@ function SecuritySection({ accentColor }) {
     confirmPassword: ''
   });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
-    alert('Password updated successfully! (Mock)');
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordSaved(true);
+    setTimeout(() => setPasswordSaved(false), 2000);
   };
 
   return (
@@ -586,7 +663,7 @@ function SecuritySection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Security & Authentication</h3>
           <p className="text-sm text-gray-500">Manage your security settings</p>
         </div>
-        <Shield size={20} className={`text-${accentColor}-400`} />
+        <Shield size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
       <div className="mb-6 pb-6 border-b border-white/5">
@@ -599,9 +676,11 @@ function SecuritySection({ accentColor }) {
                 type={showPassword ? 'text' : 'password'}
                 value={passwordData.currentPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition pr-10`}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition pr-10"
                 placeholder="Enter current password"
                 required
+                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
+                onBlur={(e) => { e.target.style.borderColor = ''; }}
               />
               <button
                 type="button"
@@ -619,9 +698,11 @@ function SecuritySection({ accentColor }) {
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition"
                 placeholder="Enter new password"
                 required
+                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
+                onBlur={(e) => { e.target.style.borderColor = ''; }}
               />
             </div>
             <div>
@@ -630,18 +711,32 @@ function SecuritySection({ accentColor }) {
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition"
                 placeholder="Confirm new password"
                 required
+                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
+                onBlur={(e) => { e.target.style.borderColor = ''; }}
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className={`px-6 py-2.5 rounded-xl bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 text-white font-medium hover:shadow-lg hover:shadow-${accentColor}-500/25 transition-all`}
-          >
-            Update Password
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl text-white font-medium transition-all hover:opacity-90"
+              style={{
+                ...accentGradientStyle,
+                boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+              }}
+            >
+              Update Password
+            </button>
+            {passwordSaved && (
+              <span className="text-sm text-green-400 flex items-center gap-1.5">
+                <CheckCircle size={16} />
+                Password updated
+              </span>
+            )}
+          </div>
         </form>
       </div>
 
@@ -652,10 +747,10 @@ function SecuritySection({ accentColor }) {
             <p className="text-xs text-gray-500">Add an extra layer of security</p>
           </div>
           <button
+            type="button"
             onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              twoFactorEnabled ? `bg-${accentColor}-500` : 'bg-white/10'
-            }`}
+            className="relative w-12 h-6 rounded-full transition-colors"
+            style={{ background: twoFactorEnabled ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)' }}
           >
             <div
               className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
@@ -667,10 +762,14 @@ function SecuritySection({ accentColor }) {
         {twoFactorEnabled && (
           <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/5">
             <div className="flex items-center gap-3 text-sm text-gray-300">
-              <Fingerprint size={18} className={`text-${accentColor}-400`} />
+              <Fingerprint size={18} style={{ color: 'var(--accent-color)' }} />
               <span>2FA is enabled. You'll need to verify your identity when logging in.</span>
             </div>
-            <button className={`mt-3 text-xs text-${accentColor}-400 hover:text-${accentColor}-300 transition`}>
+            <button
+              type="button"
+              className="mt-3 text-xs hover:opacity-80 transition"
+              style={{ color: 'var(--accent-color)' }}
+            >
               Configure 2FA Settings →
             </button>
           </div>
@@ -681,20 +780,18 @@ function SecuritySection({ accentColor }) {
 }
 
 // =============== NOTIFICATIONS SECTION ===============
-function NotificationsSection({ accentColor }) {
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    desktop: false,
-    sms: false,
-    leadUpdates: true,
-    taskReminders: true,
-    systemAlerts: true,
-    marketing: false
-  });
+function NotificationsSection() {
+  const [notifications, setNotifications] = useState(() =>
+    loadJson('settings_notifications', DEFAULT_NOTIFICATIONS)
+  );
+  const [flash, setFlash] = useState(false);
 
   const toggleNotification = (key) => {
-    setNotifications({ ...notifications, [key]: !notifications[key] });
+    const next = { ...notifications, [key]: !notifications[key] };
+    setNotifications(next);
+    saveJson('settings_notifications', next);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 1200);
   };
 
   return (
@@ -704,7 +801,10 @@ function NotificationsSection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Notifications</h3>
           <p className="text-sm text-gray-500">Configure how you receive alerts</p>
         </div>
-        <Bell size={20} className={`text-${accentColor}-400`} />
+        <div className="flex items-center gap-2">
+          {flash && <span className="text-xs text-green-400">Saved</span>}
+          <Bell size={20} style={{ color: 'var(--accent-color)' }} />
+        </div>
       </div>
 
       <div className="mb-6 pb-6 border-b border-white/5">
@@ -715,19 +815,12 @@ function NotificationsSection({ accentColor }) {
             .map(([key, value]) => (
               <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
                 <div>
-                  <p className="text-sm text-white capitalize">{key.replace(/([A-Z])/g, ' $1').trim()} Notifications</p>
+                  <p className="text-sm text-white capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()} Notifications
+                  </p>
                   <p className="text-xs text-gray-500">Receive {key} notifications</p>
                 </div>
-                <button
-                  onClick={() => toggleNotification(key)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${value ? `bg-${accentColor}-500` : 'bg-white/10'}`}
-                >
-                  <div
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      value ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <Toggle on={value} onToggle={() => toggleNotification(key)} />
               </div>
             ))}
         </div>
@@ -741,19 +834,14 @@ function NotificationsSection({ accentColor }) {
             .map(([key, value]) => (
               <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
                 <div>
-                  <p className="text-sm text-white capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                  <p className="text-xs text-gray-500">Get notified about {key.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}</p>
+                  <p className="text-sm text-white capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Get notified about {key.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}
+                  </p>
                 </div>
-                <button
-                  onClick={() => toggleNotification(key)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${value ? `bg-${accentColor}-500` : 'bg-white/10'}`}
-                >
-                  <div
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                      value ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <Toggle on={value} onToggle={() => toggleNotification(key)} />
               </div>
             ))}
         </div>
@@ -763,15 +851,25 @@ function NotificationsSection({ accentColor }) {
 }
 
 // =============== INTEGRATIONS SECTION ===============
-function IntegrationsSection({ accentColor }) {
+function IntegrationsSection() {
+  const [connected, setConnected] = useState(() =>
+    loadJson('settings_integrations', DEFAULT_INTEGRATIONS)
+  );
+
   const integrations = [
-    { id: 'slack', name: 'Slack', icon: MessageSquare, status: 'Connected', color: 'bg-[#4A154B]' },
-    { id: 'google', name: 'Google Calendar', icon: CalendarIcon, status: 'Connected', color: 'bg-[#4285F4]' },
-    { id: 'zoom', name: 'Zoom', icon: Video, status: 'Disconnected', color: 'bg-[#2D8CFF]' },
-    { id: 'outlook', name: 'Outlook', icon: Mail, status: 'Disconnected', color: 'bg-[#0078D4]' },
-    { id: 'hubspot', name: 'HubSpot', icon: Link2, status: 'Connected', color: 'bg-[#FF7A59]' },
-    { id: 'salesforce', name: 'Salesforce', icon: Cloud, status: 'Disconnected', color: 'bg-[#00A1E0]' }
+    { id: 'slack', name: 'Slack', icon: MessageSquare, color: 'bg-[#4A154B]' },
+    { id: 'google', name: 'Google Calendar', icon: CalendarIcon, color: 'bg-[#4285F4]' },
+    { id: 'zoom', name: 'Zoom', icon: Video, color: 'bg-[#2D8CFF]' },
+    { id: 'outlook', name: 'Outlook', icon: Mail, color: 'bg-[#0078D4]' },
+    { id: 'hubspot', name: 'HubSpot', icon: Link2, color: 'bg-[#FF7A59]' },
+    { id: 'salesforce', name: 'Salesforce', icon: Cloud, color: 'bg-[#00A1E0]' }
   ];
+
+  const toggleIntegration = (id) => {
+    const next = { ...connected, [id]: !connected[id] };
+    setConnected(next);
+    saveJson('settings_integrations', next);
+  };
 
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -780,45 +878,69 @@ function IntegrationsSection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Integrations</h3>
           <p className="text-sm text-gray-500">Connect your favorite tools</p>
         </div>
-        <Link2 size={20} className={`text-${accentColor}-400`} />
+        <Link2 size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {integrations.map((integration) => (
-          <div key={integration.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${integration.color} flex items-center justify-center`}>
-                <integration.icon size={18} className="text-white" />
+        {integrations.map((integration) => {
+          const isConnected = !!connected[integration.id];
+          return (
+            <div
+              key={integration.id}
+              className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl ${integration.color} flex items-center justify-center`}>
+                  <integration.icon size={18} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{integration.name}</p>
+                  <p className={`text-xs ${isConnected ? 'text-green-400' : 'text-gray-500'}`}>
+                    {isConnected ? 'Connected' : 'Disconnected'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-white">{integration.name}</p>
-                <p className={`text-xs ${integration.status === 'Connected' ? 'text-green-400' : 'text-gray-500'}`}>
-                  {integration.status}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => toggleIntegration(integration.id)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                style={
+                  isConnected
+                    ? { background: 'rgba(34,197,94,0.1)', color: '#4ade80' }
+                    : {
+                        background: 'color-mix(in srgb, var(--accent-color) 10%, transparent)',
+                        color: 'var(--accent-color)'
+                      }
+                }
+              >
+                {isConnected ? 'Configure' : 'Connect'}
+              </button>
             </div>
-            <button className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-              integration.status === 'Connected' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : `bg-${accentColor}-500/10 text-${accentColor}-400 hover:bg-${accentColor}-500/20`
-            }`}>
-              {integration.status === 'Connected' ? 'Configure' : 'Connect'}
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 // =============== PREFERENCES SECTION ===============
-function PreferencesSection({ accentColor }) {
-  const [preferences, setPreferences] = useState({
-    language: 'English (US)',
-    timezone: 'UTC-08:00',
-    currency: 'USD',
-    dateFormat: 'MM/DD/YYYY',
-    startOfWeek: 'Monday',
-    defaultView: 'Month'
-  });
+function PreferencesSection() {
+  const [preferences, setPreferences] = useState(() =>
+    loadJson('settings_preferences', DEFAULT_PREFERENCES)
+  );
+
+  const updatePreference = (key, value) => {
+    const next = { ...preferences, [key]: value };
+    setPreferences(next);
+    saveJson('settings_preferences', next);
+  };
+
+  const selectFocus = (e) => {
+    e.target.style.borderColor = 'var(--accent-color)';
+  };
+  const selectBlur = (e) => {
+    e.target.style.borderColor = '';
+  };
 
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -827,7 +949,7 @@ function PreferencesSection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Preferences</h3>
           <p className="text-sm text-gray-500">Customize your experience</p>
         </div>
-        <Sliders size={20} className={`text-${accentColor}-400`} />
+        <Sliders size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -835,66 +957,84 @@ function PreferencesSection({ accentColor }) {
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Language</label>
           <select
             value={preferences.language}
-            onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('language', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            {LANGUAGE_OPTIONS.map(lang => <option key={lang} value={lang} className="bg-[#14141a]">{lang}</option>)}
+            {LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang} value={lang} className="bg-[#14141a]">{lang}</option>
+            ))}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Timezone</label>
           <select
             value={preferences.timezone}
-            onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('timezone', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            {TIMEZONES.map(tz => <option key={tz} value={tz} className="bg-[#14141a]">{tz}</option>)}
+            {TIMEZONES.map((tz) => (
+              <option key={tz} value={tz} className="bg-[#14141a]">{tz}</option>
+            ))}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Currency</label>
           <select
             value={preferences.currency}
-            onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('currency', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            {CURRENCIES.map(curr => <option key={curr} value={curr} className="bg-[#14141a]">{curr}</option>)}
+            {CURRENCIES.map((curr) => (
+              <option key={curr} value={curr} className="bg-[#14141a]">{curr}</option>
+            ))}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Date Format</label>
           <select
             value={preferences.dateFormat}
-            onChange={(e) => setPreferences({ ...preferences, dateFormat: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('dateFormat', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            <option value="MM/DD/YYYY" className="bg-[#14141a]">MM/DD/YYYY</option>
+            <option value="DD/MM/YYYY" className="bg-[#14141a]">DD/MM/YYYY</option>
+            <option value="YYYY-MM-DD" className="bg-[#14141a]">YYYY-MM-DD</option>
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Start of Week</label>
           <select
             value={preferences.startOfWeek}
-            onChange={(e) => setPreferences({ ...preferences, startOfWeek: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('startOfWeek', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            <option value="Monday">Monday</option>
-            <option value="Sunday">Sunday</option>
-            <option value="Saturday">Saturday</option>
+            <option value="Monday" className="bg-[#14141a]">Monday</option>
+            <option value="Sunday" className="bg-[#14141a]">Sunday</option>
+            <option value="Saturday" className="bg-[#14141a]">Saturday</option>
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Default View</label>
           <select
             value={preferences.defaultView}
-            onChange={(e) => setPreferences({ ...preferences, defaultView: e.target.value })}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-${accentColor}-500 focus:ring-1 focus:ring-${accentColor}-500 outline-none transition`}
+            onChange={(e) => updatePreference('defaultView', e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            onFocus={selectFocus}
+            onBlur={selectBlur}
           >
-            <option value="Month">Month</option>
-            <option value="Week">Week</option>
-            <option value="Day">Day</option>
+            <option value="Month" className="bg-[#14141a]">Month</option>
+            <option value="Week" className="bg-[#14141a]">Week</option>
+            <option value="Day" className="bg-[#14141a]">Day</option>
           </select>
         </div>
       </div>
@@ -903,13 +1043,44 @@ function PreferencesSection({ accentColor }) {
 }
 
 // =============== TEAM SECTION ===============
-function TeamSection({ accentColor }) {
-  const teamMembers = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', avatar: 'JD' },
-    { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Sales Rep', avatar: 'SJ' },
-    { id: 3, name: 'Mike Peters', email: 'mike@example.com', role: 'Sales Rep', avatar: 'MP' },
-    { id: 4, name: 'Emily Davis', email: 'emily@example.com', role: 'Manager', avatar: 'ED' }
-  ];
+function TeamSection() {
+  const [members, setMembers] = useState(() => loadJsonArray('settings_team', DEFAULT_TEAM));
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'Sales Rep' });
+
+  const persist = (next) => {
+    setMembers(next);
+    saveJson('settings_team', next);
+  };
+
+  const handleInvite = (e) => {
+    e.preventDefault();
+    if (!inviteForm.name.trim() || !inviteForm.email.trim()) return;
+    const initials = inviteForm.name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((p) => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '??';
+    const next = [
+      ...members,
+      {
+        id: Date.now(),
+        name: inviteForm.name.trim(),
+        email: inviteForm.email.trim(),
+        role: inviteForm.role,
+        avatar: initials
+      }
+    ];
+    persist(next);
+    setInviteForm({ name: '', email: '', role: 'Sales Rep' });
+    setShowInvite(false);
+  };
+
+  const removeMember = (id) => {
+    persist(members.filter((m) => m.id !== id));
+  };
 
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -918,17 +1089,71 @@ function TeamSection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Team Members</h3>
           <p className="text-sm text-gray-500">Manage your team</p>
         </div>
-        <button className={`px-4 py-2 rounded-xl bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 text-white font-medium hover:shadow-lg hover:shadow-${accentColor}-500/25 transition-all flex items-center gap-2 text-sm`}>
+        <button
+          type="button"
+          onClick={() => setShowInvite((v) => !v)}
+          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90"
+          style={{
+            ...accentGradientStyle,
+            boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+          }}
+        >
           <UserPlus size={16} />
           Invite Member
         </button>
       </div>
 
+      {showInvite && (
+        <form
+          onSubmit={handleInvite}
+          className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-3"
+        >
+          <input
+            type="text"
+            placeholder="Name"
+            value={inviteForm.name}
+            onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={inviteForm.email}
+            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            required
+          />
+          <select
+            value={inviteForm.role}
+            onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none"
+          >
+            <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
+            <option value="Manager" className="bg-[#14141a]">Manager</option>
+            <option value="Admin" className="bg-[#14141a]">Admin</option>
+          </select>
+          <button
+            type="submit"
+            className="px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90"
+            style={accentGradientStyle}
+          >
+            Add Member
+          </button>
+        </form>
+      )}
+
       <div className="space-y-2">
-        {teamMembers.map((member) => (
-          <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition">
+        {members.map((member) => (
+          <div
+            key={member.id}
+            className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
+          >
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-r from-${accentColor}-500 to-${accentColor === 'blue' ? 'purple' : accentColor}-600 flex items-center justify-center text-sm font-bold text-white`}>
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                style={accentGradientStyle}
+              >
                 {member.avatar}
               </div>
               <div>
@@ -941,7 +1166,11 @@ function TeamSection({ accentColor }) {
                 {member.role}
               </span>
               {member.role !== 'Admin' && (
-                <button className="text-gray-500 hover:text-red-400 transition">
+                <button
+                  type="button"
+                  onClick={() => removeMember(member.id)}
+                  className="text-gray-500 hover:text-red-400 transition"
+                >
                   <Trash2 size={16} />
                 </button>
               )}
@@ -954,7 +1183,48 @@ function TeamSection({ accentColor }) {
 }
 
 // =============== DATA & EXPORT SECTION ===============
-function DataSection({ accentColor }) {
+function DataSection() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [exportState, setExportState] = useState('idle'); // idle | loading | success
+  const [syncState, setSyncState] = useState('idle');
+  const [deleteState, setDeleteState] = useState('idle');
+
+  const handleExport = async () => {
+    setExportState('loading');
+    try {
+      const res = await getLeads();
+      const leads = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      downloadCsv('leads-export.csv', leadsToCsv(leads));
+      setExportState('success');
+    } catch (err) {
+      console.error(err);
+      setExportState('idle');
+    }
+    setTimeout(() => setExportState('idle'), 2000);
+  };
+
+  const handleSync = () => {
+    setSyncState('loading');
+    setTimeout(() => {
+      setSyncState('success');
+      setTimeout(() => setSyncState('idle'), 2000);
+    }, 1200);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleDeleteAccount = () => {
+    setDeleteState('loading');
+    setTimeout(() => {
+      setDeleteState('success');
+      setTimeout(() => setDeleteState('idle'), 2500);
+    }, 1000);
+  };
+
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -962,31 +1232,78 @@ function DataSection({ accentColor }) {
           <h3 className="text-lg font-semibold text-white">Data & Export</h3>
           <p className="text-sm text-gray-500">Manage your data</p>
         </div>
-        <Database size={20} className={`text-${accentColor}-400`} />
+        <Database size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group">
-          <Download size={20} className={`text-${accentColor}-400 mb-2 group-hover:scale-110 transition`} />
-          <p className="text-sm font-medium text-white">Export Data</p>
+        <button
+          type="button"
+          onClick={handleExport}
+          disabled={exportState === 'loading'}
+          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
+        >
+          {exportState === 'loading' ? (
+            <RefreshCw size={20} className="mb-2 animate-spin" style={{ color: 'var(--accent-color)' }} />
+          ) : exportState === 'success' ? (
+            <CheckCircle size={20} className="text-green-400 mb-2" />
+          ) : (
+            <Download size={20} className="mb-2 group-hover:scale-110 transition" style={{ color: 'var(--accent-color)' }} />
+          )}
+          <p className="text-sm font-medium text-white">
+            {exportState === 'loading' ? 'Exporting…' : exportState === 'success' ? 'Exported!' : 'Export Data'}
+          </p>
           <p className="text-xs text-gray-500">Export all your data as CSV</p>
         </button>
 
-        <button className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group">
-          <RefreshCw size={20} className="text-green-400 mb-2 group-hover:rotate-180 transition duration-500" />
-          <p className="text-sm font-medium text-white">Sync Data</p>
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncState === 'loading'}
+          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
+        >
+          {syncState === 'loading' ? (
+            <RefreshCw size={20} className="text-green-400 mb-2 animate-spin" />
+          ) : syncState === 'success' ? (
+            <CheckCircle size={20} className="text-green-400 mb-2" />
+          ) : (
+            <RefreshCw size={20} className="text-green-400 mb-2 group-hover:rotate-180 transition duration-500" />
+          )}
+          <p className="text-sm font-medium text-white">
+            {syncState === 'loading' ? 'Syncing…' : syncState === 'success' ? 'Synced' : 'Sync Data'}
+          </p>
           <p className="text-xs text-gray-500">Sync with all connected services</p>
         </button>
 
-        <button className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/20 transition text-left group">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/20 transition text-left group"
+        >
           <LogOut size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
           <p className="text-sm font-medium text-white">Log Out</p>
           <p className="text-xs text-gray-500">Sign out of your account</p>
         </button>
 
-        <button className="p-4 rounded-xl bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group">
-          <Trash2 size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
-          <p className="text-sm font-medium text-white">Delete Account</p>
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={deleteState === 'loading'}
+          className="p-4 rounded-xl bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group"
+        >
+          {deleteState === 'loading' ? (
+            <RefreshCw size={20} className="text-red-400 mb-2 animate-spin" />
+          ) : deleteState === 'success' ? (
+            <CheckCircle size={20} className="text-red-400 mb-2" />
+          ) : (
+            <Trash2 size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
+          )}
+          <p className="text-sm font-medium text-white">
+            {deleteState === 'loading'
+              ? 'Deleting…'
+              : deleteState === 'success'
+                ? 'Account deletion requested (mock)'
+                : 'Delete Account'}
+          </p>
           <p className="text-xs text-gray-500">Permanently delete your account</p>
         </button>
       </div>
@@ -996,74 +1313,10 @@ function DataSection({ accentColor }) {
 
 // =============== MAIN SETTINGS PAGE ===============
 export function SettingsPage() {
-  const navigate = useNavigate();
   const { email, role } = useAuth();
+  const { theme, sidebarCollapsed } = useAppearance();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
-
-  // Appearance state
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('appearance_theme');
-    return saved || 'dark';
-  });
-  const [accentColor, setAccentColor] = useState(() => {
-    const saved = localStorage.getItem('appearance_accent');
-    return saved || 'blue';
-  });
-  const [fontSize, setFontSize] = useState(() => {
-    const saved = localStorage.getItem('appearance_fontSize');
-    return saved || 'medium';
-  });
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('appearance_sidebarCollapsed');
-    return saved === 'true';
-  });
-  const [animations, setAnimations] = useState(() => {
-    const saved = localStorage.getItem('appearance_animations');
-    return saved !== 'false';
-  });
-
-  // Profile state
-  const [profile, setProfile] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 (555) 123-4567',
-    title: 'Sales Manager',
-    bio: 'Sales professional with 10+ years of experience in B2B SaaS.',
-    role: 'Admin'
-  });
-
-  const handleProfileUpdate = (updatedProfile) => {
-    setProfile(updatedProfile);
-    alert('Profile updated successfully! (Mock)');
-  };
-
-  // Save appearance settings
-  const handleSaveAppearance = () => {
-    localStorage.setItem('appearance_theme', theme);
-    localStorage.setItem('appearance_accent', accentColor);
-    localStorage.setItem('appearance_fontSize', fontSize);
-    localStorage.setItem('appearance_sidebarCollapsed', String(sidebarCollapsed));
-    localStorage.setItem('appearance_animations', String(animations));
-    alert('Appearance preferences saved! 🎨');
-  };
-
-  // Reset appearance settings
-  const handleResetAppearance = () => {
-    if (window.confirm('Are you sure you want to reset all appearance settings?')) {
-      setTheme('dark');
-      setAccentColor('blue');
-      setFontSize('medium');
-      setSidebarCollapsed(false);
-      setAnimations(true);
-      localStorage.removeItem('appearance_theme');
-      localStorage.removeItem('appearance_accent');
-      localStorage.removeItem('appearance_fontSize');
-      localStorage.removeItem('appearance_sidebarCollapsed');
-      localStorage.removeItem('appearance_animations');
-      alert('Appearance reset to defaults! 🔄');
-    }
-  };
 
   const sections = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -1079,55 +1332,39 @@ export function SettingsPage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
-        return <ProfileSection profile={profile} onUpdate={handleProfileUpdate} accentColor={accentColor} theme={theme} />;
+        return <ProfileSection authEmail={email} authRole={role} />;
       case 'security':
-        return <SecuritySection accentColor={accentColor} />;
+        return <SecuritySection />;
       case 'appearance':
-        return (
-          <AppearanceSection 
-            theme={theme}
-            setTheme={setTheme}
-            accentColor={accentColor}
-            setAccentColor={setAccentColor}
-            fontSize={fontSize}
-            setFontSize={setFontSize}
-            sidebarCollapsed={sidebarCollapsed}
-            setSidebarCollapsed={setSidebarCollapsed}
-            animations={animations}
-            setAnimations={setAnimations}
-            onSave={handleSaveAppearance}
-            onReset={handleResetAppearance}
-          />
-        );
+        return <AppearanceSection />;
       case 'notifications':
-        return <NotificationsSection accentColor={accentColor} />;
+        return <NotificationsSection />;
       case 'integrations':
-        return <IntegrationsSection accentColor={accentColor} />;
+        return <IntegrationsSection />;
       case 'preferences':
-        return <PreferencesSection accentColor={accentColor} />;
+        return <PreferencesSection />;
       case 'team':
-        return <TeamSection accentColor={accentColor} />;
+        return <TeamSection />;
       case 'data':
-        return <DataSection accentColor={accentColor} />;
+        return <DataSection />;
       default:
-        return <ProfileSection profile={profile} onUpdate={handleProfileUpdate} accentColor={accentColor} theme={theme} />;
+        return <ProfileSection authEmail={email} authRole={role} />;
     }
   };
 
   return (
     <div className={`flex min-h-screen bg-[#0a0a0f] ${theme === 'light' ? 'light' : 'dark'}`}>
-      <Sidebar 
-        isOpen={sidebarOpen} 
+      <AppSidebar
+        isOpen={sidebarOpen}
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        accentColor={accentColor}
-        sidebarCollapsed={sidebarCollapsed}
       />
-      
-      <div className="flex-1 min-w-0">
+
+      <div className={`flex-1 min-w-0 ${sidebarCollapsed ? '' : ''}`}>
         <header className="bg-[#0f0f16] border-b border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button 
+              <button
+                type="button"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
               >
@@ -1139,16 +1376,25 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white">
+              <button
+                type="button"
+                className="relative p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+              >
                 <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]" />
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-white">{email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/25">
+                <div
+                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold shadow-lg"
+                  style={{
+                    ...accentGradientStyle,
+                    boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                  }}
+                >
                   {email ? email[0].toUpperCase() : '?'}
                 </div>
               </div>
@@ -1160,24 +1406,40 @@ export function SettingsPage() {
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-64 flex-shrink-0">
               <div className="bg-[#14141a] rounded-2xl border border-white/5 p-2 sticky top-24">
-                {sections.map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${activeSection === section.id
-                        ? `bg-${accentColor}-500/10 text-white shadow-lg shadow-${accentColor}-500/10 border border-${accentColor}-500/20`
-                        : 'text-gray-400 hover:bg-white/5 hover:text-white'}
-                    `}
-                  >
-                    <section.icon size={18} className={activeSection === section.id ? `text-${accentColor}-400` : ''} />
-                    <span className="text-sm font-medium">{section.label}</span>
-                    {activeSection === section.id && (
-                      <span className={`ml-auto w-1.5 h-1.5 rounded-full bg-${accentColor}-400 animate-pulse`} />
-                    )}
-                  </button>
-                ))}
+                {sections.map((section) => {
+                  const active = activeSection === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        active ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      }`}
+                      style={
+                        active
+                          ? {
+                              background: 'color-mix(in srgb, var(--accent-color) 10%, transparent)',
+                              border: '1px solid color-mix(in srgb, var(--accent-color) 20%, transparent)',
+                              boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
+                            }
+                          : undefined
+                      }
+                    >
+                      <section.icon
+                        size={18}
+                        style={active ? { color: 'var(--accent-color)' } : undefined}
+                      />
+                      <span className="text-sm font-medium">{section.label}</span>
+                      {active && (
+                        <span
+                          className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse"
+                          style={{ background: 'var(--accent-color)' }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

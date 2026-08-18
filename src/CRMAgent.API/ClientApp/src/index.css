@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --accent-color: #3b82f6;
+  --accent-color-dark: #9333ea;
+  --accent-color-shadow: #3b82f640;
+  --app-font-size: 16px;
+}
