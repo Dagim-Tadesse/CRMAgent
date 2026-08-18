@@ -822,14 +822,37 @@ export function SchedulePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month');
-  const [events, setEvents] = useState(mockEvents);
+
+  // Load events from localStorage, fall back to mockEvents for first-time users
+  const [events, setEvents] = useState(() => {
+    try {
+      const saved = localStorage.getItem('crm_calendar_events');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }));
+      }
+    } catch (e) {
+      console.error('Failed to load saved events:', e);
+    }
+    return mockEvents;
+  });
+
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+
+  // Persist events to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('crm_calendar_events', JSON.stringify(events));
+    } catch (e) {
+      console.error('Failed to save events:', e);
+    }
+  }, [events]);
+
 
   const goToToday = () => setCurrentDate(new Date());
   const goToPrevious = () => {
@@ -931,19 +954,23 @@ export function SchedulePage() {
     setEvents(events.filter(e => e.id !== eventId));
   };
 
+  const openDetails = (event) => {
+    setSelectedEvent(event);
+  };
+
+  const closeDetails = () => {
+    setSelectedEvent(null);
+  };
+
   const openCreateModal = () => {
     setEditingEvent(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (event) => {
+    setSelectedEvent(null); // close details first
     setEditingEvent(event);
     setIsModalOpen(true);
-  };
-
-  const openDetails = (event) => {
-    setSelectedEvent(event);
-    setIsDetailsOpen(true);
   };
 
   // Get stats
@@ -1304,9 +1331,9 @@ export function SchedulePage() {
 
       <EventDetails
         event={selectedEvent}
-        onClose={() => setIsDetailsOpen(false)}
+        onClose={closeDetails}
         onEdit={openEditModal}
-        onDelete={handleDeleteEvent}
+        onDelete={(id) => { handleDeleteEvent(id); closeDetails(); }}
       />
     </div>
   );
