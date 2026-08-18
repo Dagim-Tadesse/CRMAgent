@@ -13,6 +13,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getLeads, updateLeadStage } from '../api/apiClient';
 import LeadCard, { STAGE_COLORS } from '../components/LeadCard';
 import { ScoreBadge } from '../components/Badges';
+import { ConfirmModal } from '../components/Modal';
 
 const STAGES = [
   'New',
@@ -95,6 +96,7 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(true);
   const [activeLead, setActiveLead] = useState(null);
   const [error, setError] = useState('');
+  const [confirmMove, setConfirmMove] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -138,6 +140,12 @@ export default function PipelinePage() {
     if (!lead || !STAGES.includes(newStage)) return;
     if (lead.pipelineStage === newStage) return;
 
+    setConfirmMove({ lead, newStage });
+  };
+
+  const executeMove = async () => {
+    if (!confirmMove) return;
+    const { lead, newStage } = confirmMove;
     const leadId = lead.id;
     const previousStage = lead.pipelineStage;
 
@@ -146,6 +154,7 @@ export default function PipelinePage() {
       prev.map((l) => (l.id === leadId ? { ...l, pipelineStage: newStage } : l))
     );
     setError('');
+    setConfirmMove(null);
 
     try {
       await updateLeadStage(leadId, newStage);
@@ -178,6 +187,7 @@ export default function PipelinePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] p-6">
+      <ConfirmModal isOpen={!!confirmMove} onClose={() => setConfirmMove(null)} onConfirm={executeMove} title="Move Pipeline Stage" message={"Are you sure you want to move this lead to ? This may automatically generate an AI draft."} confirmText="Move" />
       <div className="max-w-[1600px] mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">

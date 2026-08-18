@@ -8,6 +8,7 @@ import {
   ArrowLeft, Archive, ArchiveRestore, ChevronRight
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
+import { ConfirmModal } from '../components/Modal';
 
 // Stage Badge Component
 function StageBadge({ stage }) {
@@ -233,6 +234,7 @@ export function LeadsPage() {
   const [selectedStage, setSelectedStage] = useState('All');
   const [viewMode, setViewMode] = useState('active'); // 'active' | 'archived'
   const [staleLeadsCount, setStaleLeadsCount] = useState(0);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   
   // Pagination state
   const [visibleCount, setVisibleCount] = useState(15); // Start with 15 leads
@@ -371,16 +373,21 @@ export function LeadsPage() {
     }
   };
 
-  const handleDelete = async (id, e) => {
+  const handleDeleteClick = (id, e) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this lead?')) {
-      try {
-        await deleteLead(id);
-        // Refresh the leads list after deletion
-        await fetchLeads();
-      } catch (error) {
-        console.error('Failed to delete lead:', error);
-      }
+    setConfirmDelete(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return;
+    try {
+      await deleteLead(confirmDelete);
+      // Refresh the leads list after deletion
+      await fetchLeads();
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+    } finally {
+      setConfirmDelete(null);
     }
   };
 
@@ -460,6 +467,15 @@ export function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] p-6">
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Lead"
+        message="Are you sure you want to permanently delete this lead? This action cannot be undone and all interaction history will be lost."
+        isDestructive={true}
+        confirmText="Delete"
+      />
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header with Back Button */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -702,7 +718,7 @@ export function LeadsPage() {
                               <Archive size={16} />
                             </button>
                             <button
-                              onClick={(e) => handleDelete(lead.id, e)}
+                              onClick={(e) => handleDeleteClick(lead.id, e)}
                               className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
                             >
                               <Trash2 size={16} />

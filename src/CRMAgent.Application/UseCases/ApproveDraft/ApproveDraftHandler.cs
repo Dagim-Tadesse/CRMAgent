@@ -47,7 +47,8 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             }
             else
             {
-                await _email.SendAsync(draft.Lead.Email, draft.Subject, draft.Body);
+                var htmlBody = draft.Body.Replace("\n", "<br />");
+                await _email.SendAsync(draft.Lead.Email, draft.Subject, htmlBody);
             }
 
             draft.Status = DraftStatus.Sent;
