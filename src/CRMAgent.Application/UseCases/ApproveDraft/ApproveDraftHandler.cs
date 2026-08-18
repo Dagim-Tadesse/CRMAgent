@@ -9,17 +9,20 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
 {
     private readonly IEmailDraftRepository _drafts;
     private readonly IEmailService _email;
+    private readonly ITelegramService _telegram;
     private readonly IInteractionRepository _interactions;
     private readonly IActivityLogRepository _logs;
 
     public ApproveDraftHandler(
         IEmailDraftRepository drafts,
         IEmailService email,
+        ITelegramService telegram,
         IInteractionRepository interactions,
         IActivityLogRepository logs)
     {
         _drafts = drafts;
         _email = email;
+        _telegram = telegram;
         _interactions = interactions;
         _logs = logs;
     }
@@ -36,7 +39,16 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
 
         try
         {
-            await _email.SendAsync(draft.Lead.Email, draft.Subject, draft.Body);
+            bool isTelegram = draft.Lead.TelegramChatId.HasValue;
+
+            if (isTelegram)
+            {
+                await _telegram.SendMessageAsync(draft.Lead.TelegramChatId.Value, draft.Body);
+            }
+            else
+            {
+                await _email.SendAsync(draft.Lead.Email, draft.Subject, draft.Body);
+            }
 
             draft.Status = DraftStatus.Sent;
             draft.SentAt = DateTime.UtcNow;
@@ -45,8 +57,8 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             await _interactions.AddAsync(new Interaction
             {
                 LeadId = draft.LeadId,
-                Channel = InteractionChannel.Email,
-                Type = InteractionType.Email,
+                Channel = isTelegram ? InteractionChannel.Telegram : InteractionChannel.Email,
+                Type = isTelegram ? InteractionType.TelegramMessage : InteractionType.Email,
                 Content = draft.Body,
                 Direction = InteractionDirection.Outbound
             });
@@ -54,12 +66,12 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             await _logs.AddAsync(new ActivityLog
             {
                 LeadId = draft.LeadId,
-                Action = "Email Sent",
-                Reason = $"Approved and sent draft '{draft.Subject}' to {draft.Lead.Email}.",
+                Action = isTelegram ? "Telegram Sent" : "Email Sent",
+                Reason = $"Approved and sent draft to {(isTelegram ? "Telegram" : draft.Lead.Email)}.",
                 TriggeredBy = LogTrigger.User
             });
 
-            return new ApproveDraftResult(true, "Email sent successfully");
+            return new ApproveDraftResult(true, "Message sent successfully");
         }
         catch (Exception ex)
         {
