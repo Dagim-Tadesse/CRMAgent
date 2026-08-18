@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AppSidebar from '../components/AppSidebar';
+import { ConfirmModal } from '../components/Modal';
 
 // =============== MOCK DATA ===============
 const mockEvents = [
@@ -215,6 +216,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
 
   const [selectedTags, setSelectedTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (event) {
@@ -273,10 +275,13 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
-      onDelete(event.id);
-      onClose();
-    }
+    setConfirmDelete(true);
+  };
+
+  const confirmDeleteHandler = () => {
+    onDelete(event.id);
+    setConfirmDelete(false);
+    onClose();
   };
 
   const addTag = (tag) => {
@@ -598,6 +603,16 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={confirmDeleteHandler}
+        title="Delete Event"
+        message="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+      />
     </div>
   );
 }

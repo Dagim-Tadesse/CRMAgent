@@ -11,6 +11,7 @@ import {
   Building2, Activity, Webhook
 } from 'lucide-react';
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
+import { ConfirmModal, AlertModal } from '../components/Modal';
 
 export default function LeadDetailPage() {
   const { id } = useParams();
@@ -28,6 +29,11 @@ export default function LeadDetailPage() {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Modals state
+  const [alertState, setAlertState] = useState({ isOpen: false, title: '', message: '', variant: 'info' });
+  const [confirmStageChange, setConfirmStageChange] = useState(null);
+  const [confirmRejectDraft, setConfirmRejectDraft] = useState(false);
 
   const fetchLeadData = useCallback(async () => {
     try {
@@ -69,14 +75,22 @@ export default function LeadDetailPage() {
     fetchLeadData();
   }, [fetchLeadData]);
 
-  const handleStageChange = async (e) => {
+  const handleStageChangeSelect = (e) => {
     const newStage = e.target.value;
+    if (newStage === lead.pipelineStage) return;
+    setConfirmStageChange(newStage);
+  };
+
+  const handleStageChangeConfirm = async () => {
+    if (!confirmStageChange) return;
     try {
-      await updateLeadStage(id, newStage);
+      await updateLeadStage(id, confirmStageChange);
       // Re-fetch to get new logs and potential auto-generated draft
       await fetchLeadData();
     } catch (err) {
-      alert('Failed to update stage');
+      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to update stage', variant: 'error' });
+    } finally {
+      setConfirmStageChange(null);
     }
   };
 
@@ -86,7 +100,7 @@ export default function LeadDetailPage() {
       await generateDraft(id);
       await fetchLeadData();
     } catch (err) {
-      alert('Failed to generate draft');
+      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to generate draft', variant: 'error' });
     } finally {
       setDraftLoading(false);
     }
@@ -99,7 +113,7 @@ export default function LeadDetailPage() {
       await editDraft(draft.id, subject, body);
       // Show some temporary success state if desired
     } catch (err) {
-      alert('Failed to save draft');
+      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to save draft', variant: 'error' });
     } finally {
       setIsSaving(false);
     }
@@ -116,23 +130,23 @@ export default function LeadDetailPage() {
       await approveDraft(draft.id);
       await fetchLeadData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve draft');
+      setAlertState({ isOpen: true, title: 'Error', message: err.response?.data?.message || 'Failed to approve draft', variant: 'error' });
     } finally {
       setDraftLoading(false);
     }
   };
 
-  const handleRejectDraft = async () => {
+  const handleRejectDraftConfirm = async () => {
     if (!draft) return;
-    if (!window.confirm("Are you sure you want to reject this draft?")) return;
     try {
       setDraftLoading(true);
       await rejectDraft(draft.id);
       await fetchLeadData();
     } catch (err) {
-      alert('Failed to reject draft');
+      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to reject draft', variant: 'error' });
     } finally {
       setDraftLoading(false);
+      setConfirmRejectDraft(false);
     }
   };
 
@@ -143,6 +157,31 @@ export default function LeadDetailPage() {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-[#0a0a0f] min-h-screen relative">
+      <AlertModal 
+        isOpen={alertState.isOpen} 
+        onClose={() => setAlertState({ ...alertState, isOpen: false })} 
+        title={alertState.title} 
+        message={alertState.message} 
+        variant={alertState.variant} 
+      />
+      <ConfirmModal
+        isOpen={!!confirmStageChange}
+        onClose={() => setConfirmStageChange(null)}
+        onConfirm={handleStageChangeConfirm}
+        title="Change Pipeline Stage"
+        message={`Are you sure you want to move this lead to the ${confirmStageChange} stage? Depending on the stage, this may trigger automated actions like generating an AI draft.`}
+        confirmText="Change Stage"
+      />
+      <ConfirmModal
+        isOpen={confirmRejectDraft}
+        onClose={() => setConfirmRejectDraft(false)}
+        onConfirm={handleRejectDraftConfirm}
+        title="Reject AI Draft"
+        message="Are you sure you want to reject and discard this AI-generated draft?"
+        isDestructive={true}
+        confirmText="Reject Draft"
+      />
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button 
@@ -192,6 +231,14 @@ export default function LeadDetailPage() {
               )}
             </div>
 
+            {/* Original Context */}
+            <div className="mt-6 pt-6 border-t border-white/5">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Original Context</h3>
+              <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                <p className="text-sm text-gray-300 italic whitespace-pre-wrap">"{lead.rawInquiryText}"</p>
+              </div>
+            </div>
+
             <div className="mt-6 pt-6 border-t border-white/5 flex gap-2 flex-wrap">
               <ScoreBadge score={lead.aiScore} />
               <EmotionBadge emotion={lead.emotion} />
@@ -218,7 +265,7 @@ export default function LeadDetailPage() {
             <h3 className="text-sm font-medium text-gray-400 mb-3">Pipeline Stage</h3>
             <select 
               value={lead.pipelineStage} 
-              onChange={handleStageChange}
+              onChange={handleStageChangeSelect}
               className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors"
             >
               {stages.map(s => (
@@ -287,7 +334,7 @@ export default function LeadDetailPage() {
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between pt-4 border-t border-white/5">
                     <button 
-                      onClick={handleRejectDraft}
+                      onClick={() => setConfirmRejectDraft(true)}
                       disabled={draftLoading}
                       className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50"
                     >

@@ -42,25 +42,30 @@ Inquiry: {{inquiryText}}
         return await CallGeminiAsync<LeadScoreResult>(prompt);
     }
 
-    public async Task<EmailDraftResult> GenerateEmailDraftAsync(
+    public async Task<EmailDraftResult> GenerateDraftAsync(
         string leadName,
         string company,
-        string interactionHistory)
+        string interactionHistory,
+        string channel)
     {
+        string promptInstructions = channel == "Telegram" 
+            ? "Write a very short, direct, and conversational chat message for Telegram (max 1-2 sentences). Do NOT write an email format (no subject line needed in body, no formal sign-offs)." 
+            : "Write a personalized follow-up email. Reference the customer's emotions where relevant. Tone: professional but warm. Length: 3-5 paragraphs.";
+
         var prompt = $$"""
 You are a professional sales coordinator at a software services company.
-Write a personalized follow-up email. Reference the customer's emotions where relevant.
-Tone: professional but warm. Length: 3-5 paragraphs.
+{{promptInstructions}}
 Return ONLY valid JSON. No markdown. No backticks.
 
 JSON format:
 {
-  "subject": <max 60 chars>,
-  "body": <full email as plain text>,
+  "subject": <max 60 chars, if telegram just use "Telegram Chat">,
+  "body": <the full response as plain text>,
   "reason": <one sentence why you wrote it this way, max 30 words>
 }
 
 Lead: {{leadName}} at {{company}}
+Channel: {{channel}}
 Recent interactions (last 5, newest first):
 {{interactionHistory}}
 """;

@@ -56,12 +56,15 @@ public class TelegramWebhookController : ControllerBase
             if (lead != null)
             {
                 lead.TelegramUsername = from.Username;
+                lead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
                 _db.Leads.Update(lead);
             }
         }
         else
         {
             leadId = existingLead.Id;
+            existingLead.TelegramChatId = update.Message.Chat?.Id ?? from.Id;
+            _db.Leads.Update(existingLead);
         }
 
         // Add the Telegram interaction
@@ -104,7 +107,13 @@ public class TelegramMessage
 {
     public int MessageId { get; set; }
     public TelegramUser? From { get; set; }
+    public TelegramChat? Chat { get; set; }
     public string? Text { get; set; }
+}
+
+public class TelegramChat
+{
+    public long Id { get; set; }
 }
 
 public class TelegramUser

@@ -13,9 +13,44 @@
 
 ## How To Run
 
-To run the complete system, you will need three separate terminal windows.
+### Option A: Using Docker Compose (Recommended)
+This method runs the entire stack (Postgres, C# Backend, React Frontend, n8n, and Ngrok) automatically.
 
-### 1. Backend API (Terminal 1)
+**1. Start the system:**
+```bash
+docker compose up -d --build
+```
+- Frontend: `http://localhost:3000`
+- Backend API (Swagger): `http://localhost:5087/swagger`
+- n8n: `http://localhost:5678`
+
+**2. Refreshing/Restarting Services:**
+If you make changes to the C# Backend or React Frontend and need to rebuild them:
+```bash
+docker compose up -d --build
+```
+To just restart a specific service without rebuilding:
+```bash
+docker compose restart frontend
+```
+
+**3. Stopping the system:**
+```bash
+docker compose down
+```
+
+**4. Viewing Logs:**
+```bash
+docker compose logs -f
+```
+
+---
+
+### Option B: Manual Setup (Without Docker Compose)
+
+To run the complete system manually, you will need three separate terminal windows.
+
+#### 1. Backend API (Terminal 1)
 ```bash
 cd src/CRMAgent.API
 dotnet run
@@ -23,7 +58,7 @@ dotnet run
 - Swagger: `http://localhost:5087/swagger`
 - Test Login: `POST /api/auth/login` (email: `admin@crm.com`, password: `Admin123!`)
 
-### 2. Frontend React Dashboard (Terminal 2)
+#### 2. Frontend React Dashboard (Terminal 2)
 Make sure you have a `.env` file in the `ClientApp` folder containing: `REACT_APP_API_BASE_URL=http://localhost:5087`
 ```bash
 cd src/CRMAgent.API/ClientApp
@@ -33,7 +68,7 @@ npm start
 - The dashboard will open at `http://localhost:3000`. 
 - If you see a blank screen, **navigate to `http://localhost:3000/login`** and sign in using the admin credentials above.
 
-### 3. n8n Social Automation (Terminal 3 - Docker)
+#### 3. n8n Social Automation (Terminal 3 - Docker)
 Ensure Docker Desktop is running, then start n8n:
 ```bash
 # For Windows CMD:

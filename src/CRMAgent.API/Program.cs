@@ -62,6 +62,7 @@ builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
 builder.Services.AddScoped<IEmailDraftRepository, EmailDraftRepository>();
 builder.Services.AddScoped<IAIService, GeminiService>();
 builder.Services.AddScoped<IEmailService, ResendEmailService>();
+builder.Services.AddScoped<ITelegramService, TelegramService>();
 
 builder.Services.AddHttpClient();
 

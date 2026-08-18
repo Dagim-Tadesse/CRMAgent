@@ -49,7 +49,10 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
                 $"[{i.CreatedAt:u}] {i.Direction}/{i.Channel}: {i.Content}"))
             : lead.RawInquiryText;
 
-        var result = await _ai.GenerateEmailDraftAsync(lead.FullName, lead.Company, history);
+        string channel = interactions.FirstOrDefault()?.Channel.ToString() 
+            ?? (!string.IsNullOrEmpty(lead.TelegramUsername) ? "Telegram" : "Email");
+
+        var result = await _ai.GenerateDraftAsync(lead.FullName, lead.Company, history, channel);
 
         var draft = new EmailDraft
         {
