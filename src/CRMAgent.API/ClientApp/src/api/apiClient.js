@@ -32,6 +32,20 @@ api.interceptors.response.use(
 export const login = (email, password) =>
   api.post('/api/auth/login', { email, password });
 
+/** Admin: create Identity user (password hashed server-side). */
+export const registerUser = ({ name, email, password, role }) =>
+  api.post('/api/auth/register', { name, email, password, role });
+
+/** Authenticated: persist new password via Identity ChangePasswordAsync. */
+export const changePassword = ({ currentPassword, newPassword, confirmPassword }) =>
+  api.put('/api/auth/change-password', { currentPassword, newPassword, confirmPassword });
+
+/** Admin: list AspNetUsers for Team settings. */
+export const getTeamUsers = () => api.get('/api/auth/users');
+
+/** Admin: delete an Identity user. */
+export const deleteTeamUser = (id) => api.delete(`/api/auth/users/${id}`);
+
 // ============ LEADS ============
 export const getLeads = () => api.get('/api/leads');
 export const getLeadById = (id) => api.get(`/api/leads/${id}`);
