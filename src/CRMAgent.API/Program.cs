@@ -66,6 +66,15 @@ builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
 builder.Services.AddScoped<IEmailDraftRepository, EmailDraftRepository>();
 builder.Services.AddScoped<IAIService, GeminiService>();
 
+builder.Services.AddHttpClient(GeminiService.HttpClientName, client =>
+{
+    // Prevent Regenerate from hanging on the default 100s × silent retries
+    client.Timeout = TimeSpan.FromSeconds(40);
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    ConnectTimeout = TimeSpan.FromSeconds(10)
+});
+
 builder.Services.AddHttpClient<ResendEmailService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(20);
