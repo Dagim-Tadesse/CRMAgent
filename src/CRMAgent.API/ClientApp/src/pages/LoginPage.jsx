@@ -15,7 +15,7 @@ export function LoginPage() {
     e.preventDefault(); setLoading(true); setError('');
     try {
       const res = await login(email, password);
-      storeLogin(res.data.token, res.data.role, res.data.email);
+      storeLogin(res.data.token, res.data.role, res.data.email, res.data.name);
       navigate('/dashboard');
     } catch (err) {
       if (!err.response) {
