@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
     /// Name → FullName claim; Phone → IdentityUser.PhoneNumber (AspNetUsers).
     /// </summary>
     [HttpPost("register")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -84,6 +84,13 @@ public class AuthController : ControllerBase
         if (!TryMapRole(request.Role, out var identityRole))
         {
             return BadRequest(new { message = "Invalid role. Use Admin, Manager, Sales Rep, or Social Media Rep." });
+        }
+
+        // Managers may invite peers, but only Admins can create new Admins
+        if (identityRole == "Admin" && !User.IsInRole("Admin"))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden,
+                new { message = "Only Admins can invite users with the Admin role." });
         }
 
         var existing = await _userManager.FindByEmailAsync(request.Email.Trim());
@@ -257,7 +264,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpDelete("users/{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -269,6 +276,12 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         if (roles.Contains("Admin"))
         {
+            if (!User.IsInRole("Admin"))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new { message = "Only Admins can remove Admin users." });
+            }
+
             var adminCount = 0;
             foreach (var u in _userManager.Users.ToList())
             {
