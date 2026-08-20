@@ -30,16 +30,9 @@ const MENU_ITEMS = [
  */
 export default function AppSidebar({ isOpen, toggleSidebar }) {
   const { sidebarCollapsed, accentHex, accentDarkHex } = useAppearance();
-  const { email, role } = useAuth();
+  const { email, role, name } = useAuth();
 
-  let displayName = email || 'User';
-  try {
-    const raw = localStorage.getItem('settings_profile');
-    if (raw) {
-      const profile = JSON.parse(raw);
-      if (profile?.name) displayName = profile.name;
-    }
-  } catch { /* ignore */ }
+  const displayName = name || email || 'User';
 
   const accentGradient = {
     background: `linear-gradient(to right, ${accentHex}, ${accentDarkHex})`,

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAppearance } from '../context/AppearanceContext';
 import AppSidebar from '../components/AppSidebar';
-import { getLeads, registerUser, changePassword, getTeamUsers, deleteTeamUser } from '../api/apiClient';
+import { getLeads, registerUser, changePassword, getTeamUsers, deleteTeamUser, getMyProfile, updateMyProfile } from '../api/apiClient';
 import {
   Users,
   User,
@@ -118,12 +118,12 @@ const LANGUAGE_OPTIONS = [
 ];
 
 const DEFAULT_PROFILE = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  phone: '+1 (555) 123-4567',
-  title: 'Sales Manager',
-  bio: 'Sales professional with 10+ years of experience in B2B SaaS.',
-  role: 'Admin'
+  name: '',
+  email: '',
+  phone: '',
+  title: '',
+  bio: '',
+  role: ''
 };
 
 const DEFAULT_NOTIFICATIONS = {
@@ -468,34 +468,100 @@ function AppearanceSection() {
 }
 
 // =============== PROFILE SECTION ===============
-function ProfileSection({ authEmail, authRole }) {
+function ProfileSection({ authEmail, authRole, onNameChange }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(() => loadJson('settings_profile', DEFAULT_PROFILE));
-  const [formData, setFormData] = useState(profile);
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [formData, setFormData] = useState(DEFAULT_PROFILE);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!authEmail) return;
-    setProfile((prev) => {
-      if (prev.email === authEmail) return prev;
-      const next = {
-        ...prev,
-        email: authEmail,
-        role: authRole || prev.role
-      };
-      saveJson('settings_profile', next);
-      setFormData(next);
-      return next;
-    });
-  }, [authEmail, authRole]);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await getMyProfile();
+        const data = res?.data || {};
+        const next = {
+          name: data.name || '',
+          email: data.email || authEmail || '',
+          phone: data.phone || '',
+          title: '',
+          bio: '',
+          role: data.displayRole || data.role || authRole || ''
+        };
+        // Keep optional local-only fields (title/bio) if present
+        try {
+          const local = JSON.parse(localStorage.getItem('settings_profile') || '{}');
+          if (local.title) next.title = local.title;
+          if (local.bio) next.bio = local.bio;
+        } catch { /* ignore */ }
+        if (!cancelled) {
+          setProfile(next);
+          setFormData(next);
+          if (next.name && onNameChange) onNameChange(next.name);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setError(apiErrorMessage(err, 'Failed to load profile from the server.'));
+          const fallback = {
+            ...DEFAULT_PROFILE,
+            email: authEmail || '',
+            role: authRole || ''
+          };
+          setProfile(fallback);
+          setFormData(fallback);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authEmail, authRole, onNameChange]);
 
-  const handleSave = () => {
-    setProfile(formData);
-    saveJson('settings_profile', formData);
-    setIsEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setError('');
+    setBusy(true);
+    try {
+      const res = await updateMyProfile({
+        name: formData.name.trim(),
+        phone: formData.phone.trim()
+      });
+      const data = res?.data || {};
+      const next = {
+        ...formData,
+        name: data.name || formData.name,
+        email: data.email || formData.email,
+        phone: data.phone || formData.phone || '',
+        role: data.displayRole || data.role || formData.role
+      };
+      setProfile(next);
+      setFormData(next);
+      // Persist non-Identity extras locally only
+      saveJson('settings_profile', { title: next.title, bio: next.bio });
+      if (onNameChange) onNameChange(next.name);
+      setIsEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+      setError(apiErrorMessage(err, 'Failed to save profile.'));
+    } finally {
+      setBusy(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+        <p className="text-sm text-gray-500">Loading profile…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -513,18 +579,25 @@ function ProfileSection({ authEmail, authRole }) {
           )}
           <button
             type="button"
+            disabled={busy}
             onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-            className="px-4 py-2 rounded-xl transition flex items-center gap-2"
+            className="px-4 py-2 rounded-xl transition flex items-center gap-2 disabled:opacity-50"
             style={{
               ...accentSoftBg,
               color: 'var(--accent-color)'
             }}
           >
             {isEditing ? <Save size={16} /> : <Edit2 size={16} />}
-            {isEditing ? 'Save Changes' : 'Edit Profile'}
+            {isEditing ? (busy ? 'Saving…' : 'Save Changes') : 'Edit Profile'}
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
 
       <div className="flex items-center gap-6 mb-6">
         <div className="relative">
@@ -535,7 +608,7 @@ function ProfileSection({ authEmail, authRole }) {
               boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
             }}
           >
-            {profile.name ? profile.name[0].toUpperCase() : 'JD'}
+            {profile.name ? profile.name[0].toUpperCase() : '?'}
           </div>
           {isEditing && (
             <button
@@ -548,8 +621,9 @@ function ProfileSection({ authEmail, authRole }) {
           )}
         </div>
         <div>
-          <h4 className="text-xl font-semibold text-white">{profile.name}</h4>
+          <h4 className="text-xl font-semibold text-white">{profile.name || '—'}</h4>
           <p className="text-gray-400">{profile.email}</p>
+          {profile.phone ? <p className="text-sm text-gray-400">{profile.phone}</p> : null}
           <p className="text-sm text-gray-500">{profile.role}</p>
         </div>
       </div>
@@ -579,17 +653,8 @@ function ProfileSection({ authEmail, authRole }) {
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? '' : 'opacity-70'
-            }`}
-            onFocus={(e) => {
-              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '';
-            }}
+            disabled
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition opacity-70"
           />
         </div>
         <div>
@@ -1112,6 +1177,7 @@ function TeamSection() {
   const [inviteForm, setInviteForm] = useState({
     name: '',
     email: '',
+    phone: '',
     role: 'Sales Rep',
     password: '',
     confirmPassword: ''
@@ -1162,6 +1228,7 @@ function TeamSection() {
       const res = await registerUser({
         name: inviteForm.name.trim(),
         email: inviteForm.email.trim(),
+        phone: inviteForm.phone.trim(),
         password: inviteForm.password,
         role: inviteForm.role
       });
@@ -1171,6 +1238,7 @@ function TeamSection() {
       setInviteForm({
         name: '',
         email: '',
+        phone: '',
         role: 'Sales Rep',
         password: '',
         confirmPassword: ''
@@ -1239,7 +1307,7 @@ function TeamSection() {
           onSubmit={handleInvite}
           className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
               type="text"
               placeholder="Name"
@@ -1256,6 +1324,13 @@ function TeamSection() {
               className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
               required
             />
+            <input
+              type="tel"
+              placeholder="Phone number"
+              value={inviteForm.phone}
+              onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            />
             <select
               value={inviteForm.role}
               onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
@@ -1264,6 +1339,7 @@ function TeamSection() {
               <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
               <option value="Manager" className="bg-[#14141a]">Manager</option>
               <option value="Admin" className="bg-[#14141a]">Admin</option>
+              <option value="Social Media Rep" className="bg-[#14141a]">Social Media Rep</option>
             </select>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1334,6 +1410,9 @@ function TeamSection() {
                 <div>
                   <p className="text-sm font-medium text-white">{member.name}</p>
                   <p className="text-xs text-gray-500">{member.email}</p>
+                  {member.phone ? (
+                    <p className="text-xs text-gray-600">{member.phone}</p>
+                  ) : null}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -1489,7 +1568,7 @@ function DataSection() {
 
 // =============== MAIN SETTINGS PAGE ===============
 export function SettingsPage() {
-  const { email, role } = useAuth();
+  const { email, role, name, setDisplayName } = useAuth();
   const { theme, sidebarCollapsed } = useAppearance();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
@@ -1508,7 +1587,13 @@ export function SettingsPage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
-        return <ProfileSection authEmail={email} authRole={role} />;
+        return (
+          <ProfileSection
+            authEmail={email}
+            authRole={role}
+            onNameChange={setDisplayName}
+          />
+        );
       case 'security':
         return <SecuritySection />;
       case 'appearance':
@@ -1524,7 +1609,13 @@ export function SettingsPage() {
       case 'data':
         return <DataSection />;
       default:
-        return <ProfileSection authEmail={email} authRole={role} />;
+        return (
+          <ProfileSection
+            authEmail={email}
+            authRole={role}
+            onNameChange={setDisplayName}
+          />
+        );
     }
   };
 
@@ -1561,7 +1652,7 @@ export function SettingsPage() {
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{email}</p>
+                  <p className="text-sm font-medium text-white">{name || email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
                 <div

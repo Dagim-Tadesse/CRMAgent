@@ -19,7 +19,7 @@ public class PipelineController : ControllerBase
     }
 
     [HttpPut("{id}/stage")]
-    [Authorize(Roles = "SalesRep,Admin")]
+    [Authorize(Roles = "SalesRep,Admin,Manager,SocialMediaRep")]
     public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
     {
         try

@@ -49,13 +49,23 @@ public class AuthController : ControllerBase
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = GenerateJwtToken(user, roles.FirstOrDefault() ?? "SalesRep");
+        var role = roles.FirstOrDefault() ?? "SalesRep";
+        var token = GenerateJwtToken(user, role);
+        var profile = await BuildProfileDto(user, role);
 
-        return Ok(new { token, role = roles.FirstOrDefault(), email = user.Email });
+        return Ok(new
+        {
+            token,
+            role,
+            email = user.Email,
+            name = profile.Name,
+            phone = profile.Phone
+        });
     }
 
     /// <summary>
     /// Invite / create a team member. Password is hashed by ASP.NET Identity (PasswordHasher).
+    /// Name → FullName claim; Phone → IdentityUser.PhoneNumber (AspNetUsers).
     /// </summary>
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
@@ -73,7 +83,7 @@ public class AuthController : ControllerBase
 
         if (!TryMapRole(request.Role, out var identityRole))
         {
-            return BadRequest(new { message = "Invalid role. Use Admin, Manager, or Sales Rep." });
+            return BadRequest(new { message = "Invalid role. Use Admin, Manager, Sales Rep, or Social Media Rep." });
         }
 
         var existing = await _userManager.FindByEmailAsync(request.Email.Trim());
@@ -83,7 +93,12 @@ public class AuthController : ControllerBase
         }
 
         var email = request.Email.Trim();
-        var user = new IdentityUser { UserName = email, Email = email };
+        var user = new IdentityUser
+        {
+            UserName = email,
+            Email = email,
+            PhoneNumber = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim()
+        };
         var result = await _userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)
@@ -100,16 +115,69 @@ public class AuthController : ControllerBase
             : request.Name.Trim();
         await _userManager.AddClaimAsync(user, new Claim(FullNameClaimType, displayName));
 
-        _logger.LogInformation("Registered team member {Email} with role {Role}", email, identityRole);
+        _logger.LogInformation(
+            "Registered team member {Email} with role {Role} (Phone set: {HasPhone})",
+            email, identityRole, !string.IsNullOrEmpty(user.PhoneNumber));
 
         return Ok(new
         {
             id = user.Id,
             name = displayName,
             email = user.Email,
+            phone = user.PhoneNumber,
             role = ToDisplayRole(identityRole),
             message = "User created"
         });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe()
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null) return Unauthorized(new { message = "Not authenticated." });
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? "SalesRep";
+        return Ok(await BuildProfileDto(user, role));
+    }
+
+    [HttpPut("me")]
+    [Authorize]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequest request)
+    {
+        var user = await GetCurrentUserAsync();
+        if (user == null) return Unauthorized(new { message = "Not authenticated." });
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest(new { message = "Name is required." });
+        }
+
+        var displayName = request.Name.Trim();
+        var existingClaims = await _userManager.GetClaimsAsync(user);
+        var nameClaim = existingClaims.FirstOrDefault(c => c.Type == FullNameClaimType);
+        if (nameClaim != null)
+        {
+            await _userManager.ReplaceClaimAsync(user, nameClaim, new Claim(FullNameClaimType, displayName));
+        }
+        else
+        {
+            await _userManager.AddClaimAsync(user, new Claim(FullNameClaimType, displayName));
+        }
+
+        user.PhoneNumber = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var msg = string.Join(" ", updateResult.Errors.Select(e => e.Description));
+            return BadRequest(new { message = msg });
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? "SalesRep";
+        _logger.LogInformation("Updated profile for user {UserId}", user.Id);
+        return Ok(await BuildProfileDto(user, role));
     }
 
     [HttpPut("change-password")]
@@ -131,13 +199,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "New password and confirmation do not match." });
         }
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized(new { message = "Not authenticated." });
-        }
-
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await GetCurrentUserAsync();
         if (user == null)
         {
             return Unauthorized(new { message = "User not found." });
@@ -153,16 +215,19 @@ public class AuthController : ControllerBase
             var msg = string.Join(" ", result.Errors.Select(e => e.Description));
             if (string.IsNullOrWhiteSpace(msg))
                 msg = "Could not change password. Check your current password and try again.";
-            _logger.LogWarning("Change password failed for user {UserId}: {Errors}", userId, msg);
+            _logger.LogWarning("Change password failed for user {UserId}: {Errors}", user.Id, msg);
             return BadRequest(new { message = msg });
         }
 
-        _logger.LogInformation("Password changed for user {UserId}", userId);
+        _logger.LogInformation("Password changed for user {UserId}", user.Id);
         return Ok(new { message = "Password updated successfully." });
     }
 
+    /// <summary>
+    /// Shared team directory — any authenticated member can list all AspNetUsers (not Admin-only).
+    /// </summary>
     [HttpGet("users")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> GetUsers()
     {
         var users = _userManager.Users.ToList();
@@ -182,6 +247,7 @@ public class AuthController : ControllerBase
                 id = user.Id,
                 name,
                 email = user.Email,
+                phone = user.PhoneNumber,
                 role = ToDisplayRole(role),
                 avatar = Initials(name)
             });
@@ -225,16 +291,42 @@ public class AuthController : ControllerBase
         return Ok(new { message = "User removed." });
     }
 
+    private async Task<IdentityUser?> GetCurrentUserAsync()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return null;
+        return await _userManager.FindByIdAsync(userId);
+    }
+
+    private async Task<UserProfileDto> BuildProfileDto(IdentityUser user, string role)
+    {
+        var claims = await _userManager.GetClaimsAsync(user);
+        var name = claims.FirstOrDefault(c => c.Type == FullNameClaimType)?.Value
+                   ?? user.Email?.Split('@')[0]
+                   ?? "User";
+
+        return new UserProfileDto(
+            user.Id,
+            name,
+            user.Email,
+            user.PhoneNumber ?? string.Empty,
+            role,
+            ToDisplayRole(role),
+            Initials(name));
+    }
+
     private string GenerateJwtToken(IdentityUser user, string role)
     {
         var jwtSettings = _config.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
 
-        var claims = new[]
+        // Emit both Role claim forms so [Authorize(Roles=...)] works across JWT claim-mapping modes
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email!),
-            new Claim(ClaimTypes.Role, role)
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Email, user.Email!),
+            new(ClaimTypes.Role, role),
+            new("role", role)
         };
 
         var token = new JwtSecurityToken(
@@ -277,5 +369,14 @@ public class AuthController : ControllerBase
 }
 
 public record LoginRequest(string Email, string Password);
-public record RegisterRequest(string Email, string Password, string Role, string? Name = null);
+public record RegisterRequest(string Email, string Password, string Role, string? Name = null, string? Phone = null);
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword, string ConfirmPassword);
+public record UpdateProfileRequest(string Name, string? Phone = null);
+public record UserProfileDto(
+    string Id,
+    string Name,
+    string? Email,
+    string Phone,
+    string Role,
+    string DisplayRole,
+    string Avatar);
