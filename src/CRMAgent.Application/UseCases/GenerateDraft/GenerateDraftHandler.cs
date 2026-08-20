@@ -40,16 +40,6 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
         var lead = await _leads.GetByIdAsync(cmd.LeadId)
             ?? throw new LeadNotFoundException(cmd.LeadId);
 
-        // Reject existing pending drafts for this lead to ensure only one active
-        var existingDrafts = await _drafts.GetByLeadIdAsync(lead.Id) ?? new();
-        var pendingDrafts = existingDrafts.Where(d => d.Status == DraftStatus.PendingApproval).ToList();
-
-        foreach (var oldDraft in pendingDrafts)
-        {
-            oldDraft.Status = DraftStatus.Rejected;
-            await _drafts.UpdateAsync(oldDraft);
-        }
-
         var interactions = await _interactions.GetByLeadIdAsync(lead.Id) ?? new();
         var history = interactions.Count > 0
             ? string.Join("\n", interactions.Take(5).Select(i =>
@@ -59,6 +49,8 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
         string channel = interactions.FirstOrDefault()?.Channel.ToString()
             ?? (!string.IsNullOrEmpty(lead.TelegramUsername) ? "Telegram" : "Email");
 
+        // Call Gemini FIRST — never reject the existing pending draft until we have a replacement.
+        // (Rejecting first caused AI Tasks cards to vanish when Regenerate failed with HTTP 400.)
         EmailDraftResult result;
         try
         {
@@ -68,23 +60,30 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
                 history,
                 channel);
         }
+        catch (AIServiceException ex)
+        {
+            _logger.LogError(ex, "AI draft generation failed for lead {LeadId}: {Message}", cmd.LeadId, ex.Message);
+            throw;
+        }
         catch (Exception ex)
         {
-            // Always persist a pending draft so inbound → AI Tasks never goes silent
-            _logger.LogError(ex, "AI draft generation failed for lead {LeadId}; saving fallback draft", cmd.LeadId);
-
-            var inboundSnippet = interactions
-                .FirstOrDefault(i => i.Direction == InteractionDirection.Inbound)?.Content;
-            if (string.IsNullOrWhiteSpace(inboundSnippet))
-                inboundSnippet = lead.RawInquiryText;
-
-            result = BuildFallbackDraft(lead.FullName, channel, inboundSnippet, ex.Message);
+            _logger.LogError(ex, "Unexpected error during AI draft generation for lead {LeadId}", cmd.LeadId);
+            throw new AIServiceException($"Draft generation failed: {ex.Message}", ex);
         }
 
         if (result == null || (string.IsNullOrWhiteSpace(result.Body) && string.IsNullOrWhiteSpace(result.Subject)))
         {
-            _logger.LogWarning("AI returned empty draft for lead {LeadId}; using fallback", cmd.LeadId);
-            result = BuildFallbackDraft(lead.FullName, channel, lead.RawInquiryText, "Empty AI response");
+            _logger.LogWarning("AI returned empty draft for lead {LeadId}", cmd.LeadId);
+            throw new AIServiceException("Gemini returned an empty draft. Please try Regenerate again.");
+        }
+
+        // Only now retire older pending drafts and save the new one
+        var existingDrafts = await _drafts.GetByLeadIdAsync(lead.Id) ?? new();
+        var pendingDrafts = existingDrafts.Where(d => d.Status == DraftStatus.PendingApproval).ToList();
+        foreach (var oldDraft in pendingDrafts)
+        {
+            oldDraft.Status = DraftStatus.Rejected;
+            await _drafts.UpdateAsync(oldDraft);
         }
 
         var draft = new EmailDraft
@@ -113,28 +112,6 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
             draft.Id, lead.Id, channel, draft.Status);
 
         return draft.Id;
-    }
-
-    private static EmailDraftResult BuildFallbackDraft(
-        string? leadName,
-        string channel,
-        string? inboundSnippet,
-        string errorHint)
-    {
-        var name = string.IsNullOrWhiteSpace(leadName) ? "there" : leadName.Trim();
-        var isTelegram = string.Equals(channel, "Telegram", StringComparison.OrdinalIgnoreCase);
-        var quoted = string.IsNullOrWhiteSpace(inboundSnippet)
-            ? string.Empty
-            : Truncate(inboundSnippet.Trim(), 280);
-
-        return new EmailDraftResult
-        {
-            Subject = isTelegram ? "Telegram Chat" : Truncate($"Re: {quoted}", MaxSubjectLength),
-            Body = isTelegram
-                ? $"Hi {name}, thanks for your message — we'll follow up shortly."
-                : $"Hi {name},\n\nThanks for reaching out. We've received your message and will get back to you shortly.\n\nBest regards",
-            Reason = $"Fallback pending draft saved after AI failure: {Truncate(errorHint, 120)}"
-        };
     }
 
     private static string Truncate(string value, int max)

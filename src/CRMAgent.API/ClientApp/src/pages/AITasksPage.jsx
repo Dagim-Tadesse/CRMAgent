@@ -34,15 +34,16 @@ function TaskCard({ task, onRefresh }) {
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [confirmReject, setConfirmReject] = useState(false);
 
-  const run = async (fn) => {
+  const run = async (fn, { refreshOnSuccess = true } = {}) => {
     setBusy(true);
     setError('');
     try {
       await fn();
-      await onRefresh();
+      if (refreshOnSuccess) await onRefresh();
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || 'Action failed');
+      // Do NOT refresh on failure — keep this card visible so the user can retry
     } finally {
       setBusy(false);
       setConfirmApprove(false);
@@ -73,7 +74,8 @@ function TaskCard({ task, onRefresh }) {
   };
 
   const handleRegenerate = () => {
-    run(() => generateDraft(task.leadId));
+    // Refresh only after success so a failed regenerate cannot wipe the card via list reload
+    run(() => generateDraft(task.leadId), { refreshOnSuccess: true });
   };
 
   return (

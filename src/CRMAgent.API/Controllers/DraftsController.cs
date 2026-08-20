@@ -39,9 +39,18 @@ public class DraftsController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (AIServiceException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = $"Draft generation failed: {ex.Message}" });
         }
     }
 
