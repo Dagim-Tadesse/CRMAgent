@@ -1171,6 +1171,9 @@ function PreferencesSection() {
 
 // =============== TEAM SECTION ===============
 function TeamSection() {
+  const { role: authRole } = useAuth();
+  const canManageTeam = authRole === 'Admin' || authRole === 'Manager';
+  const canInviteAdmins = authRole === 'Admin';
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
@@ -1274,20 +1277,29 @@ function TeamSection() {
         </div>
         <button
           type="button"
+          disabled={!canManageTeam}
           onClick={() => {
+            if (!canManageTeam) return;
             setShowInvite((v) => !v);
             setInviteError('');
           }}
-          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90"
+          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90 disabled:opacity-50"
           style={{
             ...accentGradientStyle,
             boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
           }}
+          title={canManageTeam ? undefined : 'Only Admins and Managers can invite members'}
         >
           <UserPlus size={16} />
           Invite Member
         </button>
       </div>
+
+      {!canManageTeam && (
+        <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm rounded-xl px-4 py-3">
+          Viewing team directory only. Admins and Managers can add members.
+        </div>
+      )}
 
       {inviteSuccess && (
         <div className="mb-4 bg-green-500/10 border border-green-500/20 text-green-300 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
@@ -1302,7 +1314,7 @@ function TeamSection() {
         </div>
       )}
 
-      {showInvite && (
+      {showInvite && canManageTeam && (
         <form
           onSubmit={handleInvite}
           className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3"
@@ -1338,7 +1350,9 @@ function TeamSection() {
             >
               <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
               <option value="Manager" className="bg-[#14141a]">Manager</option>
-              <option value="Admin" className="bg-[#14141a]">Admin</option>
+              {canInviteAdmins && (
+                <option value="Admin" className="bg-[#14141a]">Admin</option>
+              )}
               <option value="Social Media Rep" className="bg-[#14141a]">Social Media Rep</option>
             </select>
           </div>
