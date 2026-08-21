@@ -337,8 +337,11 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Name, user.Email!),
             new(ClaimTypes.Email, user.Email!),
             new(ClaimTypes.Role, role),
+            new("name", user.Email!),
+            new("email", user.Email!),
             new("role", role)
         };
 
