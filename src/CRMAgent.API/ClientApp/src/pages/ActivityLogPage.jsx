@@ -279,16 +279,25 @@ export function ActivityLogPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    {(log.lead?.fullName || log.leadName) ? (
-                      <Link 
-                        to={`/leads/${log.leadId || log.lead?.id}`} 
-                        className="text-blue-400 hover:text-blue-300 transition hover:underline font-medium"
-                      >
-                        {log.lead?.fullName || log.leadName}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500 text-xs">-</span>
-                    )}
+                    {(() => {
+                      const displayName = log.leadName || log.lead?.fullName || log.lead?.name || (log.leadId ? `Lead #${log.leadId}` : null);
+                      const targetId = log.leadId || log.lead?.id;
+                      if (displayName && targetId) {
+                        return (
+                          <Link 
+                            to={`/leads/${targetId}`} 
+                            className="text-blue-400 hover:text-blue-300 transition hover:underline font-medium"
+                          >
+                            {displayName}
+                          </Link>
+                        );
+                      }
+                      return displayName ? (
+                        <span className="text-gray-300 font-medium">{displayName}</span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">-</span>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 text-gray-400 max-w-xs truncate">
                     {log.reason || '-'}
