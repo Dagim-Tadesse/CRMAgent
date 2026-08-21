@@ -280,7 +280,7 @@ export default function LeadDetailPage() {
               className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors"
             >
               {stages.map(s => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s} className="bg-[#14141a] text-white font-medium">{s}</option>
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-2">

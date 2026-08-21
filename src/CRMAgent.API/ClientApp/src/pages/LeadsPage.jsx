@@ -560,10 +560,12 @@ export function LeadsPage() {
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none transition"
+                  className="bg-[#14141a] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
                 >
                   {stages.map(stage => (
-                    <option key={stage} value={stage}>{stage}</option>
+                    <option key={stage} value={stage} className="bg-[#14141a] text-white font-medium">
+                      {stage}
+                    </option>
                   ))}
                 </select>
               </div>
