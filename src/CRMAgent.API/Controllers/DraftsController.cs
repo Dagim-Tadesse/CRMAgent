@@ -27,7 +27,7 @@ public class DraftsController : ControllerBase
         Ok(await _mediator.Send(new GetLeadDraftsQuery(id)));
 
     [HttpPost("api/leads/{id}/drafts/generate")]
-    [Authorize(Roles = "SalesRep,Admin")]
+    [Authorize(Roles = "SalesRep,Admin,Manager,SocialMediaRep")]
     public async Task<IActionResult> Generate(int id)
     {
         try
@@ -39,14 +39,23 @@ public class DraftsController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (AIServiceException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = $"Draft generation failed: {ex.Message}" });
+        }
     }
 
     [HttpPut("api/drafts/{id}")]
-    [Authorize(Roles = "SalesRep,Admin")]
+    [Authorize(Roles = "SalesRep,Admin,Manager,SocialMediaRep")]
     public async Task<IActionResult> Edit(int id, [FromBody] EditDraftRequest req)
     {
         try
@@ -61,7 +70,7 @@ public class DraftsController : ControllerBase
     }
 
     [HttpPut("api/drafts/{id}/approve")]
-    [Authorize(Roles = "SalesRep,Admin")]
+    [Authorize(Roles = "SalesRep,Admin,Manager,SocialMediaRep")]
     public async Task<IActionResult> Approve(int id)
     {
         try
@@ -81,7 +90,7 @@ public class DraftsController : ControllerBase
     }
 
     [HttpPut("api/drafts/{id}/reject")]
-    [Authorize(Roles = "SalesRep,Admin")]
+    [Authorize(Roles = "SalesRep,Admin,Manager,SocialMediaRep")]
     public async Task<IActionResult> Reject(int id)
     {
         try

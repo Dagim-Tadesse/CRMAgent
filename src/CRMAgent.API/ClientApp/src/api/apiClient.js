@@ -21,7 +21,7 @@ api.interceptors.response.use(
   error => {
     if (error.response && error.response.status === 401) {
       // Clear token and bounce to login
-      ['crm_token', 'crm_role', 'crm_email'].forEach(k => localStorage.removeItem(k));
+      ['crm_token', 'crm_role', 'crm_email', 'crm_name'].forEach(k => localStorage.removeItem(k));
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -31,6 +31,27 @@ api.interceptors.response.use(
 // ============ AUTH ============
 export const login = (email, password) =>
   api.post('/api/auth/login', { email, password });
+
+/** Admin: create Identity user (password hashed server-side). */
+export const registerUser = ({ name, email, phone, password, role }) =>
+  api.post('/api/auth/register', { name, email, phone, password, role });
+
+/** Authenticated: persist new password via Identity ChangePasswordAsync. */
+export const changePassword = ({ currentPassword, newPassword, confirmPassword }) =>
+  api.put('/api/auth/change-password', { currentPassword, newPassword, confirmPassword });
+
+/** Current user profile from AspNetUsers + FullName claim. */
+export const getMyProfile = () => api.get('/api/auth/me');
+
+/** Update name / phone on the authenticated Identity user. */
+export const updateMyProfile = ({ name, phone }) =>
+  api.put('/api/auth/me', { name, phone });
+
+/** Shared team directory (any authenticated user). */
+export const getTeamUsers = () => api.get('/api/auth/users');
+
+/** Admin: delete an Identity user. */
+export const deleteTeamUser = (id) => api.delete(`/api/auth/users/${id}`);
 
 // ============ LEADS ============
 export const getLeads = () => api.get('/api/leads');

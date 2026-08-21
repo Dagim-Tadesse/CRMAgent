@@ -611,7 +611,7 @@ export function LeadsPage() {
                       <th className="px-6 py-4 font-medium">Stage</th>
                     </>
                   )}
-                  <th className="px-6 py-4 font-medium">Source</th>
+                  <th className="px-6 py-4 font-medium whitespace-nowrap min-w-[130px]">Source</th>
                   {viewMode === 'active' && (
                     <th className="px-6 py-4 font-medium">Flags</th>
                   )}
@@ -656,8 +656,8 @@ export function LeadsPage() {
                       </>
                     )}
                     
-                    <td className="px-6 py-4">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-block whitespace-nowrap text-xs px-3 py-1 rounded-full font-medium ${
                         getLeadChannel(lead) === 'Telegram' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20' :
                         getLeadChannel(lead) === 'Email' ? 'bg-green-500/20 text-green-300 border border-green-500/20' :
                         'bg-purple-500/20 text-purple-300 border border-purple-500/20'

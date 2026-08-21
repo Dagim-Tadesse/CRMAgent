@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAppearance } from '../context/AppearanceContext';
 import AppSidebar from '../components/AppSidebar';
-import { getLeads } from '../api/apiClient';
+import { getLeads, registerUser, changePassword, getTeamUsers, deleteTeamUser, getMyProfile, updateMyProfile } from '../api/apiClient';
 import {
   Users,
   User,
@@ -118,12 +118,12 @@ const LANGUAGE_OPTIONS = [
 ];
 
 const DEFAULT_PROFILE = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  phone: '+1 (555) 123-4567',
-  title: 'Sales Manager',
-  bio: 'Sales professional with 10+ years of experience in B2B SaaS.',
-  role: 'Admin'
+  name: '',
+  email: '',
+  phone: '',
+  title: '',
+  bio: '',
+  role: ''
 };
 
 const DEFAULT_NOTIFICATIONS = {
@@ -155,12 +155,27 @@ const DEFAULT_INTEGRATIONS = {
   salesforce: false
 };
 
-const DEFAULT_TEAM = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', avatar: 'JD' },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', role: 'Sales Rep', avatar: 'SJ' },
-  { id: 3, name: 'Mike Peters', email: 'mike@example.com', role: 'Sales Rep', avatar: 'MP' },
-  { id: 4, name: 'Emily Davis', email: 'emily@example.com', role: 'Manager', avatar: 'ED' }
-];
+/** Matches ASP.NET Identity rules in Program.cs (RequiredLength = 6). */
+const MIN_PASSWORD_LENGTH = 6;
+
+function validatePasswordPair(password, confirmPassword) {
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  }
+  if (password !== confirmPassword) {
+    return 'Passwords do not match.';
+  }
+  return '';
+}
+
+function apiErrorMessage(err, fallback) {
+  const data = err?.response?.data;
+  if (typeof data?.message === 'string') return data.message;
+  if (Array.isArray(data)) {
+    return data.map((e) => e.description || e.Description || String(e)).filter(Boolean).join(' ') || fallback;
+  }
+  return err?.message || fallback;
+}
 
 const accentGradientStyle = {
   background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))'
@@ -453,34 +468,100 @@ function AppearanceSection() {
 }
 
 // =============== PROFILE SECTION ===============
-function ProfileSection({ authEmail, authRole }) {
+function ProfileSection({ authEmail, authRole, onNameChange }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(() => loadJson('settings_profile', DEFAULT_PROFILE));
-  const [formData, setFormData] = useState(profile);
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [formData, setFormData] = useState(DEFAULT_PROFILE);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!authEmail) return;
-    setProfile((prev) => {
-      if (prev.email === authEmail) return prev;
-      const next = {
-        ...prev,
-        email: authEmail,
-        role: authRole || prev.role
-      };
-      saveJson('settings_profile', next);
-      setFormData(next);
-      return next;
-    });
-  }, [authEmail, authRole]);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await getMyProfile();
+        const data = res?.data || {};
+        const next = {
+          name: data.name || '',
+          email: data.email || authEmail || '',
+          phone: data.phone || '',
+          title: '',
+          bio: '',
+          role: data.displayRole || data.role || authRole || ''
+        };
+        // Keep optional local-only fields (title/bio) if present
+        try {
+          const local = JSON.parse(localStorage.getItem('settings_profile') || '{}');
+          if (local.title) next.title = local.title;
+          if (local.bio) next.bio = local.bio;
+        } catch { /* ignore */ }
+        if (!cancelled) {
+          setProfile(next);
+          setFormData(next);
+          if (next.name && onNameChange) onNameChange(next.name);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setError(apiErrorMessage(err, 'Failed to load profile from the server.'));
+          const fallback = {
+            ...DEFAULT_PROFILE,
+            email: authEmail || '',
+            role: authRole || ''
+          };
+          setProfile(fallback);
+          setFormData(fallback);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authEmail, authRole, onNameChange]);
 
-  const handleSave = () => {
-    setProfile(formData);
-    saveJson('settings_profile', formData);
-    setIsEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setError('');
+    setBusy(true);
+    try {
+      const res = await updateMyProfile({
+        name: formData.name.trim(),
+        phone: formData.phone.trim()
+      });
+      const data = res?.data || {};
+      const next = {
+        ...formData,
+        name: data.name || formData.name,
+        email: data.email || formData.email,
+        phone: data.phone || formData.phone || '',
+        role: data.displayRole || data.role || formData.role
+      };
+      setProfile(next);
+      setFormData(next);
+      // Persist non-Identity extras locally only
+      saveJson('settings_profile', { title: next.title, bio: next.bio });
+      if (onNameChange) onNameChange(next.name);
+      setIsEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error(err);
+      setError(apiErrorMessage(err, 'Failed to save profile.'));
+    } finally {
+      setBusy(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+        <p className="text-sm text-gray-500">Loading profile…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
@@ -498,18 +579,25 @@ function ProfileSection({ authEmail, authRole }) {
           )}
           <button
             type="button"
+            disabled={busy}
             onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-            className="px-4 py-2 rounded-xl transition flex items-center gap-2"
+            className="px-4 py-2 rounded-xl transition flex items-center gap-2 disabled:opacity-50"
             style={{
               ...accentSoftBg,
               color: 'var(--accent-color)'
             }}
           >
             {isEditing ? <Save size={16} /> : <Edit2 size={16} />}
-            {isEditing ? 'Save Changes' : 'Edit Profile'}
+            {isEditing ? (busy ? 'Saving…' : 'Save Changes') : 'Edit Profile'}
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
 
       <div className="flex items-center gap-6 mb-6">
         <div className="relative">
@@ -520,7 +608,7 @@ function ProfileSection({ authEmail, authRole }) {
               boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
             }}
           >
-            {profile.name ? profile.name[0].toUpperCase() : 'JD'}
+            {profile.name ? profile.name[0].toUpperCase() : '?'}
           </div>
           {isEditing && (
             <button
@@ -533,8 +621,9 @@ function ProfileSection({ authEmail, authRole }) {
           )}
         </div>
         <div>
-          <h4 className="text-xl font-semibold text-white">{profile.name}</h4>
+          <h4 className="text-xl font-semibold text-white">{profile.name || '—'}</h4>
           <p className="text-gray-400">{profile.email}</p>
+          {profile.phone ? <p className="text-sm text-gray-400">{profile.phone}</p> : null}
           <p className="text-sm text-gray-500">{profile.role}</p>
         </div>
       </div>
@@ -564,17 +653,8 @@ function ProfileSection({ authEmail, authRole }) {
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
-              isEditing ? '' : 'opacity-70'
-            }`}
-            onFocus={(e) => {
-              if (isEditing) e.target.style.borderColor = 'var(--accent-color)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '';
-            }}
+            disabled
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition opacity-70"
           />
         </div>
         <div>
@@ -648,12 +728,39 @@ function SecuritySection() {
   });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordBusy, setPasswordBusy] = useState(false);
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setPasswordSaved(true);
-    setTimeout(() => setPasswordSaved(false), 2000);
+    setPasswordError('');
+    setPasswordSaved(false);
+
+    const matchError = validatePasswordPair(
+      passwordData.newPassword,
+      passwordData.confirmPassword
+    );
+    if (matchError) {
+      setPasswordError(matchError);
+      return;
+    }
+
+    setPasswordBusy(true);
+    try {
+      await changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordSaved(true);
+      setTimeout(() => setPasswordSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setPasswordError(apiErrorMessage(err, 'Failed to update password.'));
+    } finally {
+      setPasswordBusy(false);
+    }
   };
 
   return (
@@ -679,6 +786,7 @@ function SecuritySection() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition pr-10"
                 placeholder="Enter current password"
                 required
+                autoComplete="current-password"
                 onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
                 onBlur={(e) => { e.target.style.borderColor = ''; }}
               />
@@ -694,16 +802,27 @@ function SecuritySection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">New Password</label>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition"
-                placeholder="Enter new password"
-                required
-                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
-                onBlur={(e) => { e.target.style.borderColor = ''; }}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition pr-10"
+                  placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+                  required
+                  minLength={MIN_PASSWORD_LENGTH}
+                  autoComplete="new-password"
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
+                  onBlur={(e) => { e.target.style.borderColor = ''; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1.5">Confirm Password</label>
@@ -714,21 +833,29 @@ function SecuritySection() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition"
                 placeholder="Confirm new password"
                 required
+                minLength={MIN_PASSWORD_LENGTH}
+                autoComplete="new-password"
                 onFocus={(e) => { e.target.style.borderColor = 'var(--accent-color)'; }}
                 onBlur={(e) => { e.target.style.borderColor = ''; }}
               />
             </div>
           </div>
+          {passwordError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3">
+              {passwordError}
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl text-white font-medium transition-all hover:opacity-90"
+              disabled={passwordBusy}
+              className="px-6 py-2.5 rounded-xl text-white font-medium transition-all hover:opacity-90 disabled:opacity-50"
               style={{
                 ...accentGradientStyle,
                 boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
               }}
             >
-              Update Password
+              {passwordBusy ? 'Updating…' : 'Update Password'}
             </button>
             {passwordSaved && (
               <span className="text-sm text-green-400 flex items-center gap-1.5">
@@ -1044,42 +1171,101 @@ function PreferencesSection() {
 
 // =============== TEAM SECTION ===============
 function TeamSection() {
-  const [members, setMembers] = useState(() => loadJsonArray('settings_team', DEFAULT_TEAM));
+  const { role: authRole } = useAuth();
+  const canManageTeam = authRole === 'Admin' || authRole === 'Manager';
+  const canInviteAdmins = authRole === 'Admin';
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'Sales Rep' });
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'Sales Rep',
+    password: '',
+    confirmPassword: ''
+  });
+  const [showInvitePassword, setShowInvitePassword] = useState(false);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSuccess, setInviteSuccess] = useState('');
+  const [listError, setListError] = useState('');
 
-  const persist = (next) => {
-    setMembers(next);
-    saveJson('settings_team', next);
+  const loadMembers = async () => {
+    setListError('');
+    try {
+      const res = await getTeamUsers();
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setMembers(list);
+    } catch (err) {
+      console.error(err);
+      setListError(apiErrorMessage(err, 'Failed to load team members from the server.'));
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleInvite = (e) => {
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const handleInvite = async (e) => {
     e.preventDefault();
-    if (!inviteForm.name.trim() || !inviteForm.email.trim()) return;
-    const initials = inviteForm.name
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((p) => p[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || '??';
-    const next = [
-      ...members,
-      {
-        id: Date.now(),
+    setInviteError('');
+    setInviteSuccess('');
+
+    if (!inviteForm.name.trim() || !inviteForm.email.trim()) {
+      setInviteError('Name and email are required.');
+      return;
+    }
+
+    const pwdError = validatePasswordPair(inviteForm.password, inviteForm.confirmPassword);
+    if (pwdError) {
+      setInviteError(pwdError);
+      return;
+    }
+
+    setInviteBusy(true);
+    try {
+      const res = await registerUser({
         name: inviteForm.name.trim(),
         email: inviteForm.email.trim(),
-        role: inviteForm.role,
-        avatar: initials
-      }
-    ];
-    persist(next);
-    setInviteForm({ name: '', email: '', role: 'Sales Rep' });
-    setShowInvite(false);
+        phone: inviteForm.phone.trim(),
+        password: inviteForm.password,
+        role: inviteForm.role
+      });
+
+      const created = res?.data;
+      setInviteSuccess(created?.message || 'Member invited successfully.');
+      setInviteForm({
+        name: '',
+        email: '',
+        phone: '',
+        role: 'Sales Rep',
+        password: '',
+        confirmPassword: ''
+      });
+      setShowInvite(false);
+      await loadMembers();
+      setTimeout(() => setInviteSuccess(''), 3000);
+    } catch (err) {
+      console.error(err);
+      setInviteError(apiErrorMessage(err, 'Failed to invite member.'));
+    } finally {
+      setInviteBusy(false);
+    }
   };
 
-  const removeMember = (id) => {
-    persist(members.filter((m) => m.id !== id));
+  const removeMember = async (id) => {
+    setListError('');
+    try {
+      await deleteTeamUser(id);
+      await loadMembers();
+    } catch (err) {
+      console.error(err);
+      setListError(apiErrorMessage(err, 'Failed to remove member.'));
+    }
   };
 
   return (
@@ -1087,97 +1273,180 @@ function TeamSection() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-white">Team Members</h3>
-          <p className="text-sm text-gray-500">Manage your team</p>
+          <p className="text-sm text-gray-500">Manage accounts stored in the database</p>
         </div>
         <button
           type="button"
-          onClick={() => setShowInvite((v) => !v)}
-          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90"
+          disabled={!canManageTeam}
+          onClick={() => {
+            if (!canManageTeam) return;
+            setShowInvite((v) => !v);
+            setInviteError('');
+          }}
+          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90 disabled:opacity-50"
           style={{
             ...accentGradientStyle,
             boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
           }}
+          title={canManageTeam ? undefined : 'Only Admins and Managers can invite members'}
         >
           <UserPlus size={16} />
           Invite Member
         </button>
       </div>
 
-      {showInvite && (
+      {!canManageTeam && (
+        <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm rounded-xl px-4 py-3">
+          Viewing team directory only. Admins and Managers can add members.
+        </div>
+      )}
+
+      {inviteSuccess && (
+        <div className="mb-4 bg-green-500/10 border border-green-500/20 text-green-300 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
+          <CheckCircle size={16} />
+          {inviteSuccess}
+        </div>
+      )}
+
+      {listError && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3">
+          {listError}
+        </div>
+      )}
+
+      {showInvite && canManageTeam && (
         <form
           onSubmit={handleInvite}
-          className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-3"
+          className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3"
         >
-          <input
-            type="text"
-            placeholder="Name"
-            value={inviteForm.name}
-            onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={inviteForm.email}
-            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
-            required
-          />
-          <select
-            value={inviteForm.role}
-            onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none"
-          >
-            <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
-            <option value="Manager" className="bg-[#14141a]">Manager</option>
-            <option value="Admin" className="bg-[#14141a]">Admin</option>
-          </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="Name"
+              value={inviteForm.name}
+              onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={inviteForm.email}
+              onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              required
+            />
+            <input
+              type="tel"
+              placeholder="Phone number"
+              value={inviteForm.phone}
+              onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+            />
+            <select
+              value={inviteForm.role}
+              onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none"
+            >
+              <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
+              <option value="Manager" className="bg-[#14141a]">Manager</option>
+              {canInviteAdmins && (
+                <option value="Admin" className="bg-[#14141a]">Admin</option>
+              )}
+              <option value="Social Media Rep" className="bg-[#14141a]">Social Media Rep</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="relative">
+              <input
+                type={showInvitePassword ? 'text' : 'password'}
+                placeholder={`Password (min ${MIN_PASSWORD_LENGTH} chars)`}
+                value={inviteForm.password}
+                onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none pr-10"
+                required
+                minLength={MIN_PASSWORD_LENGTH}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowInvitePassword(!showInvitePassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+              >
+                {showInvitePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            <input
+              type={showInvitePassword ? 'text' : 'password'}
+              placeholder="Confirm password"
+              value={inviteForm.confirmPassword}
+              onChange={(e) => setInviteForm({ ...inviteForm, confirmPassword: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              required
+              minLength={MIN_PASSWORD_LENGTH}
+              autoComplete="new-password"
+            />
+          </div>
+          {inviteError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-xl px-4 py-3">
+              {inviteError}
+            </div>
+          )}
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90"
+            disabled={inviteBusy}
+            className="px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
             style={accentGradientStyle}
           >
-            Add Member
+            {inviteBusy ? 'Creating…' : 'Add Member'}
           </button>
         </form>
       )}
 
-      <div className="space-y-2">
-        {members.map((member) => (
-          <div
-            key={member.id}
-            className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                style={accentGradientStyle}
-              >
-                {member.avatar}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white">{member.name}</p>
-                <p className="text-xs text-gray-500">{member.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5">
-                {member.role}
-              </span>
-              {member.role !== 'Admin' && (
-                <button
-                  type="button"
-                  onClick={() => removeMember(member.id)}
-                  className="text-gray-500 hover:text-red-400 transition"
+      {loading ? (
+        <p className="text-sm text-gray-500 py-6 text-center">Loading team…</p>
+      ) : members.length === 0 ? (
+        <p className="text-sm text-gray-500 py-6 text-center">No team members found. Invite someone to get started.</p>
+      ) : (
+        <div className="space-y-2">
+          {members.map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  style={accentGradientStyle}
                 >
-                  <Trash2 size={16} />
-                </button>
-              )}
+                  {member.avatar || '??'}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{member.name}</p>
+                  <p className="text-xs text-gray-500">{member.email}</p>
+                  {member.phone ? (
+                    <p className="text-xs text-gray-600">{member.phone}</p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5">
+                  {member.role}
+                </span>
+                {member.role !== 'Admin' && (
+                  <button
+                    type="button"
+                    onClick={() => removeMember(member.id)}
+                    className="text-gray-500 hover:text-red-400 transition"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1313,7 +1582,7 @@ function DataSection() {
 
 // =============== MAIN SETTINGS PAGE ===============
 export function SettingsPage() {
-  const { email, role } = useAuth();
+  const { email, role, name, setDisplayName } = useAuth();
   const { theme, sidebarCollapsed } = useAppearance();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
@@ -1332,7 +1601,13 @@ export function SettingsPage() {
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
-        return <ProfileSection authEmail={email} authRole={role} />;
+        return (
+          <ProfileSection
+            authEmail={email}
+            authRole={role}
+            onNameChange={setDisplayName}
+          />
+        );
       case 'security':
         return <SecuritySection />;
       case 'appearance':
@@ -1348,7 +1623,13 @@ export function SettingsPage() {
       case 'data':
         return <DataSection />;
       default:
-        return <ProfileSection authEmail={email} authRole={role} />;
+        return (
+          <ProfileSection
+            authEmail={email}
+            authRole={role}
+            onNameChange={setDisplayName}
+          />
+        );
     }
   };
 
@@ -1385,7 +1666,7 @@ export function SettingsPage() {
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{email}</p>
+                  <p className="text-sm font-medium text-white">{name || email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
                 <div

@@ -44,6 +44,8 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             throw new InvalidOperationException("Only drafts pending approval can be sent.");
         }
 
+        string? sendChannel = null; // for accurate error messages
+
         try
         {
             if (draft.Lead == null)
@@ -52,95 +54,183 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
                 return new ApproveDraftResult(false, "Draft is missing lead information and cannot be sent.");
             }
 
-            bool isTelegram = draft.Lead.TelegramChatId.HasValue
-                || (draft.Lead.Email?.EndsWith("@telegram.com", StringComparison.OrdinalIgnoreCase) ?? false);
+            var lead = draft.Lead;
+            var chatId = ResolveTelegramChatId(lead);
 
-            if (isTelegram)
+            _logger.LogInformation(
+                "ApproveDraft {DraftId}: LeadId={LeadId}, Name={Name}, Email={Email}, TelegramUsername={Username}, TelegramChatId={ChatId}, ResolvedChatId={Resolved}",
+                draft.Id, lead.Id, lead.FullName, lead.Email, lead.TelegramUsername, lead.TelegramChatId, chatId);
+
+            // TRUE short-circuit: only Telegram when we have a usable chat id — never touch email/Resend/SMTP
+            if (chatId.HasValue)
             {
-                if (!draft.Lead.TelegramChatId.HasValue)
+                sendChannel = "Telegram";
+                _logger.LogInformation(
+                    "ApproveDraft {DraftId}: ROUTING → Telegram only (chatId={ChatId}). Skipping email/SMTP/Resend.",
+                    draft.Id, chatId.Value);
+
+                // Persist recovered chat id if it was only encoded in the email
+                if (!lead.TelegramChatId.HasValue)
                 {
-                    return new ApproveDraftResult(false, "Cannot send via Telegram: The Chat ID is missing. This usually happens if the lead was created manually or before the bot was fully configured.");
-                }
-                
-                await _telegram.SendMessageAsync(draft.Lead.TelegramChatId.Value, draft.Body);
-            }
-            else
-            {
-                var htmlBody = draft.Body.Replace("\n", "<br />");
-                await _email.SendAsync(draft.Lead.Email ?? string.Empty, draft.Subject, htmlBody);
-            }
-
-            draft.Status = DraftStatus.Sent;
-            draft.SentAt = DateTime.UtcNow;
-            await _drafts.UpdateAsync(draft);
-
-            await _interactions.AddAsync(new Interaction
-            {
-                LeadId = draft.LeadId,
-                Channel = isTelegram ? InteractionChannel.Telegram : InteractionChannel.Email,
-                Type = isTelegram ? InteractionType.TelegramMessage : InteractionType.Email,
-                Content = draft.Body,
-                Direction = InteractionDirection.Outbound
-            });
-
-            // Promote New → Contacted so the pipeline/kanban reflects the outbound touch
-            var lead = await _leads.GetByIdAsync(draft.LeadId);
-            if (lead != null)
-            {
-                lead.LastInteractionAt = DateTime.UtcNow;
-                lead.IsStagnant = false;
-
-                if (lead.PipelineStage == PipelineStage.New)
-                {
-                    var previous = lead.PipelineStage;
-                    lead.PipelineStage = PipelineStage.Contacted;
+                    lead.TelegramChatId = chatId;
                     await _leads.UpdateAsync(lead);
-
-                    await _logs.AddAsync(new ActivityLog
-                    {
-                        LeadId = lead.Id,
-                        Action = "Stage Updated",
-                        Reason = $"Pipeline stage auto-advanced from {previous} to {PipelineStage.Contacted} after draft was sent.",
-                        TriggeredBy = LogTrigger.Agent
-                    });
-
                     _logger.LogInformation(
-                        "Lead {LeadId} advanced from {Previous} to Contacted after draft {DraftId} was sent",
-                        lead.Id, previous, draft.Id);
+                        "ApproveDraft {DraftId}: Backfilled TelegramChatId={ChatId} on lead {LeadId} from email",
+                        draft.Id, chatId.Value, lead.Id);
                 }
-                else
-                {
-                    await _leads.UpdateAsync(lead);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("Draft {DraftId} sent but lead {LeadId} was not found for stage update", draft.Id, draft.LeadId);
+
+                await _telegram.SendMessageAsync(chatId.Value, draft.Body);
+                _logger.LogInformation("ApproveDraft {DraftId}: Telegram send succeeded to chat {ChatId}", draft.Id, chatId.Value);
+
+                return await FinalizeSuccessAsync(draft, lead, isTelegram: true);
             }
 
-            await _logs.AddAsync(new ActivityLog
+            // Identified as Telegram lead but no chat id → do NOT fall through to email (that causes Resend timeouts)
+            if (IsTelegramIdentifiedLead(lead))
             {
-                LeadId = draft.LeadId,
-                Action = isTelegram ? "Telegram Sent" : "Email Sent",
-                Reason = $"Approved and sent draft to {(isTelegram ? "Telegram" : draft.Lead.Email)}.",
-                TriggeredBy = LogTrigger.User
-            });
+                _logger.LogWarning(
+                    "ApproveDraft {DraftId}: Telegram lead {LeadId} has username/email marker but NO chat id — refusing email fallback",
+                    draft.Id, lead.Id);
+                return new ApproveDraftResult(false,
+                    "This is a Telegram lead but TelegramChatId is missing, so the message cannot be sent. " +
+                    "Ask the lead to message the bot again (webhook will store the chat id), then retry.");
+            }
 
-            return new ApproveDraftResult(true, "Message sent successfully");
+            // Email-only leads
+            sendChannel = "Email";
+            _logger.LogInformation(
+                "ApproveDraft {DraftId}: ROUTING → Email (SMTP/Resend). No Telegram chat id on lead {LeadId}.",
+                draft.Id, lead.Id);
+
+            var htmlBody = (draft.Body ?? string.Empty).Replace("\n", "<br />");
+            await _email.SendAsync(lead.Email ?? string.Empty, draft.Subject, htmlBody);
+            _logger.LogInformation("ApproveDraft {DraftId}: Email send succeeded to {Email}", draft.Id, lead.Email);
+
+            return await FinalizeSuccessAsync(draft, lead, isTelegram: false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send draft {DraftId} for lead {LeadId}", cmd.DraftId, draft.LeadId);
+            _logger.LogError(ex,
+                "ApproveDraft {DraftId} FAILED on channel={Channel} for lead {LeadId}",
+                cmd.DraftId, sendChannel ?? "unknown", draft.LeadId);
 
             await _logs.AddAsync(new ActivityLog
             {
                 LeadId = draft.LeadId,
-                Action = "Email Send Failed",
+                Action = sendChannel == "Telegram" ? "Telegram Send Failed" : "Email Send Failed",
                 Reason = ex.Message,
                 TriggeredBy = LogTrigger.Agent
             });
 
-            return new ApproveDraftResult(false, $"Failed to send email: {ex.Message}");
+            var message = FormatSendError(ex, sendChannel);
+            return new ApproveDraftResult(false, message);
         }
+    }
+
+    private async Task<ApproveDraftResult> FinalizeSuccessAsync(EmailDraft draft, Lead lead, bool isTelegram)
+    {
+        draft.Status = DraftStatus.Sent;
+        draft.SentAt = DateTime.UtcNow;
+        await _drafts.UpdateAsync(draft);
+
+        await _interactions.AddAsync(new Interaction
+        {
+            LeadId = draft.LeadId,
+            Channel = isTelegram ? InteractionChannel.Telegram : InteractionChannel.Email,
+            Type = isTelegram ? InteractionType.TelegramMessage : InteractionType.Email,
+            Content = draft.Body,
+            Direction = InteractionDirection.Outbound
+        });
+
+        var tracked = await _leads.GetByIdAsync(draft.LeadId);
+        if (tracked != null)
+        {
+            tracked.LastInteractionAt = DateTime.UtcNow;
+            tracked.IsStagnant = false;
+
+            if (tracked.PipelineStage == PipelineStage.New)
+            {
+                var previous = tracked.PipelineStage;
+                tracked.PipelineStage = PipelineStage.Contacted;
+                await _leads.UpdateAsync(tracked);
+
+                await _logs.AddAsync(new ActivityLog
+                {
+                    LeadId = tracked.Id,
+                    Action = "Stage Updated",
+                    Reason = $"Pipeline stage auto-advanced from {previous} to {PipelineStage.Contacted} after draft was sent.",
+                    TriggeredBy = LogTrigger.Agent
+                });
+            }
+            else
+            {
+                await _leads.UpdateAsync(tracked);
+            }
+        }
+
+        await _logs.AddAsync(new ActivityLog
+        {
+            LeadId = draft.LeadId,
+            Action = isTelegram ? "Telegram Sent" : "Email Sent",
+            Reason = isTelegram
+                ? $"Approved and sent draft via Telegram (chat {lead.TelegramChatId})."
+                : $"Approved and sent draft to {lead.Email}.",
+            TriggeredBy = LogTrigger.User
+        });
+
+        return new ApproveDraftResult(true,
+            isTelegram ? "Message sent successfully via Telegram" : "Message sent successfully via email");
+    }
+
+    /// <summary>
+    /// Chat id from TelegramChatId column, or recovered from tg-&#123;id&#125;@telegram.com email used by the webhook.
+    /// </summary>
+    private static long? ResolveTelegramChatId(Lead lead)
+    {
+        if (lead.TelegramChatId.HasValue)
+            return lead.TelegramChatId;
+
+        var email = lead.Email?.Trim();
+        if (string.IsNullOrEmpty(email))
+            return null;
+
+        // Webhook stores deterministic emails: tg-{telegramUserId}@telegram.com
+        if (email.EndsWith("@telegram.com", StringComparison.OrdinalIgnoreCase)
+            && email.StartsWith("tg-", StringComparison.OrdinalIgnoreCase))
+        {
+            var local = email.Split('@')[0];
+            var idPart = local["tg-".Length..];
+            if (long.TryParse(idPart, out var parsed) && parsed != 0)
+                return parsed;
+        }
+
+        return null;
+    }
+
+    private static bool IsTelegramIdentifiedLead(Lead lead) =>
+        !string.IsNullOrWhiteSpace(lead.TelegramUsername)
+        || (lead.Email?.EndsWith("@telegram.com", StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private static string FormatSendError(Exception ex, string? channel)
+    {
+        var raw = ex.Message ?? string.Empty;
+        var timedOut = ex is TaskCanceledException
+                       || raw.Contains("HttpClient.Timeout", StringComparison.OrdinalIgnoreCase)
+                       || raw.Contains("timed out", StringComparison.OrdinalIgnoreCase);
+
+        if (timedOut && channel == "Telegram")
+        {
+            return "Telegram send timed out reaching api.telegram.org. Check bot token and network/firewall access to Telegram.";
+        }
+
+        if (timedOut)
+        {
+            return "Email send timed out. The email provider did not respond in time — check Resend/SMTP connectivity.";
+        }
+
+        if (ex is InvalidOperationException)
+            return ex.Message;
+
+        return $"Failed to send via {channel ?? "unknown"}: {ex.Message}";
     }
 }
