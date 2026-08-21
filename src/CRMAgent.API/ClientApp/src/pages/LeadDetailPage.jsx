@@ -13,10 +13,13 @@ import {
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 import { ConfirmModal, AlertModal } from '../components/Modal';
 import { Loader } from '../components/Loader';
+import { useAuth } from '../hooks/useAuth';
 
 export default function LeadDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const canEditLeads = role === 'Admin' || role === 'SalesRep';
   
   const [lead, setLead] = useState(null);
   const [timeline, setTimeline] = useState([]);
@@ -277,14 +280,17 @@ export default function LeadDetailPage() {
             <select 
               value={lead.pipelineStage} 
               onChange={handleStageChangeSelect}
-              className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors"
+              disabled={!canEditLeads}
+              className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {stages.map(s => (
                 <option key={s} value={s} className="bg-[#14141a] text-white font-medium">{s}</option>
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-2">
-              Changing stage to <strong>Contacted</strong> or <strong>Qualified</strong> triggers AI Draft Generation.
+              {canEditLeads 
+                ? 'Changing stage to Contacted or Qualified triggers AI Draft Generation.' 
+                : 'Overseer View: Manager role cannot edit pipeline stages.'}
             </p>
           </div>
         </div>
@@ -301,14 +307,16 @@ export default function LeadDetailPage() {
                 </div>
                 <h3 className="font-semibold text-white">AI Copilot Draft</h3>
               </div>
-              <button 
-                onClick={handleRegenerateDraft}
-                disabled={draftLoading}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-sm transition disabled:opacity-50"
-              >
-                <RefreshCw size={14} className={draftLoading ? "animate-spin" : ""} />
-                Regenerate
-              </button>
+              {canEditLeads && (
+                <button 
+                  onClick={handleRegenerateDraft}
+                  disabled={draftLoading}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-sm transition disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={draftLoading ? "animate-spin" : ""} />
+                  Regenerate
+                </button>
+              )}
             </div>
 
             <div className="p-6">
@@ -326,8 +334,9 @@ export default function LeadDetailPage() {
                     <input 
                       type="text"
                       value={subject}
+                      readOnly={!canEditLeads}
                       onChange={e => setSubject(e.target.value)}
-                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors read-only:opacity-70"
                     />
                   </div>
 
@@ -336,40 +345,47 @@ export default function LeadDetailPage() {
                     <label className="block text-xs font-medium text-gray-400 mb-1">Body</label>
                     <textarea 
                       value={body}
+                      readOnly={!canEditLeads}
                       onChange={e => setBody(e.target.value)}
                       rows={8}
-                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors resize-none"
+                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors resize-none read-only:opacity-70"
                     />
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                    <button 
-                      onClick={() => setConfirmRejectDraft(true)}
-                      disabled={draftLoading}
-                      className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50"
-                    >
-                      Reject Draft
-                    </button>
-                    <div className="flex items-center gap-3">
+                  {canEditLeads ? (
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
                       <button 
-                        onClick={handleSaveDraft}
-                        disabled={isSaving || draftLoading}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-white/5 hover:bg-white/10 rounded-lg transition disabled:opacity-50"
-                      >
-                        <Save size={14} />
-                        {isSaving ? 'Saving...' : 'Save Edits'}
-                      </button>
-                      <button 
-                        onClick={handleApproveDraft}
+                        onClick={() => setConfirmRejectDraft(true)}
                         disabled={draftLoading}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition disabled:opacity-50 shadow-lg shadow-indigo-500/20"
+                        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50"
                       >
-                        <Send size={14} />
-                        Approve & Send
+                        Reject Draft
                       </button>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={handleSaveDraft}
+                          disabled={isSaving || draftLoading}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-white/5 hover:bg-white/10 rounded-lg transition disabled:opacity-50"
+                        >
+                          <Save size={14} />
+                          {isSaving ? 'Saving...' : 'Save Edits'}
+                        </button>
+                        <button 
+                          onClick={handleApproveDraft}
+                          disabled={draftLoading}
+                          className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition disabled:opacity-50 shadow-lg shadow-indigo-500/20"
+                        >
+                          <Send size={14} />
+                          Approve & Send
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="pt-4 border-t border-white/5 text-xs text-yellow-400/80 italic">
+                      Overseer View: Managers can review AI draft contents, but cannot edit, approve, or reject drafts.
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-12">

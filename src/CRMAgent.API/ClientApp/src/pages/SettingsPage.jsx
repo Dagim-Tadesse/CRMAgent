@@ -1172,7 +1172,7 @@ function PreferencesSection() {
 // =============== TEAM SECTION ===============
 function TeamSection() {
   const { role: authRole } = useAuth();
-  const canManageTeam = authRole === 'Admin' || authRole === 'Manager';
+  const canManageTeam = authRole === 'Admin';
   const canInviteAdmins = authRole === 'Admin';
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1288,7 +1288,7 @@ function TeamSection() {
             ...accentGradientStyle,
             boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
           }}
-          title={canManageTeam ? undefined : 'Only Admins and Managers can invite members'}
+          title={canManageTeam ? undefined : 'Only Admins can invite members'}
         >
           <UserPlus size={16} />
           Invite Member
@@ -1297,7 +1297,7 @@ function TeamSection() {
 
       {!canManageTeam && (
         <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm rounded-xl px-4 py-3">
-          Viewing team directory only. Admins and Managers can add members.
+          Viewing team directory only. Only Admins can invite new members.
         </div>
       )}
 

@@ -10,6 +10,7 @@ import {
 import { ScoreBadge, EmotionBadge } from '../components/Badges';
 import { ConfirmModal } from '../components/Modal';
 import { Loader } from '../components/Loader';
+import { useAuth } from '../hooks/useAuth';
 
 // Stage Badge Component
 function StageBadge({ stage }) {
@@ -224,6 +225,9 @@ function ArchiveSuggestionBanner({ staleLeadsCount, onReview }) {
 
 export function LeadsPage() {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const canEditLeads = role === 'Admin' || role === 'SalesRep';
+  const canDeleteLeads = role === 'Admin';
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [displayedLeads, setDisplayedLeads] = useState([]);
@@ -516,7 +520,7 @@ export function LeadsPage() {
               </button>
             </div>
             
-            {viewMode === 'active' && (
+            {viewMode === 'active' && canEditLeads && (
               <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition"
@@ -706,28 +710,35 @@ export function LeadsPage() {
                         
                         {viewMode === 'active' ? (
                           <>
-                            <button
-                              onClick={(e) => handleArchive(lead.id, e)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition"
-                              title="Archive lead"
-                            >
-                              <Archive size={16} />
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteClick(lead.id, e)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {canEditLeads && (
+                              <button
+                                onClick={(e) => handleArchive(lead.id, e)}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition"
+                                title="Archive lead"
+                              >
+                                <Archive size={16} />
+                              </button>
+                            )}
+                            {canDeleteLeads && (
+                              <button
+                                onClick={(e) => handleDeleteClick(lead.id, e)}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                                title="Delete lead"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </>
                         ) : (
-                          <button
-                            onClick={(e) => handleUnarchive(lead.id, e)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition"
-                            title="Restore from archive"
-                          >
-                            <ArchiveRestore size={16} />
-                          </button>
+                          canEditLeads && (
+                            <button
+                              onClick={(e) => handleUnarchive(lead.id, e)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition"
+                              title="Restore from archive"
+                            >
+                              <ArchiveRestore size={16} />
+                            </button>
+                          )
                         )}
                       </div>
                     </td>

@@ -10,6 +10,7 @@ import {
 } from '../api/apiClient';
 import { ConfirmModal } from '../components/Modal';
 import { Loader } from '../components/Loader';
+import { useAuth } from '../hooks/useAuth';
 
 function formatTimestamp(value) {
   if (!value) return '';
@@ -26,6 +27,8 @@ function formatTimestamp(value) {
 }
 
 function TaskCard({ task, onRefresh }) {
+  const { role } = useAuth();
+  const canEditLeads = role === 'Admin' || role === 'SalesRep';
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState(task.subject || '');
   const [body, setBody] = useState(task.body || '');
@@ -165,63 +168,69 @@ function TaskCard({ task, onRefresh }) {
       )}
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-2">
-        {editing ? (
-          <>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={handleSave}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              {busy ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={handleCancelEdit}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setConfirmApprove(true)}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              {busy ? 'Working...' : 'Approve & Send'}
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setEditing(true)}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              Edit First
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={handleRegenerate}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              Regenerate
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => setConfirmReject(true)}
-              className="border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
-            >
-              Reject
-            </button>
-          </>
-        )}
-      </div>
+      {canEditLeads ? (
+        <div className="flex flex-wrap gap-2">
+          {editing ? (
+            <>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleSave}
+                className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                {busy ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleCancelEdit}
+                className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setConfirmApprove(true)}
+                className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                {busy ? 'Working...' : 'Approve & Send'}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setEditing(true)}
+                className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                Edit First
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleRegenerate}
+                className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                Regenerate
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setConfirmReject(true)}
+                className="border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              >
+                Reject
+              </button>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="text-xs text-yellow-400/80 italic">
+          Overseer View: Managers can review task details, but cannot edit, approve, or reject AI replies.
+        </div>
+      )}
     </div>
   );
 }

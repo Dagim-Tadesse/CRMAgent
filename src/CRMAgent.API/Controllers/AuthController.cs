@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
     /// Name → FullName claim; Phone → IdentityUser.PhoneNumber (AspNetUsers).
     /// </summary>
     [HttpPost("register")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
