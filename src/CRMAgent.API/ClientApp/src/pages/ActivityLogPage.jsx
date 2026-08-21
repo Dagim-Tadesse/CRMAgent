@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getLogs } from '../api/apiClient';
 import { 
   Search, Filter, Calendar, Activity, Zap,
-  User, Bot, Database, Send, Mail, RefreshCw, ArrowLeft
+  User, Database, Send, Mail, RefreshCw, ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Loader } from '../components/Loader';
@@ -52,7 +52,6 @@ function ActionIcon({ action }) {
 
 export function ActivityLogPage() {
   const navigate = useNavigate();
-  const { email } = useAuth();
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [loading, setLoading] = useState(true);
