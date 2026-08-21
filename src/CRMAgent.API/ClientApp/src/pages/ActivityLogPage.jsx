@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getLogs } from '../api/apiClient';
 import { 
   Search, Filter, Calendar, Activity, Zap,
-  User, Bot, Database, Send, Mail, RefreshCw
+  User, Bot, Database, Send, Mail, RefreshCw, ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Loader } from '../components/Loader';
@@ -50,6 +51,7 @@ function ActionIcon({ action }) {
 }
 
 export function ActivityLogPage() {
+  const navigate = useNavigate();
   const { email } = useAuth();
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
@@ -152,6 +154,13 @@ export function ActivityLogPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition mb-2"
+          >
+            <ArrowLeft size={16} />
+            Back to dashboard
+          </button>
           <h1 className="text-2xl font-bold text-white">Activity Log</h1>
           <p className="text-sm text-gray-500">Monitor all system events and actions</p>
         </div>

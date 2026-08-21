@@ -784,4 +784,3 @@ export function LeadsPage() {
       </div>
     </div>
   );
-}
