@@ -139,7 +139,7 @@ export function ActivityLogPage() {
     setDateRange({ start: '', end: '' });
   };
 
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
 
@@ -300,8 +300,9 @@ export function ActivityLogPage() {
               <button
                 type="button"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed"
+                disabled={currentPage <= 1}
+                title="Previous Page"
+                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-white/5"
               >
                 Previous
               </button>
@@ -311,14 +312,17 @@ export function ActivityLogPage() {
                 .map((p, i, arr) => {
                   return (
                     <span key={p} className="flex items-center gap-1">
-                      {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 text-gray-600">...</span>}
+                      {i > 0 && arr[i - 1] !== p - 1 && (
+                        <span className="px-1.5 text-gray-500 font-medium select-none">...</span>
+                      )}
                       <button
                         type="button"
                         onClick={() => setCurrentPage(p)}
-                        className={`w-7 h-7 rounded-lg font-medium transition cursor-pointer ${
+                        title={`Page ${p}`}
+                        className={`w-7 h-7 rounded-lg font-medium transition cursor-pointer flex items-center justify-center ${
                           currentPage === p
                             ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                            : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5'
                         }`}
                       >
                         {p}
@@ -330,8 +334,9 @@ export function ActivityLogPage() {
               <button
                 type="button"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed"
+                disabled={currentPage >= totalPages}
+                title="Next Page"
+                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-white/5"
               >
                 Next
               </button>
