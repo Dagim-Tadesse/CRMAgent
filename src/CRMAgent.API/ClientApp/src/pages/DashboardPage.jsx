@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { 
   Users, Flame, AlertTriangle, Clock, Trophy, Ghost,
-  User, Bell, Menu, BarChart3, Activity, Target,
+  User, Menu, BarChart3, Activity, Target,
   ArrowUp, ArrowDown, TrendingUp, Shield,
   Moon, Sun
 } from 'lucide-react';
@@ -190,10 +190,7 @@ export function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]"></span>
-              </button>
+              
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-white">{email}</p>
