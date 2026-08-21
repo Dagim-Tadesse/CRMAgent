@@ -82,7 +82,7 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
                 await _telegram.SendMessageAsync(chatId.Value, draft.Body);
                 _logger.LogInformation("ApproveDraft {DraftId}: Telegram send succeeded to chat {ChatId}", draft.Id, chatId.Value);
 
-                return await FinalizeSuccessAsync(draft, lead, isTelegram: true);
+                return await FinalizeSuccessAsync(draft, lead, isTelegram: true, performedBy: cmd.PerformedBy);
             }
 
             // Identified as Telegram lead but no chat id → do NOT fall through to email (that causes Resend timeouts)
@@ -106,7 +106,7 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             await _email.SendAsync(lead.Email ?? string.Empty, draft.Subject, htmlBody);
             _logger.LogInformation("ApproveDraft {DraftId}: Email send succeeded to {Email}", draft.Id, lead.Email);
 
-            return await FinalizeSuccessAsync(draft, lead, isTelegram: false);
+            return await FinalizeSuccessAsync(draft, lead, isTelegram: false, performedBy: cmd.PerformedBy);
         }
         catch (Exception ex)
         {
@@ -127,7 +127,7 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
         }
     }
 
-    private async Task<ApproveDraftResult> FinalizeSuccessAsync(EmailDraft draft, Lead lead, bool isTelegram)
+    private async Task<ApproveDraftResult> FinalizeSuccessAsync(EmailDraft draft, Lead lead, bool isTelegram, string? performedBy = null)
     {
         draft.Status = DraftStatus.Sent;
         draft.SentAt = DateTime.UtcNow;
@@ -168,13 +168,14 @@ public class ApproveDraftHandler : IRequestHandler<ApproveDraftCommand, ApproveD
             }
         }
 
+        var actorText = !string.IsNullOrWhiteSpace(performedBy) ? $" by {performedBy}" : "";
         await _logs.AddAsync(new ActivityLog
         {
             LeadId = draft.LeadId,
             Action = isTelegram ? "Telegram Sent" : "Email Sent",
             Reason = isTelegram
-                ? $"Approved and sent draft via Telegram (chat {lead.TelegramChatId})."
-                : $"Approved and sent draft to {lead.Email}.",
+                ? $"Approved and sent draft via Telegram (chat {lead.TelegramChatId}){actorText}."
+                : $"Approved and sent draft to {lead.Email}{actorText}.",
             TriggeredBy = LogTrigger.User
         });
 

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CRMAgent.Application.UseCases.UpdateLeadStage;
 using CRMAgent.Domain.Exceptions;
 using MediatR;
@@ -24,7 +25,8 @@ public class PipelineController : ControllerBase
     {
         try
         {
-            await _mediator.Send(new UpdateLeadStageCommand(id, req.Stage));
+            var actor = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            await _mediator.Send(new UpdateLeadStageCommand(id, req.Stage, actor));
             return Ok(new
             {
                 message = "Stage updated successfully",

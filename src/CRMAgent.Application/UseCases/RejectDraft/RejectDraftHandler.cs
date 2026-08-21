@@ -29,11 +29,12 @@ public class RejectDraftHandler : IRequestHandler<RejectDraftCommand>
         draft.Status = DraftStatus.Rejected;
         await _drafts.UpdateAsync(draft);
 
+        var actorText = !string.IsNullOrWhiteSpace(cmd.PerformedBy) ? $" by {cmd.PerformedBy}" : "";
         await _logs.AddAsync(new ActivityLog
         {
             LeadId = draft.LeadId,
             Action = "Draft Rejected",
-            Reason = $"Draft '{draft.Subject}' was rejected.",
+            Reason = $"Draft '{draft.Subject}' was rejected{actorText}.",
             TriggeredBy = LogTrigger.User
         });
     }

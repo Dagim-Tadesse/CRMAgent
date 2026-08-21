@@ -43,11 +43,12 @@ public class UpdateLeadStageHandler : IRequestHandler<UpdateLeadStageCommand>
         {
             await _leads.UpdateAsync(lead);
 
+            var actorText = !string.IsNullOrWhiteSpace(cmd.PerformedBy) ? $" by {cmd.PerformedBy}" : "";
             await _logs.AddAsync(new ActivityLog
             {
                 LeadId = lead.Id,
                 Action = "Stage Updated",
-                Reason = $"Pipeline stage manually changed from {previousStage} to {parsedStage}.",
+                Reason = $"Pipeline stage manually changed from {previousStage} to {parsedStage}{actorText}.",
                 TriggeredBy = LogTrigger.User
             });
 

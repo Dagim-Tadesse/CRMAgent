@@ -98,11 +98,12 @@ public class GenerateDraftHandler : IRequestHandler<GenerateDraftCommand, int>
 
         await _drafts.AddAsync(draft);
 
+        var actorText = !string.IsNullOrWhiteSpace(cmd.PerformedBy) ? $" (Requested by {cmd.PerformedBy})" : "";
         await _logs.AddAsync(new ActivityLog
         {
             LeadId = lead.Id,
             Action = "Draft Generated",
-            Reason = result.Reason ?? "AI draft generated",
+            Reason = (result.Reason ?? "AI draft generated") + actorText,
             TriggeredBy = LogTrigger.Agent,
             CreatedAt = DateTime.UtcNow
         });

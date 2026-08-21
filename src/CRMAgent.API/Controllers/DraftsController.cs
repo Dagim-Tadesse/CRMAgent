@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CRMAgent.Application.UseCases.ApproveDraft;
 using CRMAgent.Application.UseCases.EditDraft;
 using CRMAgent.Application.UseCases.GenerateDraft;
@@ -22,6 +23,9 @@ public class DraftsController : ControllerBase
         _mediator = mediator;
     }
 
+    private string? GetActorName() =>
+        User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+
     [HttpGet("api/leads/{id}/drafts")]
     public async Task<IActionResult> GetByLead(int id) =>
         Ok(await _mediator.Send(new GetLeadDraftsQuery(id)));
@@ -32,7 +36,8 @@ public class DraftsController : ControllerBase
     {
         try
         {
-            var draftId = await _mediator.Send(new GenerateDraftCommand(id));
+            var actor = GetActorName();
+            var draftId = await _mediator.Send(new GenerateDraftCommand(id, actor));
             return Ok(new { draftId, message = "Draft generated successfully" });
         }
         catch (LeadNotFoundException ex)
@@ -75,7 +80,8 @@ public class DraftsController : ControllerBase
     {
         try
         {
-            var result = await _mediator.Send(new ApproveDraftCommand(id));
+            var actor = GetActorName();
+            var result = await _mediator.Send(new ApproveDraftCommand(id, actor));
             if (!result.Success)
             {
                 return BadRequest(new { message = result.Message });
@@ -95,7 +101,8 @@ public class DraftsController : ControllerBase
     {
         try
         {
-            await _mediator.Send(new RejectDraftCommand(id));
+            var actor = GetActorName();
+            await _mediator.Send(new RejectDraftCommand(id, actor));
             return Ok(new { message = "Draft rejected successfully" });
         }
         catch (InvalidOperationException ex)
