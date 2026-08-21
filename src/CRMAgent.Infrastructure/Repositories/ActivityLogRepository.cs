@@ -16,11 +16,13 @@ public class ActivityLogRepository : IActivityLogRepository
 
     public async Task<List<ActivityLog>> GetAllAsync() =>
         await _context.ActivityLogs
+            .Include(l => l.Lead)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync();
 
     public async Task<List<ActivityLog>> GetByLeadIdAsync(int leadId) =>
         await _context.ActivityLogs
+            .Include(l => l.Lead)
             .Where(l => l.LeadId == leadId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync();

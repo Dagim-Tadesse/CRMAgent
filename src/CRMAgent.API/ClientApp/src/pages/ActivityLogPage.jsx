@@ -279,10 +279,13 @@ export function ActivityLogPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    {log.leadName ? (
-                      <span className="text-blue-400 hover:text-blue-300 transition cursor-pointer">
-                        {log.leadName}
-                      </span>
+                    {(log.lead?.fullName || log.leadName) ? (
+                      <Link 
+                        to={`/leads/${log.leadId || log.lead?.id}`} 
+                        className="text-blue-400 hover:text-blue-300 transition hover:underline font-medium"
+                      >
+                        {log.lead?.fullName || log.leadName}
+                      </Link>
                     ) : (
                       <span className="text-gray-500 text-xs">-</span>
                     )}
