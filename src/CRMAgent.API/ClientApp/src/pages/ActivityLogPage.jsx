@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getLogs } from '../api/apiClient';
 import { 
   Search, Filter, Calendar, Activity, Zap,
   User, Database, Send, Mail, RefreshCw, ArrowLeft
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 import { Loader } from '../components/Loader';
 
 // Trigger Badge Component
@@ -51,7 +50,6 @@ function ActionIcon({ action }) {
 }
 
 export function ActivityLogPage() {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -152,16 +150,18 @@ export function ActivityLogPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition mb-2"
+        <div className="flex items-center gap-4">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition group"
           >
-            <ArrowLeft size={16} />
-            Back to dashboard
-          </button>
-          <h1 className="text-2xl font-bold text-white">Activity Log</h1>
-          <p className="text-sm text-gray-500">Monitor all system events and actions</p>
+            <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-sm">Back to Dashboard</span>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Activity Log</h1>
+            <p className="text-sm text-gray-500">Monitor all system events and actions</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <select
