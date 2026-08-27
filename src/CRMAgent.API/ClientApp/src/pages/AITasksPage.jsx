@@ -126,7 +126,12 @@ function TaskCard({ task, onRefresh }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <div className="text-white font-semibold truncate">{task?.leadName || 'Unknown lead'}</div>
+          <Link 
+            to={`/leads/${task.leadId}`}
+            className="text-white font-semibold truncate hover:text-blue-400 hover:underline transition block"
+          >
+            {task?.leadName || 'Unknown lead'}
+          </Link>
           <div className="text-gray-500 text-sm truncate">{task?.leadEmail || '—'}</div>
           <div className="text-gray-500 text-xs mt-1 flex flex-wrap items-center gap-2">
             <span>{formatTimestamp(task?.createdAt)}</span>
