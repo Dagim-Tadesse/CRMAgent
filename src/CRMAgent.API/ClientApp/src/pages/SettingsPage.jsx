@@ -34,7 +34,8 @@ import {
   Video,
   Lock,
   CheckCircle,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Bell
 } from 'lucide-react';
 
 // =============== HELPERS ===============
