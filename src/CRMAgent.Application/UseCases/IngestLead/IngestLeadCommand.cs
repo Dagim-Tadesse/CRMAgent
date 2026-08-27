@@ -6,4 +6,5 @@ public record IngestLeadCommand(
     string FullName,
     string Email,
     string Company,
-    string RawInquiryText) : IRequest<int>;
+    string RawInquiryText,
+    string? AssignedTo = null) : IRequest<int>;

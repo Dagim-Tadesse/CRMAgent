@@ -1433,7 +1433,7 @@ function TeamSection() {
                 <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5">
                   {member.role}
                 </span>
-                {member.role !== 'Admin' && (
+                {canManageTeam && member.role !== 'Admin' && (
                   <button
                     type="button"
                     onClick={() => removeMember(member.id)}
@@ -1454,7 +1454,8 @@ function TeamSection() {
 // =============== DATA & EXPORT SECTION ===============
 function DataSection() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
+  const isAdmin = role === 'Admin';
   const [exportState, setExportState] = useState('idle'); // idle | loading | success
   const [syncState, setSyncState] = useState('idle');
   const [deleteState, setDeleteState] = useState('idle');
@@ -1505,24 +1506,26 @@ function DataSection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button
-          type="button"
-          onClick={handleExport}
-          disabled={exportState === 'loading'}
-          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
-        >
-          {exportState === 'loading' ? (
-            <RefreshCw size={20} className="mb-2 animate-spin" style={{ color: 'var(--accent-color)' }} />
-          ) : exportState === 'success' ? (
-            <CheckCircle size={20} className="text-green-400 mb-2" />
-          ) : (
-            <Download size={20} className="mb-2 group-hover:scale-110 transition" style={{ color: 'var(--accent-color)' }} />
-          )}
-          <p className="text-sm font-medium text-white">
-            {exportState === 'loading' ? 'Exporting…' : exportState === 'success' ? 'Exported!' : 'Export Data'}
-          </p>
-          <p className="text-xs text-gray-500">Export all your data as CSV</p>
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exportState === 'loading'}
+            className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
+          >
+            {exportState === 'loading' ? (
+              <RefreshCw size={20} className="mb-2 animate-spin" style={{ color: 'var(--accent-color)' }} />
+            ) : exportState === 'success' ? (
+              <CheckCircle size={20} className="text-green-400 mb-2" />
+            ) : (
+              <Download size={20} className="mb-2 group-hover:scale-110 transition" style={{ color: 'var(--accent-color)' }} />
+            )}
+            <p className="text-sm font-medium text-white">
+              {exportState === 'loading' ? 'Exporting…' : exportState === 'success' ? 'Exported!' : 'Export Data'}
+            </p>
+            <p className="text-xs text-gray-500">Export all your data as CSV</p>
+          </button>
+        )}
 
         <button
           type="button"
@@ -1553,28 +1556,30 @@ function DataSection() {
           <p className="text-xs text-gray-500">Sign out of your account</p>
         </button>
 
-        <button
-          type="button"
-          onClick={handleDeleteAccount}
-          disabled={deleteState === 'loading'}
-          className="p-4 rounded-xl bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group"
-        >
-          {deleteState === 'loading' ? (
-            <RefreshCw size={20} className="text-red-400 mb-2 animate-spin" />
-          ) : deleteState === 'success' ? (
-            <CheckCircle size={20} className="text-red-400 mb-2" />
-          ) : (
-            <Trash2 size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
-          )}
-          <p className="text-sm font-medium text-white">
-            {deleteState === 'loading'
-              ? 'Deleting…'
-              : deleteState === 'success'
-                ? 'Account deletion requested (mock)'
-                : 'Delete Account'}
-          </p>
-          <p className="text-xs text-gray-500">Permanently delete your account</p>
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={deleteState === 'loading'}
+            className="p-4 rounded-xl bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group"
+          >
+            {deleteState === 'loading' ? (
+              <RefreshCw size={20} className="text-red-400 mb-2 animate-spin" />
+            ) : deleteState === 'success' ? (
+              <CheckCircle size={20} className="text-red-400 mb-2" />
+            ) : (
+              <Trash2 size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
+            )}
+            <p className="text-sm font-medium text-white">
+              {deleteState === 'loading'
+                ? 'Deleting…'
+                : deleteState === 'success'
+                  ? 'Account deletion requested (mock)'
+                  : 'Delete Account'}
+            </p>
+            <p className="text-xs text-gray-500">Permanently delete your account</p>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1587,7 +1592,7 @@ export function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
 
-  const sections = [
+  let sections = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'appearance', label: 'Appearance', icon: Palette },
@@ -1597,6 +1602,10 @@ export function SettingsPage() {
     { id: 'team', label: 'Team', icon: Users },
     { id: 'data', label: 'Data & Export', icon: Database }
   ];
+
+  if (role !== 'Admin') {
+    sections = sections.filter(s => s.id !== 'integrations');
+  }
 
   const renderSection = () => {
     switch (activeSection) {

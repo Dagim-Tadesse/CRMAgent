@@ -15,4 +15,5 @@ public class LeadSummaryDto
     public DateTime CreatedAt { get; set; }
     public DateTime? LastInteractionAt { get; set; }
     public string Source { get; set; } = string.Empty;
+    public string? AssignedTo { get; set; }
 }

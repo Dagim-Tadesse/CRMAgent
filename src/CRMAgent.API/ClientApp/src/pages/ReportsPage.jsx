@@ -266,7 +266,8 @@ export function ReportsPage() {
     
     Promise.all([getLeads(), getSocialSignals()])
       .then(([leadsRes, signalsRes]) => {
-        const leads = leadsRes.data;
+        const allLeads = leadsRes.data || [];
+        const leads = role === 'Admin' ? allLeads : allLeads.filter(l => l.assignedTo === email);
         if (leads && leads.length > 0) {
           processRealLeads(leads);
         }
