@@ -80,9 +80,7 @@ export function DashboardPage() {
         ]);
         
         const allLeads = leadsRes.data || [];
-        const visibleLeads = role === 'Admin' ? allLeads : allLeads.filter(l => l.assignedTo === email);
-        
-        setLeads(visibleLeads);
+        setLeads(allLeads);
         setLogs(logsRes.data);
         setPending(pendingRes.data);
       } catch (error) {
@@ -93,10 +91,7 @@ export function DashboardPage() {
     };
 
     const refreshData = () => {
-      getLeads().then(res => {
-        const allLeads = res.data || [];
-        setLeads(role === 'Admin' ? allLeads : allLeads.filter(l => l.assignedTo === email));
-      }).catch(console.error);
+      getLeads().then(res => setLeads(res.data || [])).catch(console.error);
       getLogs().then(res => setLogs(res.data)).catch(console.error);
       getPendingTasks().then(res => setPending(res.data)).catch(console.error);
     };
