@@ -15,7 +15,6 @@ import {
   Sun,
   Monitor,
   Palette,
-  Bell,
   Link2,
   Cloud,
   Sliders,
@@ -35,7 +34,8 @@ import {
   Video,
   Lock,
   CheckCircle,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Bell
 } from 'lucide-react';
 
 // =============== HELPERS ===============
@@ -1666,13 +1666,7 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="relative p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
-              >
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]" />
-              </button>
+              
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-white">{name || email}</p>
