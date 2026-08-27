@@ -142,8 +142,7 @@ const DEFAULT_PREFERENCES = {
   timezone: 'UTC-08:00',
   currency: 'USD',
   dateFormat: 'MM/DD/YYYY',
-  startOfWeek: 'Monday',
-  defaultView: 'Month'
+  startOfWeek: 'Monday'
 };
 
 const DEFAULT_INTEGRATIONS = {
@@ -1148,20 +1147,6 @@ function PreferencesSection() {
             <option value="Monday" className="bg-[#14141a]">Monday</option>
             <option value="Sunday" className="bg-[#14141a]">Sunday</option>
             <option value="Saturday" className="bg-[#14141a]">Saturday</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Default View</label>
-          <select
-            value={preferences.defaultView}
-            onChange={(e) => updatePreference('defaultView', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
-            onFocus={selectFocus}
-            onBlur={selectBlur}
-          >
-            <option value="Month" className="bg-[#14141a]">Month</option>
-            <option value="Week" className="bg-[#14141a]">Week</option>
-            <option value="Day" className="bg-[#14141a]">Day</option>
           </select>
         </div>
       </div>
