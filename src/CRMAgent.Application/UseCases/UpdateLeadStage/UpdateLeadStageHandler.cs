@@ -61,7 +61,7 @@ public class UpdateLeadStageHandler : IRequestHandler<UpdateLeadStageCommand>
                 if (!hasPendingDraft)
                 {
                     // Trigger the draft generation
-                    await _mediator.Send(new GenerateDraftCommand(lead.Id), ct);
+                    await _mediator.Send(new GenerateDraftCommand(lead.Id, cmd.PerformedBy), ct);
                 }
             }
         }

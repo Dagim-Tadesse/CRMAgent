@@ -31,7 +31,8 @@ public class IngestLeadHandler : IRequestHandler<IngestLeadCommand, int>
             FullName = cmd.FullName,
             Email = cmd.Email,
             Company = cmd.Company,
-            RawInquiryText = cmd.RawInquiryText
+            RawInquiryText = cmd.RawInquiryText,
+            AssignedTo = cmd.AssignedTo
         };
 
         try

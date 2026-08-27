@@ -19,13 +19,31 @@ public class PipelineController : ControllerBase
         _mediator = mediator;
     }
 
+    private string GetActorName()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email)
+                    ?? User.FindFirstValue("email")
+                    ?? User.FindFirstValue(ClaimTypes.Name)
+                    ?? User.FindFirstValue("name")
+                    ?? User.Identity?.Name;
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role");
+        
+        if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(role))
+            return $"{email} ({role})";
+        if (!string.IsNullOrWhiteSpace(email))
+            return email;
+        if (!string.IsNullOrWhiteSpace(role))
+            return role;
+        return "Authenticated User";
+    }
+
     [HttpPut("{id}/stage")]
     [Authorize(Roles = "SalesRep,Admin")]
     public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateStageRequest req)
     {
         try
         {
-            var actor = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            var actor = GetActorName();
             await _mediator.Send(new UpdateLeadStageCommand(id, req.Stage, actor));
             return Ok(new
             {

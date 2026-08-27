@@ -23,8 +23,23 @@ public class DraftsController : ControllerBase
         _mediator = mediator;
     }
 
-    private string? GetActorName() =>
-        User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+    private string GetActorName()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email)
+                    ?? User.FindFirstValue("email")
+                    ?? User.FindFirstValue(ClaimTypes.Name)
+                    ?? User.FindFirstValue("name")
+                    ?? User.Identity?.Name;
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role");
+        
+        if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(role))
+            return $"{email} ({role})";
+        if (!string.IsNullOrWhiteSpace(email))
+            return email;
+        if (!string.IsNullOrWhiteSpace(role))
+            return role;
+        return "Authenticated User";
+    }
 
     [HttpGet("api/leads/{id}/drafts")]
     public async Task<IActionResult> GetByLead(int id) =>

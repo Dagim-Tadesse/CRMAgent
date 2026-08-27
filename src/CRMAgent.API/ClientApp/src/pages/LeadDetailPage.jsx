@@ -92,7 +92,13 @@ export default function LeadDetailPage() {
       // Re-fetch to get new logs and potential auto-generated draft
       await fetchLeadData();
     } catch (err) {
-      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to update stage', variant: 'error' });
+      const is403 = err.response?.status === 403;
+      setAlertState({ 
+        isOpen: true, 
+        title: is403 ? 'Not Authorized' : 'Error', 
+        message: is403 ? 'You are not authorized to update pipeline stages for your role.' : (err.response?.data?.message || 'Failed to update stage'), 
+        variant: is403 ? 'warning' : 'error' 
+      });
     } finally {
       setConfirmStageChange(null);
     }
@@ -104,7 +110,13 @@ export default function LeadDetailPage() {
       await generateDraft(id);
       await fetchLeadData();
     } catch (err) {
-      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to generate draft', variant: 'error' });
+      const is403 = err.response?.status === 403;
+      setAlertState({ 
+        isOpen: true, 
+        title: is403 ? 'Not Authorized' : 'Error', 
+        message: is403 ? 'You are not authorized to generate AI drafts for your role.' : (err.response?.data?.message || 'Failed to generate draft'), 
+        variant: is403 ? 'warning' : 'error' 
+      });
     } finally {
       setDraftLoading(false);
     }
@@ -117,7 +129,13 @@ export default function LeadDetailPage() {
       await editDraft(draft.id, subject, body);
       // Show some temporary success state if desired
     } catch (err) {
-      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to save draft', variant: 'error' });
+      const is403 = err.response?.status === 403;
+      setAlertState({ 
+        isOpen: true, 
+        title: is403 ? 'Not Authorized' : 'Error', 
+        message: is403 ? 'You are not authorized to edit AI drafts for your role.' : (err.response?.data?.message || 'Failed to save draft'), 
+        variant: is403 ? 'warning' : 'error' 
+      });
     } finally {
       setIsSaving(false);
     }
@@ -134,7 +152,13 @@ export default function LeadDetailPage() {
       await approveDraft(draft.id);
       await fetchLeadData();
     } catch (err) {
-      setAlertState({ isOpen: true, title: 'Error', message: err.response?.data?.message || 'Failed to approve draft', variant: 'error' });
+      const is403 = err.response?.status === 403;
+      setAlertState({ 
+        isOpen: true, 
+        title: is403 ? 'Not Authorized' : 'Error', 
+        message: is403 ? 'You are not authorized to approve AI drafts for your role.' : (err.response?.data?.message || 'Failed to approve draft'), 
+        variant: is403 ? 'warning' : 'error' 
+      });
     } finally {
       setDraftLoading(false);
     }
@@ -147,7 +171,13 @@ export default function LeadDetailPage() {
       await rejectDraft(draft.id);
       await fetchLeadData();
     } catch (err) {
-      setAlertState({ isOpen: true, title: 'Error', message: 'Failed to reject draft', variant: 'error' });
+      const is403 = err.response?.status === 403;
+      setAlertState({ 
+        isOpen: true, 
+        title: is403 ? 'Not Authorized' : 'Error', 
+        message: is403 ? 'You are not authorized to reject AI drafts for your role.' : (err.response?.data?.message || 'Failed to reject draft'), 
+        variant: is403 ? 'warning' : 'error' 
+      });
     } finally {
       setDraftLoading(false);
       setConfirmRejectDraft(false);

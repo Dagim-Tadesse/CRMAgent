@@ -14,8 +14,9 @@ import { getLeads, updateLeadStage } from '../api/apiClient';
 import LeadCard, { STAGE_COLORS } from '../components/LeadCard';
 import { ScoreBadge } from '../components/Badges';
 import PaginationControls from '../components/PaginationControls';
-import { ConfirmModal } from '../components/Modal';
+import { ConfirmModal, AlertModal } from '../components/Modal';
 import { Loader } from '../components/Loader';
+import { useAuth } from '../hooks/useAuth';
 
 const STAGES = [
   'New',
@@ -119,12 +120,16 @@ function OverlayCard({ lead }) {
 
 export default function PipelinePage() {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const canEditPipeline = role === 'Admin' || role === 'SalesRep';
+  
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeLead, setActiveLead] = useState(null);
   const [error, setError] = useState('');
   const [pageByStage, setPageByStage] = useState(initialPageByStage);
   const [confirmMove, setConfirmMove] = useState(null);
+  const [alertState, setAlertState] = useState({ isOpen: false, title: '', message: '', variant: 'warning' });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -181,6 +186,15 @@ export default function PipelinePage() {
   };
 
   const handleDragStart = (event) => {
+    if (!canEditPipeline) {
+      setAlertState({
+        isOpen: true,
+        title: 'Not Authorized',
+        message: 'Your Manager role is view-only. Only Admins and Sales Representatives can move leads across stages.',
+        variant: 'warning'
+      });
+      return;
+    }
     const lead = event.active.data.current?.lead;
     setActiveLead(lead || null);
   };
@@ -188,6 +202,16 @@ export default function PipelinePage() {
   const handleDragEnd = async (event) => {
     const { active, over } = event;
     setActiveLead(null);
+
+    if (!canEditPipeline) {
+      setAlertState({
+        isOpen: true,
+        title: 'Not Authorized',
+        message: 'Your Manager role is view-only. Only Admins and Sales Representatives can move leads across stages.',
+        variant: 'warning'
+      });
+      return;
+    }
 
     if (!over) return;
 
@@ -205,6 +229,17 @@ export default function PipelinePage() {
     const leadId = lead.id;
     const previousStage = lead.pipelineStage;
 
+    if (!canEditPipeline) {
+      setConfirmMove(null);
+      setAlertState({
+        isOpen: true,
+        title: 'Not Authorized',
+        message: 'Your Manager role is view-only. Only Admins and Sales Representatives can move leads across stages.',
+        variant: 'warning'
+      });
+      return;
+    }
+
     // Optimistic update
     setLeads((prev) =>
       prev.map((l) => (l.id === leadId ? { ...l, pipelineStage: newStage } : l))
@@ -216,7 +251,18 @@ export default function PipelinePage() {
       await updateLeadStage(leadId, newStage);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || `Failed to move lead to ${newStage}`);
+      const is403 = err.response?.status === 403;
+      const errorMsg = is403
+        ? 'Not Authorized: Your Manager role does not have permission to update pipeline stages.'
+        : (err.response?.data?.message || `Failed to move lead to ${newStage}`);
+      
+      setAlertState({
+        isOpen: true,
+        title: is403 ? 'Not Authorized' : 'Error',
+        message: errorMsg,
+        variant: is403 ? 'warning' : 'error'
+      });
+
       try {
         const res = await getLeads();
         setLeads(res.data || []);
@@ -236,6 +282,13 @@ export default function PipelinePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] p-6">
+      <AlertModal 
+        isOpen={alertState.isOpen} 
+        onClose={() => setAlertState({ ...alertState, isOpen: false })} 
+        title={alertState.title} 
+        message={alertState.message} 
+        variant={alertState.variant} 
+      />
       <ConfirmModal
         isOpen={!!confirmMove}
         onClose={() => setConfirmMove(null)}
@@ -245,6 +298,11 @@ export default function PipelinePage() {
         confirmText="Move"
       />
       <div className="max-w-[1600px] mx-auto space-y-6">
+        {!canEditPipeline && (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm rounded-xl px-4 py-3">
+            Overseer View: Manager role can monitor pipeline leads and stats, but cannot move lead stages.
+          </div>
+        )}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Link

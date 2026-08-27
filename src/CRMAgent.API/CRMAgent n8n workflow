@@ -1,0 +1,260 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "29b50904-32f4-40ad-85ae-bd1836cce166",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        224
+      ],
+      "id": "611644e8-ea59-4161-ace7-a077804d6f16",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// A \"news item\" is the underlying story; postInstances are where it actually got posted\nconst newsItems = [\n  { newsId: \"news-1\", topic: \"Product launch\" },\n  { newsId: \"news-2\", topic: \"Hiring announcement\" },\n  { newsId: \"news-3\", topic: \"Price increase\" },\n  { newsId: \"news-4\", topic: \"Company anniversary\" }\n];\n\nconst postInstances = [\n  { postId: \"li-post-1\", newsId: \"news-1\", platform: \"LinkedIn\" },\n  { postId: \"tw-post-1\", newsId: \"news-1\", platform: \"Twitter\" },\n  { postId: \"fb-post-1\", newsId: \"news-1\", platform: \"Facebook\" },\n\n  { postId: \"li-post-2\", newsId: \"news-2\", platform: \"LinkedIn\" },\n  { postId: \"tw-post-2\", newsId: \"news-2\", platform: \"Twitter\" },\n\n  { postId: \"ig-post-3\", newsId: \"news-3\", platform: \"Instagram\" },\n  { postId: \"tt-post-3\", newsId: \"news-3\", platform: \"TikTok\" },\n  { postId: \"tw-post-3\", newsId: \"news-3\", platform: \"Twitter\" },\n\n  { postId: \"fb-post-4\", newsId: \"news-4\", platform: \"Facebook\" },\n  { postId: \"ig-post-4\", newsId: \"news-4\", platform: \"Instagram\" }\n];\n\n// 50 comments, distributed across postInstances/platforms, content matches the news + platform tone\nconst comments = [\n  // news-1 / Product launch — LinkedIn\n  { authorName: \"Selam T.\",  content: \"This is exactly what we needed, congrats team!\", postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Marcus W.\", content: \"Been waiting for this feature for months, nice work.\", postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Priya N.\",  content: \"Clean rollout, the demo video sold me instantly.\", postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Tomás R.\",  content: \"Signed up for the beta already, looks solid so far.\", postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Hana B.\",   content: \"Good to know, thanks for the update.\", postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Comment\" },\n\n  // news-1 / Product launch — Twitter\n  { authorName: \"Jordan P.\", content: \"finally!! been asking for this forever\", postId: \"tw-post-1\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Casey L.\",  content: \"ok this actually looks good\", postId: \"tw-post-1\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Devon R.\",  content: \"not sure the price matches the value tbh\", postId: \"tw-post-1\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Alex M.\",   content: \"in the beta, works great so far\", postId: \"tw-post-1\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Sam K.\",    content: \"cool launch, when's the API docs coming\", postId: \"tw-post-1\", platform: \"Twitter\", signalType: \"Comment\" },\n\n  // news-1 / Product launch — Facebook\n  { authorName: \"Linda F.\",  content: \"So proud of this team, been following the journey!\", postId: \"fb-post-1\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"George H.\", content: \"My business has been waiting for something like this.\", postId: \"fb-post-1\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Rita N.\",   content: \"Does this work with the old plan or do we need to upgrade?\", postId: \"fb-post-1\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Mike D.\",   content: \"Looks great, will definitely try it out this week.\", postId: \"fb-post-1\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Carla V.\",  content: \"Another feature nobody asked for, hope it's actually useful.\", postId: \"fb-post-1\", platform: \"Facebook\", signalType: \"Comment\" },\n\n  // news-2 / Hiring announcement — LinkedIn\n  { authorName: \"Daniel C.\", content: \"Congrats on the growth, hope you're hiring remote too!\", postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Aster T.\",  content: \"Love seeing the team expand, great culture from what I've heard.\", postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Liam O.\",   content: \"Just applied for the backend role, fingers crossed.\", postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Wendimu A.\", content: \"Noted, will keep an eye on the careers page.\", postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Comment\" },\n  { authorName: \"Nina P.\",   content: \"Great to see continued investment in the team.\", postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Comment\" },\n\n  // news-2 / Hiring announcement — Twitter\n  { authorName: \"Owen T.\",   content: \"hiring during a market like this, respect\", postId: \"tw-post-2\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Zoe B.\",    content: \"applying rn\", postId: \"tw-post-2\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Farah S.\",  content: \"do they sponsor visas though\", postId: \"tw-post-2\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Ravi D.\",   content: \"good sign for the company tbh\", postId: \"tw-post-2\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Chad M.\",   content: \"wish they posted salary ranges\", postId: \"tw-post-2\", platform: \"Twitter\", signalType: \"Comment\" },\n\n  // news-3 / Price increase — Instagram\n  { authorName: \"Kwame O.\",  content: \"not happy about this at all\", postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Bianca R.\", content: \"feels like a cash grab honestly\", postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Trevor J.\", content: \"guess we're cancelling then\", postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Amara K.\",  content: \"wish they explained why before just raising it\", postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Diego P.\",  content: \"still gonna use it but not thrilled\", postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Comment\" },\n\n  // news-3 / Price increase — TikTok\n  { authorName: \"Skye L.\",   content: \"bro really said pay more for the same thing\", postId: \"tt-post-3\", platform: \"TikTok\", signalType: \"Comment\" },\n  { authorName: \"Marcus J.\", content: \"nah this ain't it\", postId: \"tt-post-3\", platform: \"TikTok\", signalType: \"Comment\" },\n  { authorName: \"Priya S.\",  content: \"everyone's price is going up lol not surprised\", postId: \"tt-post-3\", platform: \"TikTok\", signalType: \"Comment\" },\n  { authorName: \"Devin R.\",  content: \"switching to the competitor after this\", postId: \"tt-post-3\", platform: \"TikTok\", signalType: \"Comment\" },\n  { authorName: \"Jules F.\",  content: \"at least give us new features for the price hike\", postId: \"tt-post-3\", platform: \"TikTok\", signalType: \"Comment\" },\n\n  // news-3 / Price increase — Twitter\n  { authorName: \"Grace M.\",  content: \"third price hike this year, honestly reconsidering\", postId: \"tw-post-3\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Fatima A.\", content: \"no warning, no migration plan, not great\", postId: \"tw-post-3\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Robel G.\",  content: \"small teams get hit hardest by this\", postId: \"tw-post-3\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Nadia P.\",  content: \"cancelling over this, too steep\", postId: \"tw-post-3\", platform: \"Twitter\", signalType: \"Comment\" },\n  { authorName: \"Samuel O.\", content: \"would help to see what actually changed in the plan\", postId: \"tw-post-3\", platform: \"Twitter\", signalType: \"Comment\" },\n\n  // news-4 / Company anniversary — Facebook\n  { authorName: \"Meron A.\",  content: \"Five years strong, proud to have been a customer since year one!\", postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Chris B.\",  content: \"Anniversary post but still no fix for the bug I reported last month.\", postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Lily Z.\",   content: \"Nice milestone, curious what's planned for year six.\", postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Yosef T.\",  content: \"Congrats on the anniversary, here's to the next chapter.\", postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Comment\" },\n  { authorName: \"Paula G.\",  content: \"Hope the next year brings better support response times.\", postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Comment\" },\n\n  // news-4 / Company anniversary — Instagram\n  { authorName: \"Nia W.\",    content: \"happy anniversary! been with you since day one\", postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Tariq H.\",  content: \"congrats but pls fix the app crashes\", postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Ella S.\",   content: \"5 years already?? time flies\", postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Marco B.\",  content: \"cute post, still waiting on my refund tho\", postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Comment\" },\n  { authorName: \"Grace T.\",  content: \"wishing the team more milestones ahead\", postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Comment\" }\n];\n\n// 30 mentions, same idea — someone tagging the company on their own post, spread across all 5 platforms\nconst mentions = [\n  // LinkedIn\n  { authorName: \"Naomi F.\",    content: \"Big thanks to our vendor for the great service this quarter.\", postId: \"li-ext-1\", platform: \"LinkedIn\", signalType: \"Mention\" },\n  { authorName: \"Betelhem Y.\", content: \"Congrats to the team on the new product launch!\", postId: \"li-ext-2\", platform: \"LinkedIn\", signalType: \"Mention\" },\n  { authorName: \"Derek H.\",    content: \"Not happy with how support handled my ticket.\", postId: \"li-ext-3\", platform: \"LinkedIn\", signalType: \"Mention\" },\n  { authorName: \"Ines M.\",     content: \"Saw their post today, interesting approach.\", postId: \"li-ext-4\", platform: \"LinkedIn\", signalType: \"Mention\" },\n  { authorName: \"Abel K.\",     content: \"Switched vendors last month, onboarding was smoother than expected.\", postId: \"li-ext-5\", platform: \"LinkedIn\", signalType: \"Mention\" },\n  { authorName: \"Sofia L.\",    content: \"Great to see them investing in their team, congrats on the new hires.\", postId: \"li-ext-6\", platform: \"LinkedIn\", signalType: \"Mention\" },\n\n  // Twitter\n  { authorName: \"Ryan P.\",  content: \"shoutout to them for fixing my issue same day\", postId: \"tw-ext-1\", platform: \"Twitter\", signalType: \"Mention\" },\n  { authorName: \"Maya C.\",  content: \"still waiting on a reply to my ticket from last week\", postId: \"tw-ext-2\", platform: \"Twitter\", signalType: \"Mention\" },\n  { authorName: \"Tobi A.\",  content: \"saw the anniversary post, wild it's been 5 years\", postId: \"tw-ext-3\", platform: \"Twitter\", signalType: \"Mention\" },\n  { authorName: \"Josh N.\",  content: \"been recommending them to everyone on my team\", postId: \"tw-ext-4\", platform: \"Twitter\", signalType: \"Mention\" },\n  { authorName: \"Bella R.\", content: \"price hike killed it for us, moved on\", postId: \"tw-ext-5\", platform: \"Twitter\", signalType: \"Mention\" },\n  { authorName: \"Femi O.\",  content: \"congrats on the launch, looks like a solid update\", postId: \"tw-ext-6\", platform: \"Twitter\", signalType: \"Mention\" },\n\n  // Facebook\n  { authorName: \"Carmen L.\", content: \"Wanted to publicly thank their support team for going above and beyond.\", postId: \"fb-ext-1\", platform: \"Facebook\", signalType: \"Mention\" },\n  { authorName: \"Victor H.\", content: \"Cancelled after the price increase, wish it hadn't come to that.\", postId: \"fb-ext-2\", platform: \"Facebook\", signalType: \"Mention\" },\n  { authorName: \"Ana P.\",    content: \"Interesting to see their anniversary post today.\", postId: \"fb-ext-3\", platform: \"Facebook\", signalType: \"Mention\" },\n  { authorName: \"Samir Q.\",  content: \"Told my whole network to check them out after our experience.\", postId: \"fb-ext-4\", platform: \"Facebook\", signalType: \"Mention\" },\n  { authorName: \"Wanjiru K.\", content: \"Congrats to them on 5 years, big milestone!\", postId: \"fb-ext-5\", platform: \"Facebook\", signalType: \"Mention\" },\n  { authorName: \"Ola B.\",    content: \"Wish they'd communicate changes before rolling them out.\", postId: \"fb-ext-6\", platform: \"Facebook\", signalType: \"Mention\" },\n\n  // Instagram\n  { authorName: \"Lulu M.\",  content: \"shoutout for the quick support response\", postId: \"ig-ext-1\", platform: \"Instagram\", signalType: \"Mention\" },\n  { authorName: \"Nate B.\",  content: \"congrats on 5 years!!\", postId: \"ig-ext-2\", platform: \"Instagram\", signalType: \"Mention\" },\n  { authorName: \"Iris D.\",  content: \"not loving the new pricing tbh\", postId: \"ig-ext-3\", platform: \"Instagram\", signalType: \"Mention\" },\n  { authorName: \"Kofi A.\",  content: \"just saw their launch post, looks decent\", postId: \"ig-ext-4\", platform: \"Instagram\", signalType: \"Mention\" },\n  { authorName: \"Renee T.\", content: \"if you're looking for a good tool, these guys are solid\", postId: \"ig-ext-5\", platform: \"Instagram\", signalType: \"Mention\" },\n  { authorName: \"Theo S.\",  content: \"app's been buggy since the last update\", postId: \"ig-ext-6\", platform: \"Instagram\", signalType: \"Mention\" },\n\n  // TikTok\n  { authorName: \"Milo J.\",  content: \"ngl their support team came through for me\", postId: \"tt-ext-1\", platform: \"TikTok\", signalType: \"Mention\" },\n  { authorName: \"Zara Q.\",  content: \"happy bday to them, 5 years is crazy\", postId: \"tt-ext-2\", platform: \"TikTok\", signalType: \"Mention\" },\n  { authorName: \"Cole D.\",  content: \"price went up and nothing else changed??\", postId: \"tt-ext-3\", platform: \"TikTok\", signalType: \"Mention\" },\n  { authorName: \"Ayana R.\", content: \"saw this brand pop up on my fyp today\", postId: \"tt-ext-4\", platform: \"TikTok\", signalType: \"Mention\" },\n  { authorName: \"Dex M.\",   content: \"been using this for months, actually solid\", postId: \"tt-ext-5\", platform: \"TikTok\", signalType: \"Mention\" },\n  { authorName: \"Piper K.\", content: \"still no reply from support after a week\", postId: \"tt-ext-6\", platform: \"TikTok\", signalType: \"Mention\" }\n];\n\n// Reactions as discrete events now, not counts — content stays null\nconst likes = [\n  { authorName: \"Anon\", content: null, postId: \"li-post-1\", platform: \"LinkedIn\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-1\", platform: \"LinkedIn\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-1\", platform: \"Twitter\",   signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"fb-post-1\", platform: \"Facebook\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-2\", platform: \"LinkedIn\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-2\", platform: \"Twitter\",   signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"fb-post-4\", platform: \"Facebook\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"fb-post-4\", platform: \"Facebook\",  signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"ig-post-4\", platform: \"Instagram\", signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Like\" },\n  { authorName: \"Anon\", content: null, postId: \"tt-post-3\", platform: \"TikTok\",    signalType: \"Like\" }\n];\n\nconst shares = [\n  { authorName: \"Anon\", content: null, postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"ig-post-3\", platform: \"Instagram\", signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"tt-post-3\", platform: \"TikTok\",    signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"tt-post-3\", platform: \"TikTok\",    signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-3\", platform: \"Twitter\",   signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-3\", platform: \"Twitter\",   signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-1\", platform: \"LinkedIn\",  signalType: \"Share\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-1\", platform: \"Twitter\",   signalType: \"Share\" }\n];\n\nconst follows = [\n  { authorName: \"Anon\", content: null, postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Follow\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-1\", platform: \"LinkedIn\", signalType: \"Follow\" },\n  { authorName: \"Anon\", content: null, postId: \"tw-post-2\", platform: \"Twitter\",  signalType: \"Follow\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Follow\" },\n  { authorName: \"Anon\", content: null, postId: \"li-post-2\", platform: \"LinkedIn\", signalType: \"Follow\" },\n  { authorName: \"Anon\", content: null, postId: \"fb-post-4\", platform: \"Facebook\", signalType: \"Follow\" }\n];\n\nconst allEvents = [...comments, ...mentions, ...likes, ...shares, ...follows];\nconst picked = allEvents[Math.floor(Math.random() * allEvents.length)];\nreturn [{ json: picked }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        96
+      ],
+      "id": "d4ddc3c4-37e9-4656-a673-f1f6b67e0ac7",
+      "name": "MockData"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\n\nreturn [{\n  json: {\n    platformSource: item.platform,\n    signalType: item.signalType,\n    content: item.content,\n    authorName: item.authorName,\n    postReference: item.postId\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        96
+      ],
+      "id": "79fbfe03-bb75-41fb-9c1f-d4c0a51ea8a3",
+      "name": "shape to API format"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5087/api/webhooks/social",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "dev-n8n-secret-12345"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"platformSource\": \"{{ $json.platformSource }}\",\n  \"signalType\": \"{{ $json.signalType }}\",\n  \"content\": \"{{ $json.content }}\",\n  \"authorName\": \"{{ $json.authorName }}\",\n  \"postReference\": \"{{ $json.postReference }}\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "3372b16e-5461-4039-bf9c-99f4de905e6e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b14b73b1-0add-4044-8193-1084ee30aa42",
+              "leftValue": "={{ $('HTTP Request').item.json.statusCode }}",
+              "rightValue": 201,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        96
+      ],
+      "id": "38b79f24-746e-4e1c-a8f0-67d6aa147f95",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        80
+      ],
+      "id": "86020fb5-e88d-4fa3-ab0d-e97e8a029eb6",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        704,
+        256
+      ],
+      "id": "e170334f-fb37-4dad-a7af-8c428a65ae73",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={{ $('HTTP Request').item.json.statusMessage }}"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        256
+      ],
+      "id": "af64c9b2-e4b3-4c77-ab13-127a826be2af",
+      "name": "Stop and Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "MockData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "MockData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MockData": {
+      "main": [
+        [
+          {
+            "node": "shape to API format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "shape to API format": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "adf1eb52-eb7b-4b05-a293-f96a3f404573",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "40d173e87f65d0c27ffe2b9deab636e24b7889786d8cd0739c525f588535bb0a"
+  },
+  "nodeGroups": [],
+  "id": "VmlhGYz9UoUJfbm9",
+  "tags": []
+}

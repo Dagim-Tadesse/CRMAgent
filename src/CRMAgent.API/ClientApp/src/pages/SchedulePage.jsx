@@ -209,8 +209,7 @@ const formatDateTimeLocal = (dateVal) => {
   }
 };
 
-// =============== EVENT MODAL ===============
-function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
+function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authRole }) {
   const [formData, setFormData] = useState({
     id: null,
     title: '',
@@ -286,6 +285,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
 
   if (!isOpen) return null;
 
+  const canEdit = !event || authRole === 'Admin' || event.creatorEmail === authEmail;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave({ ...formData, tags: selectedTags });
@@ -323,8 +324,9 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
             {event ? 'Edit Event' : 'Create New Event'}
           </h2>
           <div className="flex items-center gap-2">
-            {event && (
+            {event && canEdit && (
               <button
+                type="button"
                 onClick={handleDelete}
                 className="p-2 hover:bg-red-500/10 rounded-lg transition text-red-400 hover:text-red-300"
               >
@@ -341,6 +343,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <fieldset disabled={!canEdit} className="space-y-5">
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1.5">
@@ -601,8 +604,8 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
                 Recurring Event
               </label>
             </div>
-          </div>
-
+            </div>
+          </fieldset>
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
             <button
@@ -612,12 +615,14 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete }) {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all"
-            >
-              {event ? 'Update Event' : 'Create Event'}
-            </button>
+            {canEdit && (
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+              >
+                {event ? 'Update Event' : 'Create Event'}
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -936,7 +941,8 @@ export function SchedulePage() {
       end: new Date(eventData.end),
       attachments: 0,
       completion: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
+      creatorEmail: email
     };
     setEvents([...events, newEvent]);
   };
@@ -1322,6 +1328,8 @@ export function SchedulePage() {
         event={editingEvent}
         onSave={editingEvent?.id ? handleUpdateEvent : handleCreateEvent}
         onDelete={handleDeleteEvent}
+        authEmail={email}
+        authRole={role}
       />
 
       <EventDetails

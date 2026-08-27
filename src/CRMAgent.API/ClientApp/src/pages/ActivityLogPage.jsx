@@ -256,11 +256,11 @@ export function ActivityLogPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b border-white/5">
-                <th className="px-6 py-4 font-medium">Time</th>
-                <th className="px-6 py-4 font-medium">Action</th>
-                <th className="px-6 py-4 font-medium">Lead</th>
+                <th className="px-6 py-4 font-medium w-44 whitespace-nowrap">Time</th>
+                <th className="px-6 py-4 font-medium w-48 whitespace-nowrap">Action</th>
+                <th className="px-6 py-4 font-medium w-36 whitespace-nowrap">Lead</th>
                 <th className="px-6 py-4 font-medium">Reason</th>
-                <th className="px-6 py-4 font-medium">Source</th>
+                <th className="px-6 py-4 font-medium w-36 whitespace-nowrap text-right">Source</th>
               </tr>
             </thead>
             <tbody>
@@ -272,25 +272,37 @@ export function ActivityLogPage() {
                   <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">
                     {new Date(log.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <ActionIcon action={log.action} />
                       <span className="text-white font-medium">{log.action}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    {log.leadName ? (
-                      <span className="text-blue-400 hover:text-blue-300 transition cursor-pointer">
-                        {log.leadName}
-                      </span>
-                    ) : (
-                      <span className="text-gray-500 text-xs">-</span>
-                    )}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {(() => {
+                      const displayName = log.leadName || log.lead?.fullName || log.lead?.name || (log.leadId ? `Lead #${log.leadId}` : null);
+                      const targetId = log.leadId || log.lead?.id;
+                      if (displayName && targetId) {
+                        return (
+                          <Link 
+                            to={`/leads/${targetId}`} 
+                            className="text-blue-400 hover:text-blue-300 transition hover:underline font-medium"
+                          >
+                            {displayName}
+                          </Link>
+                        );
+                      }
+                      return displayName ? (
+                        <span className="text-gray-300 font-medium">{displayName}</span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">-</span>
+                      );
+                    })()}
                   </td>
-                  <td className="px-6 py-4 text-gray-400 max-w-xs truncate">
+                  <td className="px-6 py-4 text-gray-300 break-words leading-relaxed">
                     {log.reason || '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-right">
                     <TriggerBadge trigger={log.triggeredBy} />
                   </td>
                 </tr>
