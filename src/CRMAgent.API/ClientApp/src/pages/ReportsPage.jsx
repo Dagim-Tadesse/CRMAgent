@@ -10,7 +10,6 @@ import {
   Activity,
   Target,
   Calendar as CalendarIcon,
-  Bell,
   Menu,
   User,
   TrendingUp,
@@ -477,10 +476,6 @@ export function ReportsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="relative p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0f0f16]"></span>
-              </button>
               <button className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
                 <Download size={16} />
                 Export
