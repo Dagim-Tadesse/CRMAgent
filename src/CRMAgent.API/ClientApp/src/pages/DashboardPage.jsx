@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLeads, getLogs, getPendingTasks } from '../api/apiClient';
 import { 
@@ -11,11 +11,130 @@ import {
   Users, Flame, AlertTriangle, Clock, Trophy, Ghost,
   User, Menu, BarChart3, Activity, Target,
   ArrowUp, ArrowDown, TrendingUp, Shield,
-  Moon, Sun
+  Moon, Sun, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AppSidebar from '../components/AppSidebar';
 import { Loader } from '../components/Loader';
+
+const TREND_RANGES = [
+  { id: '7', label: 'Last 7 Days', days: 7 },
+  { id: '30', label: 'Last 30 Days', days: 30 },
+  { id: '90', label: 'Last 90 Days', days: 90 },
+  { id: 'ytd', label: 'This Year', days: null }
+];
+
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+
+/** Build chart buckets for the selected window + period offset (0 = most recent). */
+function buildTrendWindow(leads, rangeId, periodOffset) {
+  const range = TREND_RANGES.find((r) => r.id === rangeId) || TREND_RANGES[0];
+  const today = startOfDay(new Date());
+  let start;
+  let end;
+  let periodLabel;
+
+  if (range.id === 'ytd') {
+    const year = today.getFullYear() - periodOffset;
+    start = new Date(year, 0, 1);
+    end = periodOffset === 0 ? endOfDay(today) : endOfDay(new Date(year, 11, 31));
+    periodLabel = periodOffset === 0 ? `Jan ${year} – today` : `${year}`;
+  } else {
+    const days = range.days;
+    end = new Date(today);
+    end.setDate(today.getDate() - periodOffset * days);
+    end = endOfDay(end);
+    start = startOfDay(new Date(end));
+    start.setDate(start.getDate() - (days - 1));
+    const fmt = (d) =>
+      d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    periodLabel = `${fmt(start)} – ${fmt(end)}`;
+  }
+
+  // Bucket: daily for 7d, weekly for 30d, monthly for 90d / year
+  const points = [];
+  if (range.id === '7') {
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const dayStart = startOfDay(cursor);
+      const dayEnd = endOfDay(cursor);
+      points.push({
+        key: dayStart.toISOString(),
+        day: dayStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        start: dayStart,
+        end: dayEnd
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  } else if (range.id === '30') {
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const weekStart = startOfDay(cursor);
+      const weekEnd = endOfDay(new Date(weekStart));
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      if (weekEnd > end) weekEnd.setTime(end.getTime());
+      points.push({
+        key: weekStart.toISOString(),
+        day: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        start: weekStart,
+        end: weekEnd
+      });
+      cursor.setDate(cursor.getDate() + 7);
+    }
+  } else {
+    // 90d or ytd → monthly buckets
+    let y = start.getFullYear();
+    let m = start.getMonth();
+    while (true) {
+      const monthStart = new Date(y, m, 1);
+      if (monthStart > end) break;
+      const monthEnd = endOfDay(new Date(y, m + 1, 0));
+      const clippedStart = monthStart < start ? start : monthStart;
+      const clippedEnd = monthEnd > end ? end : monthEnd;
+      points.push({
+        key: `${y}-${m}`,
+        day: monthStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        start: clippedStart,
+        end: clippedEnd
+      });
+      m += 1;
+      if (m > 11) {
+        m = 0;
+        y += 1;
+      }
+    }
+  }
+
+  const trendData = points.map((p) => ({
+    day: p.day,
+    new: leads.filter((l) => {
+      const created = new Date(l.createdAt);
+      return created >= p.start && created <= p.end;
+    }).length,
+    won: leads.filter((l) => {
+      if (l.pipelineStage !== 'Won') return false;
+      const when = new Date(l.updatedAt || l.lastInteractionAt || l.createdAt);
+      return when >= p.start && when <= p.end;
+    }).length
+  }));
+
+  return {
+    trendData,
+    periodLabel,
+    canGoNext: periodOffset > 0,
+    rangeLabel: range.label
+  };
+}
 
 // Stat Card Component - Dark Version
 function StatCard({ icon: Icon, label, value, sub, iconBg, trend, trendValue }) {
@@ -69,6 +188,8 @@ export function DashboardPage() {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [trendRangeId, setTrendRangeId] = useState('7');
+  const [periodOffset, setPeriodOffset] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,6 +225,11 @@ export function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const { trendData, periodLabel, canGoNext } = useMemo(
+    () => buildTrendWindow(leads, trendRangeId, periodOffset),
+    [leads, trendRangeId, periodOffset]
+  );
+
   if (loading) {
     return <Loader fullScreen={true} message="Loading dashboard data..." />;
   }
@@ -122,7 +248,7 @@ export function DashboardPage() {
     leads.reduce((acc, l) => { acc[l.pipelineStage] = (acc[l.pipelineStage]||0)+1; return acc; }, {})
   ).map(([name, value]) => ({ name, value }));
 
-  // Leads created per day, last 7 days
+  // Leads created per day, last 7 days (secondary bar chart — unchanged)
   const today = new Date();
   const last7 = [...Array(7)].map((_, i) => {
     const d = new Date(today); d.setDate(today.getDate() - (6 - i));
@@ -136,16 +262,6 @@ export function DashboardPage() {
     }).length;
     return { day: label, leads: count };
   });
-
-  // Generate mock trend data for line chart
-  const trendData = last7.map((d, i) => ({
-    day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-    new: leads.filter(l => new Date(l.createdAt).toDateString() === d.toDateString()).length,
-    won: leads.filter(l => 
-      l.pipelineStage === 'Won' && 
-      new Date(l.updatedAt).toDateString() === d.toDateString()
-    ).length
-  }));
 
   // Activity heatmap data
   const stageDistribution = stageData.map(item => ({
@@ -256,19 +372,52 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Line Chart - Lead Trends */}
             <div className="lg:col-span-2 bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div>
                   <h2 className="text-sm font-semibold text-white">Lead Trends</h2>
-                  <p className="text-xs text-gray-500">New vs Won leads over time</p>
+                  <p className="text-xs text-gray-500">{periodLabel}</p>
                 </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                    <span className="text-gray-400">New</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-                    <span className="text-gray-400">Won</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={trendRangeId}
+                    onChange={(e) => {
+                      setTrendRangeId(e.target.value);
+                      setPeriodOffset(0);
+                    }}
+                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                  >
+                    {TREND_RANGES.map((r) => (
+                      <option key={r.id} value={r.id} className="bg-[#14141a]">
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setPeriodOffset((o) => o + 1)}
+                    className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+                    title="Previous period"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canGoNext}
+                    onClick={() => setPeriodOffset((o) => Math.max(0, o - 1))}
+                    className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Next period"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  <div className="flex items-center gap-4 text-xs ml-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                      <span className="text-gray-400">New</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                      <span className="text-gray-400">Won</span>
+                    </div>
                   </div>
                 </div>
               </div>
