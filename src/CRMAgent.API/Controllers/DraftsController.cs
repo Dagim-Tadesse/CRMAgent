@@ -5,6 +5,8 @@ using CRMAgent.Application.UseCases.GenerateDraft;
 using CRMAgent.Application.UseCases.GetLeadDrafts;
 using CRMAgent.Application.UseCases.GetPendingDrafts;
 using CRMAgent.Application.UseCases.RejectDraft;
+using CRMAgent.Application.UseCases.EscalateDraft;
+using CRMAgent.Application.UseCases.ReviewDraftEscalation;
 using CRMAgent.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -126,9 +128,41 @@ public class DraftsController : ControllerBase
         }
     }
 
+    [HttpPut("api/drafts/{id}/escalate")]
+    [Authorize(Roles = "SalesRep,Admin")]
+    public async Task<IActionResult> Escalate(int id, [FromBody] EscalateDraftRequest req)
+    {
+        try
+        {
+            await _mediator.Send(new EscalateDraftCommand(id, req.EscalationNote, req.Body));
+            return Ok(new { message = "Draft escalated to manager successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("api/drafts/{id}/review-escalation")]
+    [Authorize(Roles = "Manager,Admin")]
+    public async Task<IActionResult> ReviewEscalation(int id, [FromBody] ReviewEscalationRequest req)
+    {
+        try
+        {
+            await _mediator.Send(new ReviewDraftEscalationCommand(id, req.Status, req.ManagerFeedback, req.Body));
+            return Ok(new { message = "Escalation reviewed successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("api/tasks/pending")]
     public async Task<IActionResult> GetPending() =>
         Ok(await _mediator.Send(new GetPendingDraftsQuery()));
 }
 
 public record EditDraftRequest(string Subject, string Body);
+public record EscalateDraftRequest(string EscalationNote, string Body);
+public record ReviewEscalationRequest(CRMAgent.Domain.Enums.EscalationStatus Status, string? ManagerFeedback, string Body);

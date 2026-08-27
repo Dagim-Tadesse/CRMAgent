@@ -72,6 +72,10 @@ export const editDraft = (id, subject, body) =>
   api.put(`/api/drafts/${id}`, { subject, body });
 export const approveDraft = (id) => api.put(`/api/drafts/${id}/approve`);
 export const rejectDraft = (id) => api.put(`/api/drafts/${id}/reject`);
+export const escalateDraft = (id, escalationNote, body) => 
+  api.put(`/api/drafts/${id}/escalate`, { escalationNote, body });
+export const reviewDraftEscalation = (id, status, managerFeedback, body) => 
+  api.put(`/api/drafts/${id}/review-escalation`, { status, managerFeedback, body });
 
 // ============ AI TASKS ============
 export const getPendingTasks = () => api.get('/api/tasks/pending');

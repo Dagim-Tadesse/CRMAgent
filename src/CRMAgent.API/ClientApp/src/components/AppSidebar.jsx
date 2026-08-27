@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -13,24 +14,23 @@ import {
 } from 'lucide-react';
 import { useAppearance } from '../context/AppearanceContext';
 import { useAuth } from '../hooks/useAuth';
+import { getPendingTasks } from '../api/apiClient';
 
 const MENU_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
   { icon: Users, label: 'Leads', to: '/leads' },
   { icon: Kanban, label: 'Pipeline', to: '/pipeline' },
-  { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks' },
+  { icon: Sparkles, label: 'AI Tasks', to: '/ai-tasks', badge: true },
   { icon: FileText, label: 'Reports', to: '/reports' },
   { icon: Activity, label: 'Activity', to: '/activity' },
   { icon: Calendar, label: 'Calendar', to: '/calendar' },
   { icon: Settings, label: 'Settings', to: '/settings' }
 ];
 
-/**
- * Shared app sidebar — brand/accent colors come from AppearanceContext.
- */
 export default function AppSidebar({ isOpen, toggleSidebar }) {
   const { sidebarCollapsed, accentHex, accentDarkHex } = useAppearance();
   const { email, role, name } = useAuth();
+  const [badgeCount, setBadgeCount] = useState(0);
 
   const displayName = name || email || 'User';
 
@@ -38,6 +38,36 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
     background: `linear-gradient(to right, ${accentHex}, ${accentDarkHex})`,
     boxShadow: `0 10px 15px -3px ${accentHex}40`
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBadgeCount = async () => {
+      try {
+        const { data } = await getPendingTasks();
+        if (!isMounted) return;
+        const tasks = Array.isArray(data) ? data : [];
+        let count = 0;
+        const isManager = role === 'Admin' || role === 'Manager';
+        const isSalesRep = role === 'Admin' || role === 'SalesRep';
+
+        tasks.forEach(t => {
+          if (isManager && t.escalationStatus === 'Requested') count++;
+          if (isSalesRep && (t.escalationStatus === 'None' || t.escalationStatus === 'Approved' || t.escalationStatus === 'Rejected')) count++;
+        });
+        setBadgeCount(count);
+      } catch (e) {
+        // silently fail polling
+      }
+    };
+
+    fetchBadgeCount();
+    const intervalId = setInterval(fetchBadgeCount, 15000);
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [role]);
+
   return (
     <>
       {isOpen && (
@@ -88,7 +118,7 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
               to={item.to}
               onClick={toggleSidebar}
               className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
+                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative
                 ${sidebarCollapsed ? 'justify-center px-2' : ''}
                 ${isActive
                   ? 'text-white border'
@@ -113,6 +143,14 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
                   {!sidebarCollapsed && (
                     <>
                       <span className="font-medium">{item.label}</span>
+                      
+                      {/* Badge Logic */}
+                      {item.badge && badgeCount > 0 && (
+                        <span className="ml-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center">
+                          {badgeCount}
+                        </span>
+                      )}
+
                       {isActive && (
                         <span
                           className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse"
@@ -120,6 +158,10 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
                         />
                       )}
                     </>
+                  )}
+                  {/* Badge for collapsed view */}
+                  {sidebarCollapsed && item.badge && badgeCount > 0 && (
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#0a0a0f]"></span>
                   )}
                 </>
               )}

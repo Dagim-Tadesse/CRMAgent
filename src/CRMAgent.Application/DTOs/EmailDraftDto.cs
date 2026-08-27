@@ -17,6 +17,9 @@ public class EmailDraftDto
     /// <summary>Most recent inbound message that prompted this draft (optional).</summary>
     public string? TriggerMessage { get; set; }
     public string? PipelineStage { get; set; }
+    public string EscalationStatus { get; set; } = string.Empty;
+    public string? EscalationNote { get; set; }
+    public string? ManagerFeedback { get; set; }
 
     public static EmailDraftDto FromEntity(EmailDraft d) => new()
     {
@@ -30,6 +33,9 @@ public class EmailDraftDto
         AIReason = d.AIReason ?? string.Empty,
         CreatedAt = d.CreatedAt,
         SentAt = d.SentAt,
-        PipelineStage = d.Lead?.PipelineStage.ToString()
+        PipelineStage = d.Lead?.PipelineStage.ToString(),
+        EscalationStatus = d.EscalationStatus.ToString(),
+        EscalationNote = d.EscalationNote,
+        ManagerFeedback = d.ManagerFeedback
     };
 }
