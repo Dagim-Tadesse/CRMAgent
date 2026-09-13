@@ -167,7 +167,7 @@ Configure your Gemini API key and email settings in `src/CRMAgent.API`:
 {
   "GeminiSettings": {
     "ApiKey": "YOUR_GEMINI_API_KEY",
-    "ModelEndpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+    "ModelEndpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
   },
   "ResendSettings": {
     "ApiKey": "YOUR_RESEND_API_KEY",
