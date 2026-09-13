@@ -186,7 +186,7 @@ export default function LeadDetailPage() {
 
   if (loading) return <Loader fullScreen={true} message="Loading lead details..." />;
   if (error || !lead) return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] flex items-center justify-center transition-colors duration-200">
       <div className="text-center">
         <div className="w-16 h-16 mx-auto bg-red-500/10 rounded-full flex items-center justify-center mb-4">
           <AlertCircle size={28} className="text-red-400" />
@@ -200,7 +200,7 @@ export default function LeadDetailPage() {
   const stages = ['New', 'Contacted', 'Qualified', 'ProposalSent', 'Negotiation', 'Won', 'Lost'];
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-[#0a0a0f] min-h-screen relative">
+    <div className="flex-1 p-8 overflow-y-auto bg-gray-50 dark:bg-[#0a0a0f] min-h-screen relative transition-colors duration-200">
       <AlertModal 
         isOpen={alertState.isOpen} 
         onClose={() => setAlertState({ ...alertState, isOpen: false })} 
@@ -230,13 +230,13 @@ export default function LeadDetailPage() {
       <div className="flex items-center gap-4 mb-8">
         <button 
           onClick={() => navigate('/leads')}
-          className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition"
+          className="p-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">{lead.fullName}</h1>
-          <p className="text-gray-400 mt-1">Lead Details & AI Copilot</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{lead.fullName}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Lead Details & AI Copilot</p>
         </div>
       </div>
 
@@ -246,14 +246,14 @@ export default function LeadDetailPage() {
         {/* LEFT PANE: 30% */}
         <div className="lg:col-span-4 space-y-6">
           {/* Profile Card */}
-          <div className="bg-[#14141a] border border-white/5 rounded-2xl p-6 backdrop-blur-md">
+          <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-6 backdrop-blur-md shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
                 {lead.fullName.charAt(0)}
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">{lead.fullName}</h2>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{lead.fullName}</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                   <Building2 size={14} />
                   {lead.company}
                 </div>
@@ -261,14 +261,14 @@ export default function LeadDetailPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-sm text-gray-300">
+              <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
                 <Mail size={16} className="text-gray-500" />
-                <a href={`mailto:${lead.email}`} className="hover:text-indigo-400 transition">{lead.email}</a>
+                <a href={`mailto:${lead.email}`} className="hover:text-indigo-500 dark:hover:text-indigo-400 transition">{lead.email}</a>
               </div>
               {lead.telegramUsername && (
-                <div className="flex items-center gap-3 text-sm text-gray-300">
+                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
                   <MessageCircle size={16} className="text-blue-500" />
-                  <a href={`https://t.me/${lead.telegramUsername}`} target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">
+                  <a href={`https://t.me/${lead.telegramUsername}`} target="_blank" rel="noreferrer" className="hover:text-blue-500 dark:hover:text-blue-400 transition">
                     @{lead.telegramUsername}
                   </a>
                 </div>
@@ -276,14 +276,14 @@ export default function LeadDetailPage() {
             </div>
 
             {/* Original Context */}
-            <div className="mt-6 pt-6 border-t border-white/5">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/5">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Original Context</h3>
-              <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                <p className="text-sm text-gray-300 italic whitespace-pre-wrap">"{lead.rawInquiryText}"</p>
+              <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-3 border border-gray-200 dark:border-white/10">
+                <p className="text-sm text-gray-700 dark:text-gray-300 italic whitespace-pre-wrap">"{lead.rawInquiryText}"</p>
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-white/5 flex gap-2 flex-wrap">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/5 flex gap-2 flex-wrap">
               <ScoreBadge score={lead.aiScore} />
               <EmotionBadge emotion={lead.emotion} />
             </div>
@@ -305,16 +305,16 @@ export default function LeadDetailPage() {
           </div>
 
           {/* Stage Controls */}
-          <div className="bg-[#14141a] border border-white/5 rounded-2xl p-6 backdrop-blur-md">
-            <h3 className="text-sm font-medium text-gray-400 mb-3">Pipeline Stage</h3>
+          <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-6 backdrop-blur-md shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Pipeline Stage</h3>
             <select 
               value={lead.pipelineStage} 
               onChange={handleStageChangeSelect}
               disabled={!canEditLeads}
-              className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {stages.map(s => (
-                <option key={s} value={s} className="bg-[#14141a] text-white font-medium">{s}</option>
+                <option key={s} value={s} className="bg-white dark:bg-[#14141a] text-gray-900 dark:text-white font-medium">{s}</option>
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-2">
@@ -329,19 +329,19 @@ export default function LeadDetailPage() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           
           {/* AI Draft Panel */}
-          <div className="bg-[#14141a] border border-white/5 rounded-2xl overflow-hidden flex flex-col">
-            <div className="bg-[#1a1a24] px-6 py-4 border-b border-white/5 flex items-center justify-between">
+          <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+            <div className="bg-gray-50 dark:bg-[#1a1a24] px-6 py-4 border-b border-gray-200 dark:border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <Mail size={16} />
                 </div>
-                <h3 className="font-semibold text-white">AI Copilot Draft</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">AI Copilot Draft</h3>
               </div>
               {canEditLeads && (
                 <button 
                   onClick={handleRegenerateDraft}
                   disabled={draftLoading}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-sm transition disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 text-sm transition disabled:opacity-50"
                 >
                   <RefreshCw size={14} className={draftLoading ? "animate-spin" : ""} />
                   Regenerate
@@ -360,35 +360,35 @@ export default function LeadDetailPage() {
 
                   {/* Subject Input */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Subject</label>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Subject</label>
                     <input 
                       type="text"
                       value={subject}
                       readOnly={!canEditLeads}
                       onChange={e => setSubject(e.target.value)}
-                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors read-only:opacity-70"
+                      className="w-full bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors read-only:opacity-70"
                     />
                   </div>
 
                   {/* Body Input */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Body</label>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Body</label>
                     <textarea 
                       value={body}
                       readOnly={!canEditLeads}
                       onChange={e => setBody(e.target.value)}
                       rows={8}
-                      className="w-full bg-[#1a1a24] border border-white/10 rounded-lg px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors resize-none read-only:opacity-70"
+                      className="w-full bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors resize-none read-only:opacity-70"
                     />
                   </div>
 
                   {/* Action Buttons */}
                   {canEditLeads ? (
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-white/5">
                       <button 
                         onClick={() => setConfirmRejectDraft(true)}
                         disabled={draftLoading}
-                        className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition disabled:opacity-50"
+                        className="px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-400/10 rounded-lg transition disabled:opacity-50"
                       >
                         Reject Draft
                       </button>
@@ -396,7 +396,7 @@ export default function LeadDetailPage() {
                         <button 
                           onClick={handleSaveDraft}
                           disabled={isSaving || draftLoading}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 bg-white/5 hover:bg-white/10 rounded-lg transition disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition disabled:opacity-50"
                         >
                           <Save size={14} />
                           {isSaving ? 'Saving...' : 'Save Edits'}
@@ -412,17 +412,17 @@ export default function LeadDetailPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="pt-4 border-t border-white/5 text-xs text-yellow-400/80 italic">
+                    <div className="pt-4 border-t border-gray-200 dark:border-white/5 text-xs text-yellow-600 dark:text-yellow-400/80 italic">
                       Overseer View: Managers can review AI draft contents, but cannot edit, approve, or reject drafts.
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 rounded-full bg-white/5 text-gray-500 flex items-center justify-center mx-auto mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 flex items-center justify-center mx-auto mb-4">
                     <Mail size={20} />
                   </div>
-                  <h4 className="text-gray-300 font-medium mb-1">No pending draft</h4>
+                  <h4 className="text-gray-700 dark:text-gray-300 font-medium mb-1">No pending draft</h4>
                   <p className="text-sm text-gray-500 mb-4">Change stage to Contacted/Qualified or manually generate one.</p>
                   <button 
                     onClick={handleRegenerateDraft}
@@ -437,9 +437,9 @@ export default function LeadDetailPage() {
           </div>
 
           {/* Timeline Feed */}
-          <div className="bg-[#14141a] border border-white/5 rounded-2xl flex-1 flex flex-col min-h-[400px]">
-            <div className="px-6 py-4 border-b border-white/5">
-              <h3 className="font-semibold text-white">Activity Timeline</h3>
+          <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl flex-1 flex flex-col min-h-[400px] shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-white/5">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Activity Timeline</h3>
             </div>
             
             <div className="p-6 overflow-y-auto">
@@ -470,9 +470,9 @@ export default function LeadDetailPage() {
                         </div>
                         
                         {/* Content Card */}
-                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] ml-12 md:ml-0 bg-[#1a1a24] border border-white/5 rounded-xl p-4 hover:border-white/10 transition">
+                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] ml-12 md:ml-0 bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-white/5 rounded-xl p-4 hover:border-gray-300 dark:hover:border-white/10 transition shadow-sm">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-white">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
                               {isLog ? item.action : `${item.direction} ${item.channel}`}
                             </span>
                             <span className="text-xs text-gray-500">
@@ -481,7 +481,7 @@ export default function LeadDetailPage() {
                               })}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-400 whitespace-pre-wrap">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                             {isLog ? item.reason : item.content}
                           </p>
                         </div>

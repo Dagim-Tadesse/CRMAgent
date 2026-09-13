@@ -79,14 +79,14 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
 
       <div
         className={`
-          fixed lg:sticky top-0 left-0 h-screen bg-[#0a0a0f] border-r border-white/5
-          text-white z-50 transition-all duration-300 ease-in-out
+          fixed lg:sticky top-0 left-0 h-screen bg-white dark:bg-[#0a0a0f] border-r border-gray-200 dark:border-white/5
+          text-gray-900 dark:text-white z-50 transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${sidebarCollapsed ? 'w-20' : 'w-64'}
           flex flex-col
         `}
       >
-        <div className={`p-6 border-b border-white/5 ${sidebarCollapsed ? 'px-4' : ''}`}>
+        <div className={`p-6 border-b border-gray-200 dark:border-white/5 ${sidebarCollapsed ? 'px-4' : ''}`}>
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -105,7 +105,7 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
                 >
                   LeadFlow
                 </h1>
-                <p className="text-xs text-gray-500">Analytics Dashboard</p>
+                <p className="text-xs text-gray-600 dark:text-gray-500">Analytics Dashboard</p>
               </div>
             )}
           </div>
@@ -121,8 +121,8 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
                 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative
                 ${sidebarCollapsed ? 'justify-center px-2' : ''}
                 ${isActive
-                  ? 'text-white border'
-                  : 'text-gray-500 hover:bg-white/5 hover:text-white border border-transparent'}
+                  ? 'text-gray-900 dark:text-white border'
+                  : 'text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white border border-transparent'}
               `}
               style={({ isActive }) =>
                 isActive
@@ -161,7 +161,7 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
                   )}
                   {/* Badge for collapsed view */}
                   {sidebarCollapsed && item.badge && badgeCount > 0 && (
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-[#0a0a0f]"></span>
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-[#0a0a0f]"></span>
                   )}
                 </>
               )}
@@ -169,9 +169,9 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
           ))}
         </nav>
 
-        <div className={`p-4 border-t border-white/5 ${sidebarCollapsed ? 'px-2' : ''}`}>
+        <div className={`p-4 border-t border-gray-200 dark:border-white/5 ${sidebarCollapsed ? 'px-2' : ''}`}>
           <div
-            className={`flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition ${
+            className={`flex items-center gap-3 p-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition ${
               sidebarCollapsed ? 'justify-center px-2' : ''
             }`}
           >
@@ -185,9 +185,9 @@ export default function AppSidebar({ isOpen, toggleSidebar }) {
               <>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">{email || role || '—'}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-500 truncate">{email || role || '—'}</p>
                 </div>
-                <NavLink to="/settings" className="text-gray-500 hover:text-white transition">
+                <NavLink to="/settings" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition">
                   <Settings size={18} />
                 </NavLink>
               </>

@@ -10,11 +10,11 @@ import { Loader } from '../components/Loader';
 // Trigger Badge Component
 function TriggerBadge({ trigger }) {
   const styles = {
-    Agent: 'bg-purple-500/20 text-purple-300 border border-purple-500/20',
-    User: 'bg-blue-500/20 text-blue-300 border border-blue-500/20',
-    BackgroundJob: 'bg-orange-500/20 text-orange-300 border border-orange-500/20',
-    TelegramWebhook: 'bg-teal-500/20 text-teal-300 border border-teal-500/20',
-    EmailWebhook: 'bg-green-500/20 text-green-300 border border-green-500/20'
+    Agent: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/20',
+    User: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20',
+    BackgroundJob: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/20',
+    TelegramWebhook: 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/20',
+    EmailWebhook: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/20'
   };
 
   const icons = {
@@ -28,7 +28,7 @@ function TriggerBadge({ trigger }) {
   const Icon = icons[trigger] || Activity;
 
   return (
-    <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5 ${styles[trigger] || 'bg-white/5 text-gray-400 border border-white/5'}`}>
+    <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5 ${styles[trigger] || 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/5'}`}>
       <Icon size={12} />
       {trigger}
     </span>
@@ -46,7 +46,7 @@ function ActionIcon({ action }) {
   };
 
   const Icon = iconMap[action] || Activity;
-  return <Icon size={14} className="text-gray-500" />;
+  return <Icon size={14} className="text-gray-500 dark:text-gray-400" />;
 }
 
 export function ActivityLogPage() {
@@ -147,93 +147,94 @@ export function ActivityLogPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 p-8 overflow-y-auto bg-gray-50 dark:bg-[#0a0a0f] min-h-screen transition-colors duration-200">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition group"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:border-gray-300 dark:border-white/20 transition group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
             <span className="text-sm">Back to Dashboard</span>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white">Activity Log</h1>
-            <p className="text-sm text-gray-500">Monitor all system events and actions</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Activity Log</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Monitor all system events and actions</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
+            className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
           >
-            <option value={10} className="bg-[#14141a]">10 per page</option>
-            <option value={15} className="bg-[#14141a]">15 per page</option>
-            <option value={25} className="bg-[#14141a]">25 per page</option>
-            <option value={50} className="bg-[#14141a]">50 per page</option>
-            <option value={100} className="bg-[#14141a]">100 per page</option>
+            <option value={10} className="bg-white dark:bg-[#14141a]">10 per page</option>
+            <option value={15} className="bg-white dark:bg-[#14141a]">15 per page</option>
+            <option value={25} className="bg-white dark:bg-[#14141a]">25 per page</option>
+            <option value={50} className="bg-white dark:bg-[#14141a]">50 per page</option>
+            <option value={100} className="bg-white dark:bg-[#14141a]">100 per page</option>
           </select>
           <button
             onClick={fetchLogs}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:border-gray-300 dark:border-white/20 transition"
           >
             <RefreshCw size={16} />
             Refresh
           </button>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {filteredLogs.length} event{filteredLogs.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4 space-y-4">
+      <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4 space-y-4">
         <div className="flex flex-wrap gap-4 items-center">
           {/* Search */}
           <div className="flex-1 min-w-[200px] relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search actions, reasons, or leads..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
             />
           </div>
 
           {/* Date Range */}
           <div className="flex items-center gap-2">
-            <Calendar size={16} className="text-gray-500" />
+            <Calendar size={16} className="text-gray-500 dark:text-gray-400" />
             <input
               type="date"
               value={dateRange.start}
               onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none transition"
             />
-            <span className="text-gray-500 text-sm">to</span>
+            <span className="text-gray-500 dark:text-gray-400 text-sm">to</span>
             <input
               type="date"
               value={dateRange.end}
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none transition"
             />
           </div>
         </div>
 
         {/* Trigger Chips */}
         <div className="flex flex-wrap items-center gap-2">
-          <Filter size={16} className="text-gray-500" />
-          <span className="text-sm text-gray-500 mr-1">Source:</span>
+          <Filter size={16} className="text-gray-500 dark:text-gray-400" />
+          <span className="text-sm text-gray-500 dark:text-gray-400 mr-1">Source:</span>
           {triggerOptions.map(trigger => (
             <button
               key={trigger}
               onClick={() => toggleTrigger(trigger)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                 selectedTriggers.includes(trigger)
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/20'
-                  : 'bg-white/5 text-gray-400 border border-white/5 hover:border-white/20'
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20'
+                  : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:border-white/20'
               }`}
             >
               {trigger}
@@ -242,7 +243,7 @@ export function ActivityLogPage() {
           {selectedTriggers.length > 0 && (
             <button
               onClick={clearFilters}
-              className="text-xs text-gray-500 hover:text-white transition ml-2"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white transition ml-2"
             >
               Clear filters
             </button>
@@ -251,11 +252,11 @@ export function ActivityLogPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-[#14141a] border border-white/5 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-gray-500 border-b border-white/5">
+              <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/5">
                 <th className="px-6 py-4 font-medium w-44 whitespace-nowrap">Time</th>
                 <th className="px-6 py-4 font-medium w-48 whitespace-nowrap">Action</th>
                 <th className="px-6 py-4 font-medium w-36 whitespace-nowrap">Lead</th>
@@ -267,15 +268,15 @@ export function ActivityLogPage() {
               {paginatedLogs.map((log) => (
                 <tr
                   key={log.id}
-                  className="border-b border-white/5 last:border-0 hover:bg-white/5 transition"
+                  className="border-b border-gray-200 dark:border-white/5 last:border-0 hover:bg-gray-100 dark:bg-white/5 transition"
                 >
-                  <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">
+                  <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                     {new Date(log.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <ActionIcon action={log.action} />
-                      <span className="text-white font-medium">{log.action}</span>
+                      <span className="text-gray-900 dark:text-white font-medium">{log.action}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -293,13 +294,13 @@ export function ActivityLogPage() {
                         );
                       }
                       return displayName ? (
-                        <span className="text-gray-300 font-medium">{displayName}</span>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{displayName}</span>
                       ) : (
-                        <span className="text-gray-500 text-xs">-</span>
+                        <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>
                       );
                     })()}
                   </td>
-                  <td className="px-6 py-4 text-gray-300 break-words leading-relaxed">
+                  <td className="px-6 py-4 text-gray-700 dark:text-gray-300 break-words leading-relaxed">
                     {log.reason || '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -312,9 +313,9 @@ export function ActivityLogPage() {
         </div>
 
         {filteredLogs.length > 0 && (
-          <div className="bg-white/2 px-6 py-4 flex items-center justify-between border-t border-white/5 flex-wrap gap-4 text-xs text-gray-500">
+          <div className="bg-white/2 px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-white/5 flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
             <div>
-              Showing <span className="text-white font-medium">{startIndex + 1}</span> to <span className="text-white font-medium">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="text-white font-medium">{filteredLogs.length}</span> entries
+              Showing <span className="text-gray-900 dark:text-white font-medium">{startIndex + 1}</span> to <span className="text-gray-900 dark:text-white font-medium">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="text-gray-900 dark:text-white font-medium">{filteredLogs.length}</span> entries
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -322,7 +323,7 @@ export function ActivityLogPage() {
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage <= 1}
                 title="Previous Page"
-                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-white/5"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white transition disabled:opacity-40 disabled:hover:bg-gray-100 dark:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-gray-200 dark:border-white/5"
               >
                 Previous
               </button>
@@ -333,7 +334,7 @@ export function ActivityLogPage() {
                   return (
                     <span key={p} className="flex items-center gap-1">
                       {i > 0 && arr[i - 1] !== p - 1 && (
-                        <span className="px-1.5 text-gray-500 font-medium select-none">...</span>
+                        <span className="px-1.5 text-gray-500 dark:text-gray-400 font-medium select-none">...</span>
                       )}
                       <button
                         type="button"
@@ -341,8 +342,8 @@ export function ActivityLogPage() {
                         title={`Page ${p}`}
                         className={`w-7 h-7 rounded-lg font-medium transition cursor-pointer flex items-center justify-center ${
                           currentPage === p
-                            ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                            : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5'
+                            ? 'bg-blue-500 text-gray-900 dark:text-white shadow-md shadow-blue-500/25'
+                            : 'bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white border border-gray-200 dark:border-white/5'
                         }`}
                       >
                         {p}
@@ -356,7 +357,7 @@ export function ActivityLogPage() {
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage >= totalPages}
                 title="Next Page"
-                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white transition disabled:opacity-40 disabled:hover:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-white/5"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white transition disabled:opacity-40 disabled:hover:bg-gray-100 dark:bg-white/5 cursor-pointer disabled:cursor-not-allowed border border-gray-200 dark:border-white/5"
               >
                 Next
               </button>
@@ -366,30 +367,30 @@ export function ActivityLogPage() {
 
         {filteredLogs.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4">
-              <Activity size={24} className="text-gray-500" />
+            <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+              <Activity size={24} className="text-gray-500 dark:text-gray-400" />
             </div>
-            <p className="text-gray-400">No activity logs found</p>
-            <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+            <p className="text-gray-600 dark:text-gray-400">No activity logs found</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Try adjusting your search or filters</p>
           </div>
         )}
       </div>
 
       {/* Stats Footer */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4">
-          <p className="text-xs text-gray-500">Total Events</p>
-          <p className="text-xl font-bold text-white">{logs.length}</p>
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Total Events</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{logs.length}</p>
         </div>
-        <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4">
-          <p className="text-xs text-gray-500">Unique Sources</p>
-          <p className="text-xl font-bold text-white">
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Unique Sources</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {new Set(logs.map(l => l.triggeredBy)).size}
           </p>
         </div>
-        <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4">
-          <p className="text-xs text-gray-500">Most Active Source</p>
-          <p className="text-xl font-bold text-white">
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Most Active Source</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {logs.length > 0 ? (
               Object.entries(
                 logs.reduce((acc, log) => {
@@ -399,6 +400,7 @@ export function ActivityLogPage() {
               ).sort((a, b) => b[1] - a[1])[0]?.[0] || '-'
             ) : '-'}
           </p>
+        </div>
         </div>
       </div>
     </div>

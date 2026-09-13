@@ -139,7 +139,7 @@ function buildTrendWindow(leads, rangeId, periodOffset) {
 // Stat Card Component - Dark Version
 function StatCard({ icon: Icon, label, value, sub, iconBg, trend, trendValue }) {
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all duration-300 group hover:shadow-lg hover:shadow-blue-500/5">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all duration-300 group hover:shadow-lg hover:shadow-blue-500/5">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-500 font-medium">{label}</p>
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg} group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
@@ -148,7 +148,7 @@ function StatCard({ icon: Icon, label, value, sub, iconBg, trend, trendValue }) 
       </div>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-3xl font-bold text-white">{value}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
           {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
         </div>
         {trend && (
@@ -273,10 +273,10 @@ export function DashboardPage() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#1a1a24] border border-white/10 rounded-xl p-3 shadow-xl">
-          <p className="text-xs text-gray-400 mb-1">{label}</p>
+        <div className="bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-white/10 rounded-xl p-3 shadow-xl">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{label}</p>
           {payload.map((p, idx) => (
-            <p key={idx} className="text-sm text-white">
+            <p key={idx} className="text-sm text-gray-900 dark:text-white">
               {p.name}: <span className="font-bold">{p.value}</span>
             </p>
           ))}
@@ -287,31 +287,31 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0a0a0f]">
       <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         {/* Top Header - Dark */}
-        <header className="bg-[#0f0f16] border-b border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
+        <header className="bg-white dark:bg-[#0f0f16] border-b border-gray-200 dark:border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90 dark:bg-opacity-90">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
                 <Menu size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-                <p className="text-sm text-gray-500">Welcome back! Here's your pipeline overview</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-500">Welcome back! Here's your pipeline overview</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{email}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{email}</p>
                   <p className="text-xs text-gray-500">{role}</p>
                 </div>
                 <div
@@ -371,10 +371,10 @@ export function DashboardPage() {
           {/* MAIN CHARTS ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Line Chart - Lead Trends */}
-            <div className="lg:col-span-2 bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+            <div className="lg:col-span-2 bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
               <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-white">Lead Trends</h2>
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Lead Trends</h2>
                   <p className="text-xs text-gray-500">{periodLabel}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -384,10 +384,10 @@ export function DashboardPage() {
                       setTrendRangeId(e.target.value);
                       setPeriodOffset(0);
                     }}
-                    className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                    className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white outline-none"
                   >
                     {TREND_RANGES.map((r) => (
-                      <option key={r.id} value={r.id} className="bg-[#14141a]">
+                      <option key={r.id} value={r.id} className="bg-white dark:bg-[#14141a]">
                         {r.label}
                       </option>
                     ))}
@@ -395,7 +395,7 @@ export function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setPeriodOffset((o) => o + 1)}
-                    className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+                    className="p-1.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition"
                     title="Previous period"
                   >
                     <ChevronLeft size={16} />
@@ -404,7 +404,7 @@ export function DashboardPage() {
                     type="button"
                     disabled={!canGoNext}
                     onClick={() => setPeriodOffset((o) => Math.max(0, o - 1))}
-                    className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Next period"
                   >
                     <ChevronRight size={16} />
@@ -443,19 +443,19 @@ export function DashboardPage() {
             </div>
 
             {/* Stage Distribution */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-              <h2 className="text-sm font-semibold text-white mb-6">Stage Distribution</h2>
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-6">Stage Distribution</h2>
               <div className="space-y-3">
                 {stageDistribution.map((s, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full" style={{ background: STAGE_COLORS[s.name] }} />
-                        <span className="text-gray-400">{s.name}</span>
+                        <span className="text-gray-500">{s.name}</span>
                       </div>
                       <span className="text-gray-500">{s.value} ({s.percentage}%)</span>
                     </div>
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-500"
                         style={{ 
@@ -473,8 +473,8 @@ export function DashboardPage() {
           {/* SECONDARY CHARTS ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Emotion Donut */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-              <h2 className="text-sm font-semibold text-white mb-4">Emotion Breakdown</h2>
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Emotion Breakdown</h2>
               <ResponsiveContainer width='100%' height={200}>
                 <PieChart>
                   <Pie 
@@ -494,18 +494,18 @@ export function DashboardPage() {
               </ResponsiveContainer>
               <div className='flex flex-wrap gap-2 justify-center mt-2'>
                 {emotionData.map(e => (
-                  <div key={e.name} className='flex items-center gap-1.5 text-xs text-gray-400'>
+                  <div key={e.name} className='flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400'>
                     <span className='w-2 h-2 rounded-full' style={{ background: EMOTION_COLORS[e.name] }} />
                     <span>{e.name}</span>
-                    <span className='font-medium text-white'>{e.value}</span>
+                    <span className='font-medium text-gray-900 dark:text-white'>{e.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Pipeline Stage Donut */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-              <h2 className="text-sm font-semibold text-white mb-4">Pipeline Stage</h2>
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Pipeline Stage</h2>
               <ResponsiveContainer width='100%' height={200}>
                 <PieChart>
                   <Pie 
@@ -525,18 +525,18 @@ export function DashboardPage() {
               </ResponsiveContainer>
               <div className='flex flex-wrap gap-2 justify-center mt-2'>
                 {stageData.map(s => (
-                  <div key={s.name} className='flex items-center gap-1.5 text-xs text-gray-400'>
+                  <div key={s.name} className='flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400'>
                     <span className='w-2 h-2 rounded-full' style={{ background: STAGE_COLORS[s.name] }} />
                     <span>{s.name}</span>
-                    <span className='font-medium text-white'>{s.value}</span>
+                    <span className='font-medium text-gray-900 dark:text-white'>{s.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Daily Leads Bar Chart */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
-              <h2 className="text-sm font-semibold text-white mb-4">New Leads (Last 7 Days)</h2>
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">New Leads (Last 7 Days)</h2>
               <ResponsiveContainer width='100%' height={200}>
                 <BarChart data={barData}>
                   <XAxis dataKey='day' tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
@@ -549,10 +549,10 @@ export function DashboardPage() {
 
           {/* QUICK STATS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 flex items-center justify-between hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 flex items-center justify-between hover:border-gray-300 dark:hover:border-white/10 transition-all group">
               <div>
                 <p className="text-xs text-gray-500">Avg. Score</p>
-                <p className="text-xl font-bold text-white">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {leads.length > 0 ? (leads.reduce((acc, l) => acc + (l.aiScore || 0), 0) / leads.length).toFixed(1) : '0'}
                 </p>
               </div>
@@ -560,28 +560,28 @@ export function DashboardPage() {
                 <TrendingUp size={18} className="text-blue-400" />
               </div>
             </div>
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 flex items-center justify-between hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 flex items-center justify-between hover:border-gray-300 dark:hover:border-white/10 transition-all group">
               <div>
                 <p className="text-xs text-gray-500">Pending</p>
-                <p className="text-xl font-bold text-white">{pending.length}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{pending.length}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition">
                 <Clock size={18} className="text-yellow-400" />
               </div>
             </div>
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 flex items-center justify-between hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 flex items-center justify-between hover:border-gray-300 dark:hover:border-white/10 transition-all group">
               <div>
                 <p className="text-xs text-gray-500">At Risk</p>
-                <p className="text-xl font-bold text-white">{atRisk}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{atRisk}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition">
                 <Shield size={18} className="text-red-400" />
               </div>
             </div>
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 flex items-center justify-between hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 flex items-center justify-between hover:border-gray-300 dark:hover:border-white/10 transition-all group">
               <div>
                 <p className="text-xs text-gray-500">Stagnant</p>
-                <p className="text-xl font-bold text-white">{stagnant}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{stagnant}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition">
                 <Ghost size={18} className="text-purple-400" />
@@ -590,10 +590,10 @@ export function DashboardPage() {
           </div>
 
           {/* RECENT ACTIVITY TABLE */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-300 dark:hover:border-white/10 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
                 <p className="text-xs text-gray-500">Latest system events and actions</p>
               </div>
               <button
@@ -606,7 +606,7 @@ export function DashboardPage() {
             <div className="overflow-x-auto">
               <table className='w-full text-sm'>
                 <thead>
-                  <tr className='text-left text-xs text-gray-500 border-b border-white/5'>
+                  <tr className='text-left text-xs text-gray-500 border-b border-gray-200 dark:border-white/5'>
                     <th className='pb-3 font-medium'>Action</th>
                     <th className='pb-3 font-medium'>Reason</th>
                     <th className='pb-3 font-medium'>Source</th>
@@ -615,9 +615,9 @@ export function DashboardPage() {
                 </thead>
                 <tbody>
                   {logs.slice(0, 6).map(log => (
-                    <tr key={log.id} className='border-b border-white/5 last:border-0 hover:bg-white/5 transition'>
-                      <td className='py-3 font-medium text-white'>{log.action}</td>
-                      <td className='py-3 text-gray-400 max-w-xs truncate'>{log.reason}</td>
+                    <tr key={log.id} className='border-b border-gray-200 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition'>
+                      <td className='py-3 font-medium text-gray-900 dark:text-white'>{log.action}</td>
+                      <td className='py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate'>{log.reason}</td>
                       <td className='py-3'>
                         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${triggerBadge[log.triggeredBy]||'bg-white/5 text-gray-400 border border-white/5'}`}>
                           {log.triggeredBy}

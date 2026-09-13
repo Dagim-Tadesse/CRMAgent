@@ -16,7 +16,7 @@ export function Loader({ fullScreen = false, message = "Loading..." }) {
       </div>
 
       {/* Message */}
-      <p className="text-gray-400 text-sm font-medium tracking-wide animate-pulse">
+      <p className="text-gray-600 dark:text-gray-400 text-sm font-medium tracking-wide animate-pulse">
         {message}
       </p>
 
@@ -35,7 +35,7 @@ export function Loader({ fullScreen = false, message = "Loading..." }) {
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-[#0a0a0f] z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-gray-50 dark:bg-[#0a0a0f] z-50 flex items-center justify-center">
         {loaderContent}
       </div>
     );

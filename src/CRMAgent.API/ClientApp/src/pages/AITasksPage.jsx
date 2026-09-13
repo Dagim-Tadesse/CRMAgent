@@ -104,7 +104,7 @@ function TaskCard({ task, onRefresh }) {
   };
 
   return (
-    <div className="bg-[#14141a] border border-white/5 rounded-2xl p-5 space-y-4">
+    <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-5 space-y-4 shadow-sm">
       <ConfirmModal
         isOpen={confirmApprove}
         onClose={() => setConfirmApprove(false)}
@@ -128,7 +128,7 @@ function TaskCard({ task, onRefresh }) {
         <div className="min-w-0">
           <Link 
             to={`/leads/${task.leadId}`}
-            className="text-white font-semibold truncate hover:text-blue-400 hover:underline transition block"
+            className="text-gray-900 dark:text-white font-semibold truncate hover:text-blue-500 dark:hover:text-blue-400 hover:underline transition block"
           >
             {task?.leadName || 'Unknown lead'}
           </Link>
@@ -136,7 +136,7 @@ function TaskCard({ task, onRefresh }) {
           <div className="text-gray-500 text-xs mt-1 flex flex-wrap items-center gap-2">
             <span>{formatTimestamp(task?.createdAt)}</span>
             {task?.pipelineStage && (
-              <span className="bg-white/5 border border-white/10 text-gray-400 px-2 py-0.5 rounded-full">
+              <span className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">
                 {task.pipelineStage}
               </span>
             )}
@@ -170,9 +170,9 @@ function TaskCard({ task, onRefresh }) {
 
       {/* Trigger & AI Info */}
       {task?.triggerMessage && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-3">
-          <div className="text-gray-400 text-xs font-semibold mb-1">Inbound message</div>
-          <p className="text-gray-300 text-xs whitespace-pre-wrap">{task.triggerMessage}</p>
+        <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl p-3">
+          <div className="text-gray-500 dark:text-gray-400 text-xs font-semibold mb-1">Inbound message</div>
+          <p className="text-gray-700 dark:text-gray-300 text-xs whitespace-pre-wrap">{task.triggerMessage}</p>
         </div>
       )}
 
@@ -212,14 +212,14 @@ function TaskCard({ task, onRefresh }) {
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition"
             placeholder="Subject"
           />
           <textarea
             rows={8}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none resize-y whitespace-pre-wrap"
+            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none resize-y whitespace-pre-wrap transition"
             placeholder="Email body"
           />
           
@@ -244,10 +244,10 @@ function TaskCard({ task, onRefresh }) {
           )}
         </div>
       ) : (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <div className="text-gray-400 text-xs font-semibold mb-1">Generated reply</div>
-          <div className="font-bold text-white mb-2">{task?.subject || '(No subject)'}</div>
-          <div className="text-gray-400 text-xs whitespace-pre-wrap">{task?.body || ''}</div>
+        <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+          <div className="text-gray-500 dark:text-gray-400 text-xs font-semibold mb-1">Generated reply</div>
+          <div className="font-bold text-gray-900 dark:text-white mb-2">{task?.subject || '(No subject)'}</div>
+          <div className="text-gray-600 dark:text-gray-400 text-xs whitespace-pre-wrap">{task?.body || ''}</div>
         </div>
       )}
       
@@ -269,7 +269,7 @@ function TaskCard({ task, onRefresh }) {
             </button>
             <button
               type="button" disabled={busy} onClick={handleCancelEdit}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -284,7 +284,7 @@ function TaskCard({ task, onRefresh }) {
             </button>
             <button
               type="button" disabled={busy} onClick={() => setEscalating(false)}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -299,7 +299,7 @@ function TaskCard({ task, onRefresh }) {
             </button>
             <button
               type="button" disabled={busy} onClick={() => setReviewing(false)}
-              className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+              className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -317,7 +317,7 @@ function TaskCard({ task, onRefresh }) {
                 </button>
                 <button
                   type="button" disabled={busy} onClick={() => setEditing(true)}
-                  className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                  className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
                 >
                   Edit
                 </button>
@@ -339,13 +339,13 @@ function TaskCard({ task, onRefresh }) {
                 </button>
                 <button
                   type="button" disabled={busy} onClick={() => setEditing(true)}
-                  className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                  className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
                 >
                   Edit First
                 </button>
                 <button
                   type="button" disabled={busy} onClick={handleRegenerate}
-                  className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                  className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
                 >
                   Regenerate
                 </button>
@@ -430,19 +430,19 @@ export default function AITasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-6 transition-colors duration-200">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition group"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition group"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-sm">Back to Dashboard</span>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-white">AI Tasks</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Tasks</h1>
               <p className="text-sm text-gray-500">
                 {tasks.length} pending draft{tasks.length !== 1 ? 's' : ''} awaiting approval
               </p>
@@ -452,7 +452,7 @@ export default function AITasksPage() {
             type="button"
             disabled={refreshing}
             onClick={() => refresh({ silent: true })}
-            className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+            className="bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
           >
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
@@ -465,8 +465,8 @@ export default function AITasksPage() {
         )}
 
         {tasks.length === 0 ? (
-          <div className="bg-[#14141a] border border-white/5 rounded-2xl p-12 text-center">
-            <p className="text-gray-400">No pending AI drafts. New inbound messages will appear here automatically.</p>
+          <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-gray-500 dark:text-gray-400">No pending AI drafts. New inbound messages will appear here automatically.</p>
           </div>
         ) : (
           <div className="space-y-4">

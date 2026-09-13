@@ -249,17 +249,17 @@ function AppearanceSection() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+      <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-white">Appearance</h3>
-            <p className="text-sm text-gray-500">Customize how the app looks and feels</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Appearance</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Customize how the app looks and feels</p>
           </div>
           <Palette size={20} style={{ color: 'var(--accent-color)' }} />
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-400 mb-3">Theme</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Theme</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {themes.map((t) => {
               const selected = theme === t.id;
@@ -269,7 +269,7 @@ function AppearanceSection() {
                   type="button"
                   onClick={() => setTheme(t.id)}
                   className={`p-4 rounded-xl border-2 transition-all text-left ${
-                    selected ? '' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                    selected ? '' : 'border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10'
                   }`}
                   style={selected ? selectedBorder : undefined}
                 >
@@ -277,13 +277,13 @@ function AppearanceSection() {
                     <t.icon
                       size={24}
                       style={selected ? { color: 'var(--accent-color)' } : undefined}
-                      className={selected ? '' : 'text-gray-400'}
+                      className={selected ? '' : 'text-gray-600 dark:text-gray-400'}
                     />
                     <div>
-                      <p className={`text-sm font-medium ${selected ? 'text-white' : 'text-gray-400'}`}>
+                      <p className={`text-sm font-medium ${selected ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                         {t.label}
                       </p>
-                      <p className="text-xs text-gray-500">{t.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.description}</p>
                     </div>
                   </div>
                   {selected && (
@@ -296,7 +296,7 @@ function AppearanceSection() {
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-400 mb-3">Accent Color</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Accent Color</label>
           <div className="flex flex-wrap gap-3">
             {accentColors.map((color) => (
               <button
@@ -315,7 +315,7 @@ function AppearanceSection() {
                   style={{ backgroundColor: color.color }}
                 />
                 {accentColor === color.id && (
-                  <CheckCircle size={14} className="absolute -top-1 -right-1 text-white bg-[#14141a] rounded-full" />
+                  <CheckCircle size={14} className="absolute -top-1 -right-1 text-gray-900 dark:text-white bg-white dark:bg-[#14141a] rounded-full" />
                 )}
               </button>
             ))}
@@ -323,7 +323,7 @@ function AppearanceSection() {
         </div>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-400 mb-3">Font Size</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Font Size</label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {fontSizes.map((size) => {
               const selected = fontSize === size.id;
@@ -333,14 +333,14 @@ function AppearanceSection() {
                   type="button"
                   onClick={() => setFontSize(size.id)}
                   className={`p-4 rounded-xl border-2 transition-all text-center ${
-                    selected ? '' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                    selected ? '' : 'border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10'
                   }`}
                   style={selected ? selectedBorder : undefined}
                 >
-                  <p className={`font-medium ${selected ? 'text-white' : 'text-gray-400'}`}>
+                  <p className={`font-medium ${selected ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                     {size.label}
                   </p>
-                  <p className="text-gray-500 mt-1" style={{ fontSize: size.size }}>
+                  <p className="text-gray-500 dark:text-gray-400 mt-1" style={{ fontSize: size.size }}>
                     {size.preview}
                   </p>
                 </button>
@@ -350,11 +350,11 @@ function AppearanceSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+          <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Collapsed Sidebar</p>
-                <p className="text-xs text-gray-500">Minimize sidebar for more space</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Collapsed Sidebar</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Minimize sidebar for more space</p>
               </div>
               <Toggle
                 on={sidebarCollapsed}
@@ -363,11 +363,11 @@ function AppearanceSection() {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+          <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Animations</p>
-                <p className="text-xs text-gray-500">Enable smooth transitions</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Animations</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Enable smooth transitions</p>
               </div>
               <Toggle
                 on={animations}
@@ -378,9 +378,9 @@ function AppearanceSection() {
         </div>
 
         <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-400 mb-3">Live Preview</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Live Preview</label>
           <div
-            className={`p-6 rounded-2xl border border-white/10 bg-white/5 ${
+            className={`p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 ${
               animations ? 'transition-all duration-300' : 'transition-none'
             }`}
           >
@@ -392,11 +392,11 @@ function AppearanceSection() {
                   boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
                 }}
               >
-                <User size={24} className="text-white" />
+                <User size={24} className="text-gray-900 dark:text-white" />
               </div>
               <div>
                 <p
-                  className="font-semibold text-white"
+                  className="font-semibold text-gray-900 dark:text-white"
                   style={{
                     fontSize: fontSize === 'small' ? '14px' : fontSize === 'large' ? '18px' : '16px'
                   }}
@@ -418,14 +418,14 @@ function AppearanceSection() {
                   style={{ ...accentSoftBg, ...accentSoftBorder }}
                 >
                   <p className="text-sm font-medium" style={accentSoftText}>{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-end gap-3">
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/5 flex items-center justify-end gap-3">
           {savedFlash && (
             <span className="text-sm text-green-400 flex items-center gap-1.5">
               <CheckCircle size={16} />
@@ -435,7 +435,7 @@ function AppearanceSection() {
           <button
             type="button"
             onClick={handleSaveConfirm}
-            className="px-6 py-2.5 rounded-xl text-white font-medium transition-all flex items-center gap-2 hover:opacity-90"
+            className="px-6 py-2.5 rounded-xl text-gray-900 dark:text-white font-medium transition-all flex items-center gap-2 hover:opacity-90"
             style={{
               ...accentGradientStyle,
               boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -447,11 +447,11 @@ function AppearanceSection() {
         </div>
       </div>
 
-      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+      <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-white">Reset to Defaults</h4>
-            <p className="text-xs text-gray-500">Restore all appearance settings to default</p>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Reset to Defaults</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Restore all appearance settings to default</p>
           </div>
           <button
             type="button"
@@ -556,18 +556,18 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
 
   if (loading) {
     return (
-      <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
-        <p className="text-sm text-gray-500">Loading profile…</p>
+      <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading profile…</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Profile Information</h3>
-          <p className="text-sm text-gray-500">Update your personal information</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Information</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Update your personal information</p>
         </div>
         <div className="flex items-center gap-3">
           {saved && (
@@ -601,7 +601,7 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
       <div className="flex items-center gap-6 mb-6">
         <div className="relative">
           <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg"
+            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-gray-900 dark:text-white shadow-lg"
             style={{
               ...accentGradientStyle,
               boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -612,7 +612,7 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
           {isEditing && (
             <button
               type="button"
-              className="absolute bottom-0 right-0 p-1.5 rounded-full text-white hover:opacity-90 transition"
+              className="absolute bottom-0 right-0 p-1.5 rounded-full text-gray-900 dark:text-white hover:opacity-90 transition"
               style={{ background: 'var(--accent-color)' }}
             >
               <Edit2 size={14} />
@@ -620,22 +620,22 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
           )}
         </div>
         <div>
-          <h4 className="text-xl font-semibold text-white">{profile.name || '—'}</h4>
-          <p className="text-gray-400">{profile.email}</p>
-          {profile.phone ? <p className="text-sm text-gray-400">{profile.phone}</p> : null}
-          <p className="text-sm text-gray-500">{profile.role}</p>
+          <h4 className="text-xl font-semibold text-gray-900 dark:text-white">{profile.name || '—'}</h4>
+          <p className="text-gray-600 dark:text-gray-400">{profile.email}</p>
+          {profile.phone ? <p className="text-sm text-gray-600 dark:text-gray-400">{profile.phone}</p> : null}
+          <p className="text-sm text-gray-500 dark:text-gray-400">{profile.role}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Full Name</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Full Name</label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
+            className={`w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition ${
               isEditing ? 'focus:ring-1' : 'opacity-70'
             }`}
             style={isEditing ? { '--tw-ring-color': 'var(--accent-color)' } : undefined}
@@ -648,22 +648,22 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Email Address</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Email Address</label>
           <input
             type="email"
             value={formData.email}
             disabled
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition opacity-70"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition opacity-70"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Phone Number</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Phone Number</label>
           <input
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
+            className={`w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition ${
               isEditing ? '' : 'opacity-70'
             }`}
             onFocus={(e) => {
@@ -675,13 +675,13 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Job Title</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Job Title</label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition ${
+            className={`w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition ${
               isEditing ? '' : 'opacity-70'
             }`}
             onFocus={(e) => {
@@ -693,13 +693,13 @@ function ProfileSection({ authEmail, authRole, onNameChange }) {
           />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Bio</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Bio</label>
           <textarea
             rows={2}
             value={formData.bio}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             disabled={!isEditing}
-            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition resize-none ${
+            className={`w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition resize-none ${
               isEditing ? '' : 'opacity-70'
             }`}
             placeholder="Tell us about yourself..."
@@ -763,26 +763,26 @@ function SecuritySection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Security & Authentication</h3>
-          <p className="text-sm text-gray-500">Manage your security settings</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Security & Authentication</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage your security settings</p>
         </div>
         <Shield size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
-      <div className="mb-6 pb-6 border-b border-white/5">
-        <h4 className="text-sm font-medium text-white mb-4">Change Password</h4>
+      <div className="mb-6 pb-6 border-b border-gray-200 dark:border-white/5">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Change Password</h4>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Current Password</label>
+            <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1.5">Current Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={passwordData.currentPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition pr-10"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition pr-10"
                 placeholder="Enter current password"
                 required
                 autoComplete="current-password"
@@ -792,7 +792,7 @@ function SecuritySection() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -800,13 +800,13 @@ function SecuritySection() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">New Password</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1.5">New Password</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition pr-10"
+                  className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition pr-10"
                   placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
                   required
                   minLength={MIN_PASSWORD_LENGTH}
@@ -817,19 +817,19 @@ function SecuritySection() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Confirm Password</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1.5">Confirm Password</label>
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none transition"
                 placeholder="Confirm new password"
                 required
                 minLength={MIN_PASSWORD_LENGTH}
@@ -848,7 +848,7 @@ function SecuritySection() {
             <button
               type="submit"
               disabled={passwordBusy}
-              className="px-6 py-2.5 rounded-xl text-white font-medium transition-all hover:opacity-90 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-gray-900 dark:text-white font-medium transition-all hover:opacity-90 disabled:opacity-50"
               style={{
                 ...accentGradientStyle,
                 boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -869,8 +869,8 @@ function SecuritySection() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-white">Two-Factor Authentication</h4>
-            <p className="text-xs text-gray-500">Add an extra layer of security</p>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white">Two-Factor Authentication</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Add an extra layer of security</p>
           </div>
           <button
             type="button"
@@ -886,8 +886,8 @@ function SecuritySection() {
           </button>
         </div>
         {twoFactorEnabled && (
-          <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/5">
-            <div className="flex items-center gap-3 text-sm text-gray-300">
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/5">
+            <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
               <Fingerprint size={18} style={{ color: 'var(--accent-color)' }} />
               <span>2FA is enabled. You'll need to verify your identity when logging in.</span>
             </div>
@@ -921,11 +921,11 @@ function NotificationsSection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Notifications</h3>
-          <p className="text-sm text-gray-500">Configure how you receive alerts</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Configure how you receive alerts</p>
         </div>
         <div className="flex items-center gap-2">
           {flash && <span className="text-xs text-green-400">Saved</span>}
@@ -933,18 +933,18 @@ function NotificationsSection() {
         </div>
       </div>
 
-      <div className="mb-6 pb-6 border-b border-white/5">
-        <h4 className="text-sm font-medium text-white mb-3">Notification Channels</h4>
+      <div className="mb-6 pb-6 border-b border-gray-200 dark:border-white/5">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Notification Channels</h4>
         <div className="space-y-3">
           {Object.entries(notifications)
             .filter(([key]) => ['email', 'push', 'desktop', 'sms'].includes(key))
             .map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
+              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5">
                 <div>
-                  <p className="text-sm text-white capitalize">
+                  <p className="text-sm text-gray-900 dark:text-white capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()} Notifications
                   </p>
-                  <p className="text-xs text-gray-500">Receive {key} notifications</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Receive {key} notifications</p>
                 </div>
                 <Toggle on={value} onToggle={() => toggleNotification(key)} />
               </div>
@@ -953,17 +953,17 @@ function NotificationsSection() {
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-white mb-3">Notification Events</h4>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Notification Events</h4>
         <div className="space-y-3">
           {Object.entries(notifications)
             .filter(([key]) => !['email', 'push', 'desktop', 'sms'].includes(key))
             .map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
+              <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5">
                 <div>
-                  <p className="text-sm text-white capitalize">
+                  <p className="text-sm text-gray-900 dark:text-white capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Get notified about {key.replace(/([A-Z])/g, ' $1').toLowerCase().trim()}
                   </p>
                 </div>
@@ -998,11 +998,11 @@ function IntegrationsSection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Integrations</h3>
-          <p className="text-sm text-gray-500">Connect your favorite tools</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Integrations</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Connect your favorite tools</p>
         </div>
         <Link2 size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
@@ -1013,15 +1013,15 @@ function IntegrationsSection() {
           return (
             <div
               key={integration.id}
-              className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition flex items-center justify-between"
+              className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-gray-200 dark:border-white/10 transition flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl ${integration.color} flex items-center justify-center`}>
-                  <integration.icon size={18} className="text-white" />
+                  <integration.icon size={18} className="text-gray-900 dark:text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">{integration.name}</p>
-                  <p className={`text-xs ${isConnected ? 'text-green-400' : 'text-gray-500'}`}>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{integration.name}</p>
+                  <p className={`text-xs ${isConnected ? 'text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                     {isConnected ? 'Connected' : 'Disconnected'}
                   </p>
                 </div>
@@ -1069,84 +1069,84 @@ function PreferencesSection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Preferences</h3>
-          <p className="text-sm text-gray-500">Customize your experience</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Preferences</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Customize your experience</p>
         </div>
         <Sliders size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Language</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Language</label>
           <select
             value={preferences.language}
             onChange={(e) => updatePreference('language', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none transition"
             onFocus={selectFocus}
             onBlur={selectBlur}
           >
             {LANGUAGE_OPTIONS.map((lang) => (
-              <option key={lang} value={lang} className="bg-[#14141a]">{lang}</option>
+              <option key={lang} value={lang} className="bg-white dark:bg-[#14141a]">{lang}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Timezone</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Timezone</label>
           <select
             value={preferences.timezone}
             onChange={(e) => updatePreference('timezone', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none transition"
             onFocus={selectFocus}
             onBlur={selectBlur}
           >
             {TIMEZONES.map((tz) => (
-              <option key={tz} value={tz} className="bg-[#14141a]">{tz}</option>
+              <option key={tz} value={tz} className="bg-white dark:bg-[#14141a]">{tz}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Currency</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Currency</label>
           <select
             value={preferences.currency}
             onChange={(e) => updatePreference('currency', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none transition"
             onFocus={selectFocus}
             onBlur={selectBlur}
           >
             {CURRENCIES.map((curr) => (
-              <option key={curr} value={curr} className="bg-[#14141a]">{curr}</option>
+              <option key={curr} value={curr} className="bg-white dark:bg-[#14141a]">{curr}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Date Format</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Date Format</label>
           <select
             value={preferences.dateFormat}
             onChange={(e) => updatePreference('dateFormat', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none transition"
             onFocus={selectFocus}
             onBlur={selectBlur}
           >
-            <option value="MM/DD/YYYY" className="bg-[#14141a]">MM/DD/YYYY</option>
-            <option value="DD/MM/YYYY" className="bg-[#14141a]">DD/MM/YYYY</option>
-            <option value="YYYY-MM-DD" className="bg-[#14141a]">YYYY-MM-DD</option>
+            <option value="MM/DD/YYYY" className="bg-white dark:bg-[#14141a]">MM/DD/YYYY</option>
+            <option value="DD/MM/YYYY" className="bg-white dark:bg-[#14141a]">DD/MM/YYYY</option>
+            <option value="YYYY-MM-DD" className="bg-white dark:bg-[#14141a]">YYYY-MM-DD</option>
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1.5">Start of Week</label>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">Start of Week</label>
           <select
             value={preferences.startOfWeek}
             onChange={(e) => updatePreference('startOfWeek', e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none transition"
+            className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none transition"
             onFocus={selectFocus}
             onBlur={selectBlur}
           >
-            <option value="Monday" className="bg-[#14141a]">Monday</option>
-            <option value="Sunday" className="bg-[#14141a]">Sunday</option>
-            <option value="Saturday" className="bg-[#14141a]">Saturday</option>
+            <option value="Monday" className="bg-white dark:bg-[#14141a]">Monday</option>
+            <option value="Sunday" className="bg-white dark:bg-[#14141a]">Sunday</option>
+            <option value="Saturday" className="bg-white dark:bg-[#14141a]">Saturday</option>
           </select>
         </div>
       </div>
@@ -1254,11 +1254,11 @@ function TeamSection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Team Members</h3>
-          <p className="text-sm text-gray-500">Manage accounts stored in the database</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Team Members</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage accounts stored in the database</p>
         </div>
         <button
           type="button"
@@ -1268,7 +1268,7 @@ function TeamSection() {
             setShowInvite((v) => !v);
             setInviteError('');
           }}
-          className="px-4 py-2 rounded-xl text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90 disabled:opacity-50"
+          className="px-4 py-2 rounded-xl text-gray-900 dark:text-white font-medium transition-all flex items-center gap-2 text-sm hover:opacity-90 disabled:opacity-50"
           style={{
             ...accentGradientStyle,
             boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -1302,7 +1302,7 @@ function TeamSection() {
       {showInvite && canManageTeam && (
         <form
           onSubmit={handleInvite}
-          className="mb-4 p-4 rounded-xl bg-white/5 border border-white/5 space-y-3"
+          className="mb-4 p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 space-y-3"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
@@ -1310,7 +1310,7 @@ function TeamSection() {
               placeholder="Name"
               value={inviteForm.name}
               onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none"
               required
             />
             <input
@@ -1318,7 +1318,7 @@ function TeamSection() {
               placeholder="Email"
               value={inviteForm.email}
               onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none"
               required
             />
             <input
@@ -1326,19 +1326,19 @@ function TeamSection() {
               placeholder="Phone number"
               value={inviteForm.phone}
               onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none"
             />
             <select
               value={inviteForm.role}
               onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none"
+              className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none"
             >
-              <option value="Sales Rep" className="bg-[#14141a]">Sales Rep</option>
-              <option value="Manager" className="bg-[#14141a]">Manager</option>
+              <option value="Sales Rep" className="bg-white dark:bg-[#14141a]">Sales Rep</option>
+              <option value="Manager" className="bg-white dark:bg-[#14141a]">Manager</option>
               {canInviteAdmins && (
-                <option value="Admin" className="bg-[#14141a]">Admin</option>
+                <option value="Admin" className="bg-white dark:bg-[#14141a]">Admin</option>
               )}
-              <option value="Social Media Rep" className="bg-[#14141a]">Social Media Rep</option>
+              <option value="Social Media Rep" className="bg-white dark:bg-[#14141a]">Social Media Rep</option>
             </select>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1348,7 +1348,7 @@ function TeamSection() {
                 placeholder={`Password (min ${MIN_PASSWORD_LENGTH} chars)`}
                 value={inviteForm.password}
                 onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none pr-10"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none pr-10"
                 required
                 minLength={MIN_PASSWORD_LENGTH}
                 autoComplete="new-password"
@@ -1356,7 +1356,7 @@ function TeamSection() {
               <button
                 type="button"
                 onClick={() => setShowInvitePassword(!showInvitePassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition"
               >
                 {showInvitePassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -1366,7 +1366,7 @@ function TeamSection() {
               placeholder="Confirm password"
               value={inviteForm.confirmPassword}
               onChange={(e) => setInviteForm({ ...inviteForm, confirmPassword: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none"
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 outline-none"
               required
               minLength={MIN_PASSWORD_LENGTH}
               autoComplete="new-password"
@@ -1380,7 +1380,7 @@ function TeamSection() {
           <button
             type="submit"
             disabled={inviteBusy}
-            className="px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl text-gray-900 dark:text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
             style={accentGradientStyle}
           >
             {inviteBusy ? 'Creating…' : 'Add Member'}
@@ -1389,40 +1389,40 @@ function TeamSection() {
       )}
 
       {loading ? (
-        <p className="text-sm text-gray-500 py-6 text-center">Loading team…</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">Loading team…</p>
       ) : members.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6 text-center">No team members found. Invite someone to get started.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">No team members found. Invite someone to get started.</p>
       ) : (
         <div className="space-y-2">
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
+              className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 transition"
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-gray-900 dark:text-white"
                   style={accentGradientStyle}
                 >
                   {member.avatar || '??'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">{member.name}</p>
-                  <p className="text-xs text-gray-500">{member.email}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{member.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{member.email}</p>
                   {member.phone ? (
                     <p className="text-xs text-gray-600">{member.phone}</p>
                   ) : null}
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-gray-400 border border-white/5">
+                <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/5">
                   {member.role}
                 </span>
                 {canManageTeam && member.role !== 'Admin' && (
                   <button
                     type="button"
                     onClick={() => removeMember(member.id)}
-                    className="text-gray-500 hover:text-red-400 transition"
+                    className="text-gray-500 dark:text-gray-400 hover:text-red-400 transition"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -1481,11 +1481,11 @@ function DataSection() {
   };
 
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-white">Data & Export</h3>
-          <p className="text-sm text-gray-500">Manage your data</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Data & Export</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage your data</p>
         </div>
         <Database size={20} style={{ color: 'var(--accent-color)' }} />
       </div>
@@ -1496,7 +1496,7 @@ function DataSection() {
             type="button"
             onClick={handleExport}
             disabled={exportState === 'loading'}
-            className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
+            className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-gray-200 dark:border-white/10 transition text-left group"
           >
             {exportState === 'loading' ? (
               <RefreshCw size={20} className="mb-2 animate-spin" style={{ color: 'var(--accent-color)' }} />
@@ -1505,10 +1505,10 @@ function DataSection() {
             ) : (
               <Download size={20} className="mb-2 group-hover:scale-110 transition" style={{ color: 'var(--accent-color)' }} />
             )}
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
               {exportState === 'loading' ? 'Exporting…' : exportState === 'success' ? 'Exported!' : 'Export Data'}
             </p>
-            <p className="text-xs text-gray-500">Export all your data as CSV</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Export all your data as CSV</p>
           </button>
         )}
 
@@ -1516,7 +1516,7 @@ function DataSection() {
           type="button"
           onClick={handleSync}
           disabled={syncState === 'loading'}
-          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition text-left group"
+          className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-gray-200 dark:border-white/10 transition text-left group"
         >
           {syncState === 'loading' ? (
             <RefreshCw size={20} className="text-green-400 mb-2 animate-spin" />
@@ -1525,20 +1525,20 @@ function DataSection() {
           ) : (
             <RefreshCw size={20} className="text-green-400 mb-2 group-hover:rotate-180 transition duration-500" />
           )}
-          <p className="text-sm font-medium text-white">
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
             {syncState === 'loading' ? 'Syncing…' : syncState === 'success' ? 'Synced' : 'Sync Data'}
           </p>
-          <p className="text-xs text-gray-500">Sync with all connected services</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Sync with all connected services</p>
         </button>
 
         <button
           type="button"
           onClick={handleLogout}
-          className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/20 transition text-left group"
+          className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 hover:border-red-500/20 transition text-left group"
         >
           <LogOut size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
-          <p className="text-sm font-medium text-white">Log Out</p>
-          <p className="text-xs text-gray-500">Sign out of your account</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">Log Out</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Sign out of your account</p>
         </button>
 
         {isAdmin && (
@@ -1546,7 +1546,7 @@ function DataSection() {
             type="button"
             onClick={handleDeleteAccount}
             disabled={deleteState === 'loading'}
-            className="p-4 rounded-xl bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group"
+            className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-red-500/10 hover:border-red-500/30 transition text-left group"
           >
             {deleteState === 'loading' ? (
               <RefreshCw size={20} className="text-red-400 mb-2 animate-spin" />
@@ -1555,14 +1555,14 @@ function DataSection() {
             ) : (
               <Trash2 size={20} className="text-red-400 mb-2 group-hover:scale-110 transition" />
             )}
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
               {deleteState === 'loading'
                 ? 'Deleting…'
                 : deleteState === 'success'
                   ? 'Account deletion requested (mock)'
                   : 'Delete Account'}
             </p>
-            <p className="text-xs text-gray-500">Permanently delete your account</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Permanently delete your account</p>
           </button>
         )}
       </div>
@@ -1628,37 +1628,37 @@ export function SettingsPage() {
   };
 
   return (
-    <div className={`flex min-h-screen bg-[#0a0a0f] ${theme === 'light' ? 'light' : 'dark'}`}>
+    <div className={`flex min-h-screen bg-gray-50 dark:bg-[#0a0a0f] ${theme === 'light' ? 'light' : 'dark'}`}>
       <AppSidebar
         isOpen={sidebarOpen}
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
 
       <div className={`flex-1 min-w-0 ${sidebarCollapsed ? '' : ''}`}>
-        <header className="bg-[#0f0f16] border-b border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
+        <header className="bg-white dark:bg-[#0f0f16] border-b border-gray-200 dark:border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="lg:hidden p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
               >
                 <Menu size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Settings</h1>
-                <p className="text-sm text-gray-500">Manage your account and preferences</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Manage your account and preferences</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{name || email}</p>
-                  <p className="text-xs text-gray-500">{role}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{name || email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{role}</p>
                 </div>
                 <div
-                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold shadow-lg"
+                  className="w-9 h-9 rounded-full text-gray-900 dark:text-white flex items-center justify-center text-sm font-bold shadow-lg"
                   style={{
                     ...accentGradientStyle,
                     boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -1674,7 +1674,7 @@ export function SettingsPage() {
         <div className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-64 flex-shrink-0">
-              <div className="bg-[#14141a] rounded-2xl border border-white/5 p-2 sticky top-24">
+              <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-2 sticky top-24">
                 {sections.map((section) => {
                   const active = activeSection === section.id;
                   return (
@@ -1683,7 +1683,7 @@ export function SettingsPage() {
                       type="button"
                       onClick={() => setActiveSection(section.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                        active ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                        active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:bg-white/5 hover:text-gray-900 dark:text-white'
                       }`}
                       style={
                         active

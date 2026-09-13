@@ -32,38 +32,38 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
-            <Zap size={32} className="text-white" />
+            <Zap size={32} className="text-gray-900 dark:text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Lead<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Flow</span>
           </h1>
-          <p className="text-gray-400 mt-2 text-sm">Smart CRM for modern sales teams</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">Smart CRM for modern sales teams</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#14141a] border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/10 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
                 <Mail 
                   size={18} 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" 
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" 
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-3 
-                             text-white placeholder-gray-500 text-sm
+                  className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-3 
+                             text-gray-900 dark:text-white placeholder-gray-500 text-sm
                              focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 
                              focus:outline-none transition"
                   placeholder="admin@leadflow.com"
@@ -74,20 +74,20 @@ export function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Password
               </label>
               <div className="relative">
                 <Lock 
                   size={18} 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" 
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" 
                 />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-3 
-                             text-white placeholder-gray-500 text-sm
+                  className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-3 
+                             text-gray-900 dark:text-white placeholder-gray-500 text-sm
                              focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 
                              focus:outline-none transition"
                   placeholder="Enter your password"
@@ -110,7 +110,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white 
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 dark:text-white 
                          py-3 rounded-xl text-sm font-semibold
                          hover:shadow-lg hover:shadow-blue-500/25 
                          transition-all duration-200 disabled:opacity-50 

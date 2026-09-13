@@ -18,23 +18,23 @@ export default function PaginationControls({
 
   return (
     <div
-      className={`flex items-center justify-between gap-2 pt-2 border-t border-white/5 ${className}`}
+      className={`flex items-center justify-between gap-2 pt-2 border-t border-gray-200 dark:border-white/5 ${className}`}
     >
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
         aria-label="Previous page"
-        className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         <ChevronLeft size={14} />
       </button>
 
       <div className="text-center min-w-0">
-        <div className="text-[11px] text-gray-400 font-medium">
+        <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
           Page {page} of {totalPages}
         </div>
-        <div className="text-[10px] text-gray-600 truncate">
+        <div className="text-[10px] text-gray-400 dark:text-gray-600 truncate">
           {from}–{to} of {totalItems}
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function PaginationControls({
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
         aria-label="Next page"
-        className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        className="p-1.5 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition"
       >
         <ChevronRight size={14} />
       </button>

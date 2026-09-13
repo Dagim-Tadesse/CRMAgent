@@ -50,21 +50,21 @@ function DroppableColumn({
 
   return (
     <div className="w-72 flex-shrink-0 flex flex-col">
-      <div className="bg-[#14141a] border border-white/5 rounded-t-2xl px-4 py-3 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-t-2xl px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wide truncate">
             {stage}
           </span>
         </div>
-        <span className="bg-white/10 text-white text-xs min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+        <span className="bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white text-xs min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center font-bold flex-shrink-0">
           {leads.length}
         </span>
       </div>
 
       <div
         ref={setNodeRef}
-        className={`bg-[#0f0f16] border-x border-b border-white/5 rounded-b-2xl min-h-48 p-2 space-y-2 transition-all ${
+        className={`bg-gray-50 dark:bg-[#0f0f16] border-x border-b border-gray-200 dark:border-white/5 rounded-b-2xl min-h-48 p-2 space-y-2 transition-all ${
           isOver ? 'border-2 border-dashed' : ''
         }`}
         style={
@@ -104,12 +104,12 @@ function OverlayCard({ lead }) {
 
   return (
     <div
-      className="bg-[#14141a] border-2 rounded-2xl shadow-xl p-4 w-72 pointer-events-none"
+      className="bg-white dark:bg-[#14141a] border-2 rounded-2xl shadow-xl p-4 w-72 pointer-events-none"
       style={{ borderColor }}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="font-bold text-white truncate text-sm">{lead.fullName}</div>
+          <div className="font-bold text-gray-900 dark:text-white truncate text-sm">{lead.fullName}</div>
           <div className="text-gray-500 text-xs truncate">{lead.company || '—'}</div>
         </div>
         <ScoreBadge score={lead.aiScore} />
@@ -281,7 +281,7 @@ export default function PipelinePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-6 transition-colors duration-200">
       <AlertModal 
         isOpen={alertState.isOpen} 
         onClose={() => setAlertState({ ...alertState, isOpen: false })} 
@@ -307,13 +307,13 @@ export default function PipelinePage() {
           <div className="flex items-center gap-4">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition group"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition group"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-sm">Back to Dashboard</span>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-white">Pipeline</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pipeline</h1>
               <p className="text-sm text-gray-500">
                 {leads.length} lead{leads.length !== 1 ? 's' : ''} across {STAGES.length} stages
                 <span className="text-gray-600"> · {PAGE_SIZE} per column page</span>

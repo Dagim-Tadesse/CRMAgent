@@ -62,7 +62,7 @@ export default function LeadCard({ lead, onClick }) {
       {...listeners}
       {...attributes}
       onClick={() => onClick?.(lead.id)}
-      className={`bg-[#14141a] border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-all ${
+      className={`bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4 hover:border-gray-300 dark:hover:border-white/10 transition-all ${
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
     >
@@ -75,8 +75,8 @@ export default function LeadCard({ lead, onClick }) {
       {/* Top row: name/company + score */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
-          <div className="font-bold text-white truncate text-sm">{lead.fullName}</div>
-          <div className="text-gray-500 text-xs truncate">{lead.company || '—'}</div>
+          <div className="font-bold text-gray-900 dark:text-white truncate text-sm">{lead.fullName}</div>
+          <div className="text-gray-600 dark:text-gray-500 text-xs truncate">{lead.company || '—'}</div>
         </div>
         <ScoreBadge score={lead.aiScore} />
       </div>
@@ -89,7 +89,7 @@ export default function LeadCard({ lead, onClick }) {
       </div>
 
       {/* Thin progress-style accent */}
-      <div className="h-0.5 w-full rounded-full bg-white/5 mb-3 overflow-hidden">
+      <div className="h-0.5 w-full rounded-full bg-gray-200 dark:bg-white/5 mb-3 overflow-hidden">
         <div
           className="h-full rounded-full"
           style={{
@@ -101,7 +101,7 @@ export default function LeadCard({ lead, onClick }) {
       </div>
 
       {/* Bottom row: last interaction */}
-      <div className="text-xs text-gray-500 text-right">
+      <div className="text-xs text-gray-500 dark:text-gray-500 text-right">
         {formatShortDate(lead.lastInteractionAt)}
       </div>
     </div>

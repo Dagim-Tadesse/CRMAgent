@@ -10,17 +10,15 @@
 }
 
 body {
-  background-color: #0a0a0f;
-  color: #ffffff;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  @apply bg-gray-50 text-gray-900 dark:bg-[#0a0a0f] dark:text-white transition-colors duration-200;
 }
 
 #root {
-  background-color: #0a0a0f;
   min-height: 100vh;
 }

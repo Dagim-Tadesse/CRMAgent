@@ -166,10 +166,10 @@ const mockLeadsByChannel = {
 // =============== STAT CARD ===============
 function StatCard({ icon: Icon, label, value, sub, color, trend }) {
   return (
-    <div className="bg-[#14141a] rounded-2xl border border-white/5 p-5 hover:border-white/10 transition-all group">
+    <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-5 hover:border-gray-200 dark:border-white/10 transition-all group">
       <div className="flex items-center justify-between mb-3">
         <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center group-hover:scale-110 transition duration-300`}>
-          <Icon size={18} className="text-white" />
+          <Icon size={18} className="text-gray-900 dark:text-white" />
         </div>
         {trend && (
           <span className={`text-xs font-medium ${trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -177,8 +177,8 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }) {
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       {sub && <p className="text-xs text-gray-600 mt-1">{sub}</p>}
     </div>
   );
@@ -202,10 +202,10 @@ function ChannelBadge({ channel }) {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#1a1a24] border border-white/10 rounded-xl p-3 shadow-xl">
-        <p className="text-xs text-gray-400 mb-1">{label}</p>
+      <div className="bg-gray-50 dark:bg-[#1a1a24] border border-gray-200 dark:border-white/10 rounded-xl p-3 shadow-xl">
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{label}</p>
         {payload.map((p, idx) => (
-          <p key={idx} className="text-sm text-white">
+          <p key={idx} className="text-sm text-gray-900 dark:text-white">
             {p.name}: <span className="font-bold">{p.value}</span>
           </p>
         ))}
@@ -457,37 +457,37 @@ export function ReportsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0a0a0f]">
       <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#0f0f16] border-b border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
+        <header className="bg-white dark:bg-[#0f0f16] border-b border-gray-200 dark:border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="lg:hidden p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
               >
                 <Menu size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Reports</h1>
-                <p className="text-sm text-gray-500">Social media analytics & channel performance</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Social media analytics & channel performance</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
+              <button className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition flex items-center gap-2 text-sm">
                 <Download size={16} />
                 Export
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{email}</p>
-                  <p className="text-xs text-gray-500">{role}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{role}</p>
                 </div>
                 <div
-                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  className="w-9 h-9 rounded-full text-gray-900 dark:text-white flex items-center justify-center text-sm font-bold"
                   style={{
                     background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))',
                     boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -537,29 +537,29 @@ export function ReportsPage() {
           </div>
 
           {/* ============ TOP CHANNEL HIGHLIGHT ============ */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-semibold text-white">Top Performing Channel</h2>
-                <p className="text-xs text-gray-500">Based on total leads and conversion rate</p>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Top Performing Channel</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Based on total leads and conversion rate</p>
               </div>
               <div className="flex items-center gap-2">
                 <ChannelBadge channel={topChannel.channel} />
-                <span className="text-xs text-gray-500">Best performer</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Best performer</span>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <p className="text-xs text-gray-500">Total Leads</p>
-                <p className="text-xl font-bold text-white">{topChannel.totalLeads}</p>
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total Leads</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{topChannel.totalLeads}</p>
               </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <p className="text-xs text-gray-500">Hot Leads</p>
-                <p className="text-xl font-bold text-white">{topChannel.hot}</p>
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Hot Leads</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{topChannel.hot}</p>
               </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <p className="text-xs text-gray-500">Conversion Rate</p>
-                <p className="text-xl font-bold text-white">{topChannel.conversionRate}</p>
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Conversion Rate</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{topChannel.conversionRate}</p>
               </div>
             </div>
           </div>
@@ -567,11 +567,11 @@ export function ReportsPage() {
           {/* ============ CHARTS ROW ============ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Pie Chart 1: Channel Distribution */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-200 dark:border-white/10 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Channel Distribution</h3>
-                  <p className="text-xs text-gray-500">Leads by source</p>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Channel Distribution</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Leads by source</p>
                 </div>
                 <PieChartIcon size={18} className="text-blue-400" />
               </div>
@@ -601,7 +601,7 @@ export function ReportsPage() {
                     verticalAlign="bottom" 
                     height={36}
                     formatter={(value) => (
-                      <span className="text-gray-400 text-xs">{value}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs">{value}</span>
                     )}
                   />
                 </PieChart>
@@ -610,19 +610,19 @@ export function ReportsPage() {
                 {channelLeads.map(c => (
                   <div key={c.channel} className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
-                    <span className="text-xs text-gray-400">{c.channel}</span>
-                    <span className="text-xs font-medium text-white">{c.count}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{c.channel}</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-white">{c.count}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Pie Chart 2: Hot Leads by Channel */}
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-200 dark:border-white/10 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Hot Leads by Channel</h3>
-                  <p className="text-xs text-gray-500">Leads with AI Score 8+</p>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Hot Leads by Channel</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Leads with AI Score 8+</p>
                 </div>
                 <Star size={18} className="text-yellow-400" />
               </div>
@@ -652,7 +652,7 @@ export function ReportsPage() {
                     verticalAlign="bottom" 
                     height={36}
                     formatter={(value) => (
-                      <span className="text-gray-400 text-xs">{value}</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-xs">{value}</span>
                     )}
                   />
                 </PieChart>
@@ -661,8 +661,8 @@ export function ReportsPage() {
                 {hotLeadsData.map(c => (
                   <div key={c.channel} className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />
-                    <span className="text-xs text-gray-400">{c.channel}</span>
-                    <span className="text-xs font-medium text-white">{c.value}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{c.channel}</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-white">{c.value}</span>
                   </div>
                 ))}
               </div>
@@ -670,11 +670,11 @@ export function ReportsPage() {
           </div>
 
           {/* ============ CLASSIFICATION BAR CHART ============ */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-200 dark:border-white/10 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-semibold text-white">Lead Classification by Channel</h3>
-                <p className="text-xs text-gray-500">Hot / Medium / Low distribution</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Lead Classification by Channel</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Hot / Medium / Low distribution</p>
               </div>
               <BarChart3 size={18} className="text-blue-400" />
             </div>
@@ -686,7 +686,7 @@ export function ReportsPage() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
                   verticalAlign="top"
-                  formatter={(value) => <span className="text-gray-400 text-xs">{value}</span>}
+                  formatter={(value) => <span className="text-gray-600 dark:text-gray-400 text-xs">{value}</span>}
                 />
                 <Bar dataKey="hot" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="medium" stackId="a" fill="#3b82f6" radius={[4, 4, 0, 0]} />
@@ -696,11 +696,11 @@ export function ReportsPage() {
           </div>
 
           {/* ============ DETAILED REPORT TABLE ============ */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-200 dark:border-white/10 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-semibold text-white">Channel Performance Report</h3>
-                <p className="text-xs text-gray-500">Detailed metrics by source</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Channel Performance Report</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Detailed metrics by source</p>
               </div>
               <button className="text-xs text-blue-400 hover:text-blue-300 transition">
                 View All →
@@ -710,7 +710,7 @@ export function ReportsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 border-b border-white/5">
+                  <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/5">
                     <th className="pb-3 font-medium">Channel</th>
                     <th className="pb-3 font-medium text-center">Total</th>
                     <th className="pb-3 font-medium text-center">Hot (8+)</th>
@@ -725,24 +725,24 @@ export function ReportsPage() {
                 <tbody>
                   {reportData.map((row, idx) => (
                     <>
-                      <tr key={idx} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition">
+                      <tr key={idx} className="border-b border-gray-200 dark:border-white/5 last:border-0 hover:bg-gray-100 dark:bg-white/5 transition">
                         <td className="py-3">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                            <span className="text-white font-medium">{row.channel}</span>
+                            <span className="text-gray-900 dark:text-white font-medium">{row.channel}</span>
                           </div>
                         </td>
-                        <td className="py-3 text-center text-white">{row.totalLeads}</td>
+                        <td className="py-3 text-center text-gray-900 dark:text-white">{row.totalLeads}</td>
                         <td className="py-3 text-center text-yellow-400">{row.hot}</td>
                         <td className="py-3 text-center text-blue-400">{row.medium}</td>
-                        <td className="py-3 text-center text-gray-400">{row.low}</td>
-                        <td className="py-3 text-center text-white font-medium">{row.avgScore}</td>
+                        <td className="py-3 text-center text-gray-600 dark:text-gray-400">{row.low}</td>
+                        <td className="py-3 text-center text-gray-900 dark:text-white font-medium">{row.avgScore}</td>
                         <td className="py-3 text-center text-green-400">{row.wonDeals}</td>
-                        <td className="py-3 text-center text-white">{row.conversionRate}</td>
+                        <td className="py-3 text-center text-gray-900 dark:text-white">{row.conversionRate}</td>
                         <td className="py-3 text-center">
                           <button
                             onClick={() => toggleChannelExpand(row.channel)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition text-gray-400 hover:text-white"
+                            className="p-1.5 rounded-lg bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
                           >
                             {expandedChannel === row.channel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </button>
@@ -751,26 +751,26 @@ export function ReportsPage() {
                       {/* Expanded row with lead details */}
                       {expandedChannel === row.channel && leadsByChannel[row.channel] && (
                         <tr>
-                          <td colSpan={9} className="py-4 bg-white/5 rounded-xl">
+                          <td colSpan={9} className="py-4 bg-gray-100 dark:bg-white/5 rounded-xl">
                             <div className="px-4">
-                              <p className="text-xs font-medium text-gray-400 mb-3">
+                              <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-3">
                                 Recent leads from {row.channel}
                               </p>
                               <div className="space-y-2">
                                 {leadsByChannel[row.channel].slice(0, 3).map((lead) => (
-                                  <div key={lead.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                                  <div key={lead.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-white/5">
                                     <div className="flex items-center gap-3">
-                                      <span className="text-sm text-white">{lead.name}</span>
+                                      <span className="text-sm text-gray-900 dark:text-white">{lead.name}</span>
                                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                                         lead.status === 'Hot' ? 'bg-orange-500/20 text-orange-400' :
                                         lead.status === 'Medium' ? 'bg-blue-500/20 text-blue-400' :
-                                        'bg-gray-500/20 text-gray-400'
+                                        'bg-gray-500/20 text-gray-600 dark:text-gray-400'
                                       }`}>
                                         {lead.status}
                                       </span>
-                                      <span className="text-xs text-gray-500">{lead.stage}</span>
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">{lead.stage}</span>
                                     </div>
-                                    <span className="text-xs text-gray-500">{lead.createdAt}</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{lead.createdAt}</span>
                                   </div>
                                 ))}
                                 {leadsByChannel[row.channel].length > 3 && (
@@ -791,22 +791,22 @@ export function ReportsPage() {
           </div>
 
           {/* ============ SOCIAL MEDIA ANALYTICS ============ */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6 hover:border-gray-200 dark:border-white/10 transition-all">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h3 className="text-sm font-semibold text-white">Social Media Brand Engagement</h3>
-                <p className="text-xs text-gray-500">Live signal metrics and sentiment tracking from n8n webhooks</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Social Media Brand Engagement</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Live signal metrics and sentiment tracking from n8n webhooks</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Campaign Filter:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Campaign Filter:</span>
                 <select 
                   value={selectedNewsId || ''} 
                   onChange={(e) => setSelectedNewsId(e.target.value || null)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                 >
-                  <option value="" className="bg-[#0f0f16]">All Campaigns / News</option>
+                  <option value="" className="bg-white dark:bg-[#0f0f16]">All Campaigns / News</option>
                   {uniqueNewsIds.map((newsId, idx) => (
-                    <option key={idx} value={newsId} className="bg-[#0f0f16]">
+                    <option key={idx} value={newsId} className="bg-white dark:bg-[#0f0f16]">
                       {NEWS_ITEMS[newsId] || newsId}
                     </option>
                   ))}
@@ -816,9 +816,9 @@ export function ReportsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Chart 1: Platform Engagement */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-gray-400">Platform Volume</span>
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Platform Volume</span>
                   <Activity size={14} className="text-blue-400" />
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
@@ -833,9 +833,9 @@ export function ReportsPage() {
               </div>
 
               {/* Chart 2: Sentiment Breakdown */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-gray-400">Social Sentiment</span>
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Social Sentiment</span>
                   <TrendingUp size={14} className="text-green-400" />
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
@@ -859,15 +859,15 @@ export function ReportsPage() {
                 </ResponsiveContainer>
                 <div className="flex justify-center gap-3 mt-1">
                   <span className="text-[10px] text-green-400 font-medium">Positive ({sentimentData.find(s=>s.name==='Positive')?.value || 0})</span>
-                  <span className="text-[10px] text-gray-400 font-medium">Neutral ({sentimentData.find(s=>s.name==='Neutral')?.value || 0})</span>
+                  <span className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Neutral ({sentimentData.find(s=>s.name==='Neutral')?.value || 0})</span>
                   <span className="text-[10px] text-red-400 font-medium">Negative ({sentimentData.find(s=>s.name==='Negative')?.value || 0})</span>
                 </div>
               </div>
 
               {/* Chart 3: Signal Type Distribution */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+              <div className="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-gray-400">Signal Interaction Types</span>
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Signal Interaction Types</span>
                   <ThumbsUp size={14} className="text-yellow-400" />
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
@@ -902,56 +902,56 @@ export function ReportsPage() {
 
           {/* ============ INSIGHTS SECTION ============ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-xl bg-green-500/10 flex items-center justify-center">
                   <TrendingUp size={16} className="text-green-400" />
                 </div>
-                <h4 className="text-sm font-semibold text-white">Key Insights</h4>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Key Insights</h4>
               </div>
               <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
-                  <span><span className="text-white font-medium">{topChannel.channel}</span> is your best performing channel with <span className="text-white font-medium">{topChannel.totalLeads}</span> leads</span>
+                  <span><span className="text-gray-900 dark:text-white font-medium">{topChannel.channel}</span> is your best performing channel with <span className="text-gray-900 dark:text-white font-medium">{topChannel.totalLeads}</span> leads</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <CheckCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
-                  <span><span className="text-white font-medium">{topHotChannel.channel}</span> has the most hot leads (<span className="text-white font-medium">{topHotChannel.hot}</span>)</span>
+                  <span><span className="text-gray-900 dark:text-white font-medium">{topHotChannel.channel}</span> has the most hot leads (<span className="text-gray-900 dark:text-white font-medium">{topHotChannel.hot}</span>)</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <AlertTriangle size={16} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-                  <span>Email channel has the lowest conversion rate (<span className="text-white font-medium">6.7%</span>) - consider improving outreach</span>
+                  <span>Email channel has the lowest conversion rate (<span className="text-gray-900 dark:text-white font-medium">6.7%</span>) - consider improving outreach</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <Star size={16} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-                  <span>Overall conversion rate is <span className="text-white font-medium">{((totalWon / totalLeads) * 100).toFixed(1)}%</span> across all channels</span>
+                  <span>Overall conversion rate is <span className="text-gray-900 dark:text-white font-medium">{((totalWon / totalLeads) * 100).toFixed(1)}%</span> across all channels</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
                   <Info size={16} className="text-blue-400" />
                 </div>
-                <h4 className="text-sm font-semibold text-white">Recommendations</h4>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Recommendations</h4>
               </div>
               <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                  <span>Focus more on <span className="text-white font-medium">Telegram</span> - it's your highest converting channel</span>
+                  <span>Focus more on <span className="text-gray-900 dark:text-white font-medium">Telegram</span> - it's your highest converting channel</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                  <span>Improve <span className="text-white font-medium">Email</span> strategy - it has the most room for growth</span>
+                  <span>Improve <span className="text-gray-900 dark:text-white font-medium">Email</span> strategy - it has the most room for growth</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                  <span><span className="text-white font-medium">Website Form</span> hot leads have high quality - prioritize them</span>
+                  <span><span className="text-gray-900 dark:text-white font-medium">Website Form</span> hot leads have high quality - prioritize them</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-300">
+                <li className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
-                  <span>Target <span className="text-white font-medium">{topHotChannel.channel}</span> for more high-quality leads</span>
+                  <span>Target <span className="text-gray-900 dark:text-white font-medium">{topHotChannel.channel}</span> for more high-quality leads</span>
                 </li>
               </ul>
             </div>

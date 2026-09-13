@@ -15,17 +15,17 @@ import { useAuth } from '../hooks/useAuth';
 // Stage Badge Component
 function StageBadge({ stage }) {
   const styles = {
-    New: 'bg-blue-500/20 text-blue-300 border border-blue-500/20',
-    Contacted: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/20',
-    Qualified: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/20',
-    ProposalSent: 'bg-orange-500/20 text-orange-300 border border-orange-500/20',
-    Negotiation: 'bg-purple-500/20 text-purple-300 border border-purple-500/20',
-    Won: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/20',
-    Lost: 'bg-red-500/20 text-red-300 border border-red-500/20'
+    New: 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20',
+    Contacted: 'bg-cyan-100 text-cyan-700 border border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/20',
+    Qualified: 'bg-yellow-100 text-yellow-700 border border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/20',
+    ProposalSent: 'bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/20',
+    Negotiation: 'bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/20',
+    Won: 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/20',
+    Lost: 'bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/20'
   };
 
   return (
-    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${styles[stage] || 'bg-white/5 text-gray-400 border border-white/5'}`}>
+    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${styles[stage] || 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5'}`}>
       {stage}
     </span>
   );
@@ -94,9 +94,9 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#14141a] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-white/5">
-          <h2 className="text-xl font-semibold text-white">Add New Lead</h2>
+      <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/5">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Lead</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition">
             <X size={20} />
           </button>
@@ -114,7 +114,7 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
                 required
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                 placeholder="John Doe"
               />
             </div>
@@ -131,7 +131,7 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                 placeholder="john@example.com"
               />
             </div>
@@ -147,7 +147,7 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
                 type="text"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                 placeholder="Acme Corp"
               />
             </div>
@@ -164,7 +164,7 @@ function AddLeadModal({ isOpen, onClose, onLeadAdded }) {
                 rows="4"
                 value={formData.rawInquiryText}
                 onChange={(e) => setFormData({ ...formData, rawInquiryText: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition resize-none"
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition resize-none"
                 placeholder="I'm interested in your product... (AI will analyze this)"
               />
             </div>
@@ -464,7 +464,7 @@ export function LeadsPage() {
   const hasMoreLeads = visibleCount < filteredLeads.length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] p-6 transition-colors duration-200">
       <ConfirmModal
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
@@ -480,13 +480,13 @@ export function LeadsPage() {
           <div className="flex items-center gap-4">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition group"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-white/20 transition group"
             >
               <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-sm">Back to Dashboard</span>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-white">Leads</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leads</h1>
               <p className="text-sm text-gray-500">
                 {viewMode === 'active' 
                   ? 'Manage and track your active leads' 
@@ -496,7 +496,7 @@ export function LeadsPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* View Toggle */}
-            <div className="flex rounded-xl bg-white/5 border border-white/10 p-1">
+            <div className="flex rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-1">
               <button
                 onClick={() => setViewMode('active')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
@@ -541,7 +541,7 @@ export function LeadsPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-[#14141a] border border-white/5 rounded-2xl p-4">
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl p-4">
           <div className="flex flex-wrap gap-4 items-center">
             {/* Search */}
             <div className="flex-1 min-w-[200px] relative">
@@ -553,7 +553,7 @@ export function LeadsPage() {
                 placeholder={viewMode === 'active' 
                   ? "Search by name, company, or email..." 
                   : "Search archived leads..."}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
+                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
               />
             </div>
 
@@ -564,10 +564,10 @@ export function LeadsPage() {
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
-                  className="bg-[#14141a] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
+                  className="bg-gray-50 dark:bg-[#14141a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:outline-none transition cursor-pointer"
                 >
                   {stages.map(stage => (
-                    <option key={stage} value={stage} className="bg-[#14141a] text-white font-medium">
+                    <option key={stage} value={stage} className="bg-white dark:bg-[#14141a] text-gray-900 dark:text-white font-medium">
                       {stage}
                     </option>
                   ))}
@@ -583,13 +583,13 @@ export function LeadsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-[#14141a] border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-500 border-b border-white/5">
+                <tr className="text-left text-xs text-gray-500 border-b border-gray-200 dark:border-white/5">
                   <th 
-                    className="px-6 py-4 font-medium cursor-pointer hover:text-white transition"
+                    className="px-6 py-4 font-medium cursor-pointer hover:text-gray-900 dark:hover:text-white transition"
                     onClick={() => handleSort('fullName')}
                   >
                     <div className="flex items-center gap-1">
@@ -600,7 +600,7 @@ export function LeadsPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-4 font-medium cursor-pointer hover:text-white transition"
+                    className="px-6 py-4 font-medium cursor-pointer hover:text-gray-900 dark:hover:text-white transition"
                     onClick={() => handleSort('company')}
                   >
                     <div className="flex items-center gap-1">
@@ -622,7 +622,7 @@ export function LeadsPage() {
                     <th className="px-6 py-4 font-medium">Flags</th>
                   )}
                   <th 
-                    className="px-6 py-4 font-medium cursor-pointer hover:text-white transition"
+                    className="px-6 py-4 font-medium cursor-pointer hover:text-gray-900 dark:hover:text-white transition"
                     onClick={() => handleSort('updatedAt')}
                   >
                     <div className="flex items-center gap-1">
@@ -640,13 +640,13 @@ export function LeadsPage() {
                   <tr
                     key={lead.id}
                     onClick={() => navigate(`/leads/${lead.id}`)}
-                    className="border-b border-white/5 last:border-0 hover:bg-white/5 transition cursor-pointer group"
+                    className="border-b border-gray-200 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition cursor-pointer group"
                   >
                     <td className="px-6 py-4">
-                      <div className="font-medium text-white">{lead.fullName}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{lead.fullName}</div>
                       <div className="text-xs text-gray-500">{lead.email}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-400">{lead.company || '-'}</td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{lead.company || '-'}</td>
                     
                     {viewMode === 'active' && (
                       <>
@@ -750,10 +750,10 @@ export function LeadsPage() {
 
           {/* See More Button */}
           {hasMoreLeads && (
-            <div className="border-t border-white/5 p-4">
+            <div className="border-t border-gray-200 dark:border-white/5 p-4">
               <button
                 onClick={handleSeeMore}
-                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition flex items-center justify-center gap-2 text-sm font-medium group"
+                className="w-full py-3 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition flex items-center justify-center gap-2 text-sm font-medium group"
               >
                 <span>See More Leads</span>
                 <ChevronRight 

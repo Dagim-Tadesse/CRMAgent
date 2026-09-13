@@ -318,9 +318,9 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-2xl bg-[#14141a] border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-[#14141a] border-b border-white/5 p-6 rounded-t-2xl flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-[#14141a] border-b border-gray-200 dark:border-white/5 p-6 rounded-t-2xl flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             {event ? 'Edit Event' : 'Create New Event'}
           </h2>
           <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
             )}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+              className="p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
             >
               <X size={20} />
             </button>
@@ -346,7 +346,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <fieldset disabled={!canEdit} className="space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
               Event Title *
             </label>
             <input
@@ -354,7 +354,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               placeholder="Enter event title..."
             />
           </div>
@@ -362,28 +362,28 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lead Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Lead Name
               </label>
               <input
                 type="text"
                 value={formData.lead}
                 onChange={(e) => setFormData({ ...formData, lead: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 placeholder="Lead name..."
               />
             </div>
 
             {/* Company */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Company
               </label>
               <input
                 type="text"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 placeholder="Company name..."
               />
             </div>
@@ -392,28 +392,28 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lead Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Email
               </label>
               <input
                 type="email"
                 value={formData.leadEmail}
                 onChange={(e) => setFormData({ ...formData, leadEmail: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 placeholder="lead@email.com"
               />
             </div>
 
             {/* Lead Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Phone
               </label>
               <input
                 type="tel"
                 value={formData.leadPhone}
                 onChange={(e) => setFormData({ ...formData, leadPhone: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 placeholder="+1 (555) 000-0000"
               />
             </div>
@@ -422,34 +422,34 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Event Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Event Type *
               </label>
               <select
                 required
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
                 {EVENT_TYPES.map(type => (
-                  <option key={type} value={type} className="bg-[#14141a]">{type}</option>
+                  <option key={type} value={type} className="bg-white dark:bg-[#14141a]">{type}</option>
                 ))}
               </select>
             </div>
 
             {/* Assigned To */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Assigned To
               </label>
               <select
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
-                <option value="John Doe" className="bg-[#14141a]">John Doe</option>
-                <option value="Sarah Johnson" className="bg-[#14141a]">Sarah Johnson</option>
-                <option value="Mike Peters" className="bg-[#14141a]">Mike Peters</option>
+                <option value="John Doe" className="bg-white dark:bg-[#14141a]">John Doe</option>
+                <option value="Sarah Johnson" className="bg-white dark:bg-[#14141a]">Sarah Johnson</option>
+                <option value="Mike Peters" className="bg-white dark:bg-[#14141a]">Mike Peters</option>
               </select>
             </div>
           </div>
@@ -457,7 +457,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Start Time */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Start Time *
               </label>
               <input
@@ -465,13 +465,13 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
                 required
                 value={formatDateTimeLocal(formData.start)}
                 onChange={(e) => setFormData({ ...formData, start: new Date(e.target.value) })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
             </div>
 
             {/* End Time */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 End Time *
               </label>
               <input
@@ -479,28 +479,28 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
                 required
                 value={formatDateTimeLocal(formData.end)}
                 onChange={(e) => setFormData({ ...formData, start: formData.start, end: new Date(e.target.value) })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               />
             </div>
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
               Location
             </label>
             <input
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               placeholder="Video call, office, phone, etc."
             />
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
               Tags
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
@@ -513,7 +513,7 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
-                    className="hover:text-white transition"
+                    className="hover:text-gray-900 dark:text-white transition"
                   >
                     <X size={12} />
                   </button>
@@ -531,13 +531,13 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
                     addTag(tagInput);
                   }
                 }}
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="flex-1 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
                 placeholder="Add a tag..."
               />
               <button
                 type="button"
                 onClick={() => tagInput && addTag(tagInput)}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition"
+                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white transition"
               >
                 Add
               </button>
@@ -546,14 +546,14 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
               Notes
             </label>
             <textarea
               rows={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none"
+              className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none"
               placeholder="Add any notes here..."
             />
           </div>
@@ -561,32 +561,32 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
                 {EVENT_STATUSES.map(status => (
-                  <option key={status} value={status} className="bg-[#14141a]">{status}</option>
+                  <option key={status} value={status} className="bg-white dark:bg-[#14141a]">{status}</option>
                 ))}
               </select>
             </div>
 
             {/* Priority */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                 Priority
               </label>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
                 {EVENT_PRIORITIES.map(priority => (
-                  <option key={priority} value={priority} className="bg-[#14141a]">{priority}</option>
+                  <option key={priority} value={priority} className="bg-white dark:bg-[#14141a]">{priority}</option>
                 ))}
               </select>
             </div>
@@ -598,27 +598,27 @@ function EventModal({ isOpen, onClose, event, onSave, onDelete, authEmail, authR
                 id="recurring"
                 checked={formData.recurring}
                 onChange={(e) => setFormData({ ...formData, recurring: e.target.checked })}
-                className="w-4 h-4 rounded bg-white/5 border-white/10 text-blue-500 focus:ring-blue-500"
+                className="w-4 h-4 rounded bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-blue-500 focus:ring-blue-500"
               />
-              <label htmlFor="recurring" className="text-sm text-gray-400">
+              <label htmlFor="recurring" className="text-sm text-gray-600 dark:text-gray-400">
                 Recurring Event
               </label>
             </div>
             </div>
           </fieldset>
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/5">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition"
+              className="px-6 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-100 dark:bg-white/5 transition"
             >
               Cancel
             </button>
             {canEdit && (
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 dark:text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all"
               >
                 {event ? 'Update Event' : 'Create Event'}
               </button>
@@ -646,20 +646,20 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      'Low': 'bg-blue-500/20 text-blue-300 border-blue-500/20',
-      'Medium': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/20',
-      'High': 'bg-orange-500/20 text-orange-300 border-orange-500/20',
-      'Urgent': 'bg-red-500/20 text-red-300 border-red-500/20'
+      'Low': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20',
+      'Medium': 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/20',
+      'High': 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/20',
+      'Urgent': 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/20'
     };
     return colors[priority] || colors['Medium'];
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      'Scheduled': 'bg-blue-500/20 text-blue-300 border-blue-500/20',
-      'Completed': 'bg-green-500/20 text-green-300 border-green-500/20',
-      'Cancelled': 'bg-red-500/20 text-red-300 border-red-500/20',
-      'Rescheduled': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/20'
+      'Scheduled': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/20',
+      'Completed': 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/20',
+      'Cancelled': 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/20',
+      'Rescheduled': 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/20'
     };
     return colors[status] || colors['Scheduled'];
   };
@@ -668,10 +668,10 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-md bg-[#14141a] border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-white/5 flex items-start justify-between">
+      <div className="relative w-full max-w-md bg-white dark:bg-[#14141a] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-white">{event.title}</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{event.title}</h3>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${getPriorityColor(event.priority)}`}>
                 {event.priority}
@@ -680,49 +680,49 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
                 {event.status}
               </span>
               {event.recurring && (
-                <span className="text-xs px-2.5 py-1 rounded-full font-medium border bg-purple-500/20 text-purple-300 border-purple-500/20">
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium border bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/20">
                   <Repeat size={12} className="inline mr-1" />
                   Recurring
                 </span>
               )}
             </div>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white">
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white">
             <X size={18} />
           </button>
         </div>
 
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-3 text-sm">
-            <User size={16} className="text-gray-500" />
-            <span className="text-gray-400">Lead:</span>
-            <span className="text-white font-medium">{event.lead || 'N/A'}</span>
+            <User size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Lead:</span>
+            <span className="text-gray-900 dark:text-white font-medium">{event.lead || 'N/A'}</span>
           </div>
 
           {event.company && (
             <div className="flex items-center gap-3 text-sm">
-              <Building2 size={16} className="text-gray-500" />
-              <span className="text-gray-400">Company:</span>
-              <span className="text-white">{event.company}</span>
+              <Building2 size={16} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">Company:</span>
+              <span className="text-gray-900 dark:text-white">{event.company}</span>
             </div>
           )}
 
           <div className="flex items-center gap-3 text-sm">
-            <Mail size={16} className="text-gray-500" />
-            <span className="text-gray-400">Email:</span>
-            <span className="text-white">{event.leadEmail || 'N/A'}</span>
+            <Mail size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Email:</span>
+            <span className="text-gray-900 dark:text-white">{event.leadEmail || 'N/A'}</span>
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <Phone size={16} className="text-gray-500" />
-            <span className="text-gray-400">Phone:</span>
-            <span className="text-white">{event.leadPhone || 'N/A'}</span>
+            <Phone size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+            <span className="text-gray-900 dark:text-white">{event.leadPhone || 'N/A'}</span>
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <Clock size={16} className="text-gray-500" />
-            <span className="text-gray-400">Time:</span>
-            <span className="text-white">
+            <Clock size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Time:</span>
+            <span className="text-gray-900 dark:text-white">
               {new Date(event.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} 
               {' '}
               {new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
@@ -731,32 +731,32 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <Tag size={16} className="text-gray-500" />
-            <span className="text-gray-400">Type:</span>
-            <span className="text-white">{event.type}</span>
+            <Tag size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Type:</span>
+            <span className="text-gray-900 dark:text-white">{event.type}</span>
           </div>
 
           <div className="flex items-center gap-3 text-sm">
-            <User size={16} className="text-gray-500" />
-            <span className="text-gray-400">Assigned:</span>
-            <span className="text-white">{event.assignedTo}</span>
+            <User size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-gray-600 dark:text-gray-400">Assigned:</span>
+            <span className="text-gray-900 dark:text-white">{event.assignedTo}</span>
           </div>
 
           {event.location && (
             <div className="flex items-center gap-3 text-sm">
-              <MapPin size={16} className="text-gray-500" />
-              <span className="text-gray-400">Location:</span>
-              <span className="text-white">{event.location}</span>
+              <MapPin size={16} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">Location:</span>
+              <span className="text-gray-900 dark:text-white">{event.location}</span>
             </div>
           )}
 
           {event.tags && event.tags.length > 0 && (
             <div className="flex items-center gap-3 text-sm">
-              <Tag size={16} className="text-gray-500" />
-              <span className="text-gray-400">Tags:</span>
+              <Tag size={16} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">Tags:</span>
               <div className="flex flex-wrap gap-1">
                 {event.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 bg-white/5 rounded-full text-gray-300">
+                  <span key={tag} className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded-full text-gray-700 dark:text-gray-300">
                     {tag}
                   </span>
                 ))}
@@ -765,30 +765,30 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
           )}
 
           {event.notes && (
-            <div className="pt-3 border-t border-white/5">
-              <p className="text-xs text-gray-500 mb-1.5 flex items-center gap-1.5">
+            <div className="pt-3 border-t border-gray-200 dark:border-white/5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1.5">
                 <MessageSquare size={14} />
                 Notes
               </p>
-              <p className="text-sm text-gray-300">{event.notes}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{event.notes}</p>
             </div>
           )}
 
           {event.attachments > 0 && (
             <div className="flex items-center gap-3 text-sm pt-2">
-              <Paperclip size={16} className="text-gray-500" />
-              <span className="text-gray-400">Attachments:</span>
-              <span className="text-white">{event.attachments} files</span>
+              <Paperclip size={16} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">Attachments:</span>
+              <span className="text-gray-900 dark:text-white">{event.attachments} files</span>
             </div>
           )}
 
           {event.completion > 0 && event.status !== 'Completed' && (
             <div className="pt-2">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                 <span>Progress</span>
                 <span>{event.completion}%</span>
               </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                 <div 
                   className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all"
                   style={{ width: `${event.completion}%` }}
@@ -798,10 +798,10 @@ function EventDetails({ event, onClose, onEdit, onDelete }) {
           )}
         </div>
 
-        <div className="p-4 border-t border-white/5 flex items-center justify-end gap-2">
+        <div className="p-4 border-t border-gray-200 dark:border-white/5 flex items-center justify-end gap-2">
           <button
             onClick={() => { onEdit(event); onClose(); }}
-            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white transition flex items-center gap-2"
           >
             <Edit2 size={14} />
             Edit
@@ -985,33 +985,33 @@ export function SchedulePage() {
   const urgentEvents = events.filter(e => e.priority === 'Urgent').length;
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0a0a0f]">
       <AppSidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#0f0f16] border-b border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
+        <header className="bg-white dark:bg-[#0f0f16] border-b border-gray-200 dark:border-white/5 sticky top-0 z-30 backdrop-blur-sm bg-opacity-90">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="lg:hidden p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
               >
                 <Menu size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Schedule</h1>
-                <p className="text-sm text-gray-500">Manage your calendar and events</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Manage your calendar and events</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{email}</p>
-                  <p className="text-xs text-gray-500">{role}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{role}</p>
                 </div>
                 <div
-                  className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  className="w-9 h-9 rounded-full text-gray-900 dark:text-white flex items-center justify-center text-sm font-bold"
                   style={{
                     background: 'linear-gradient(to right, var(--accent-color), var(--accent-color-dark))',
                     boxShadow: '0 10px 15px -3px var(--accent-color-shadow)'
@@ -1027,11 +1027,11 @@ export function SchedulePage() {
         <div className="p-6 space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 hover:border-gray-200 dark:border-white/10 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">Total Events</p>
-                  <p className="text-2xl font-bold text-white">{totalEvents}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Total Events</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalEvents}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition">
                   <CalendarIcon size={18} className="text-blue-400" />
@@ -1039,11 +1039,11 @@ export function SchedulePage() {
               </div>
             </div>
             
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 hover:border-gray-200 dark:border-white/10 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">Upcoming</p>
-                  <p className="text-2xl font-bold text-white">{upcomingEvents}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Upcoming</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{upcomingEvents}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition">
                   <Clock8 size={18} className="text-green-400" />
@@ -1051,11 +1051,11 @@ export function SchedulePage() {
               </div>
             </div>
             
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 hover:border-gray-200 dark:border-white/10 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">Completed</p>
-                  <p className="text-2xl font-bold text-white">{completedEvents}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedEvents}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition">
                   <CheckCircle size={18} className="text-purple-400" />
@@ -1063,11 +1063,11 @@ export function SchedulePage() {
               </div>
             </div>
             
-            <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 hover:border-white/10 transition-all group">
+            <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 hover:border-gray-200 dark:border-white/10 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">Urgent</p>
-                  <p className="text-2xl font-bold text-white">{urgentEvents}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Urgent</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{urgentEvents}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition">
                   <AlertTriangle size={18} className="text-red-400" />
@@ -1077,26 +1077,26 @@ export function SchedulePage() {
           </div>
 
           {/* Calendar Controls */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={goToPrevious}
-                className="p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
               >
                 <ChevronLeft size={20} />
               </button>
-              <h2 className="text-lg font-semibold text-white min-w-[200px] text-center">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white min-w-[200px] text-center">
                 {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h2>
               <button
                 onClick={goToNext}
-                className="p-2 hover:bg-white/5 rounded-lg transition text-gray-400 hover:text-white"
+                className="p-2 hover:bg-gray-100 dark:bg-white/5 rounded-lg transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white"
               >
                 <ChevronRight size={20} />
               </button>
               <button
                 onClick={goToToday}
-                className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-sm transition"
+                className="px-4 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white text-sm transition"
               >
                 Today
               </button>
@@ -1105,13 +1105,13 @@ export function SchedulePage() {
             <div className="flex items-center gap-3 flex-wrap">
               {/* Search */}
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition w-40 md:w-48"
+                  className="pl-9 pr-4 py-1.5 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition w-40 md:w-48"
                 />
               </div>
 
@@ -1119,34 +1119,34 @@ export function SchedulePage() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="px-3 py-1.5 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
-                <option value="all" className="bg-[#14141a]">All Types</option>
+                <option value="all" className="bg-white dark:bg-[#14141a]">All Types</option>
                 {EVENT_TYPES.map(type => (
-                  <option key={type} value={type} className="bg-[#14141a]">{type}</option>
+                  <option key={type} value={type} className="bg-white dark:bg-[#14141a]">{type}</option>
                 ))}
               </select>
 
               <select
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
-                className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="px-3 py-1.5 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
               >
-                <option value="all" className="bg-[#14141a]">All Priorities</option>
+                <option value="all" className="bg-white dark:bg-[#14141a]">All Priorities</option>
                 {EVENT_PRIORITIES.map(priority => (
-                  <option key={priority} value={priority} className="bg-[#14141a]">{priority}</option>
+                  <option key={priority} value={priority} className="bg-white dark:bg-[#14141a]">{priority}</option>
                 ))}
               </select>
 
-              <div className="flex bg-white/5 rounded-xl p-1">
+              <div className="flex bg-gray-100 dark:bg-white/5 rounded-xl p-1">
                 {['month', 'week', 'day'].map((v) => (
                   <button
                     key={v}
                     onClick={() => setView(v)}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition capitalize ${
                       view === v
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                        : 'text-gray-400 hover:text-white'
+                        ? 'bg-blue-500 text-gray-900 dark:text-white shadow-lg shadow-blue-500/25'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white'
                     }`}
                   >
                     {v}
@@ -1156,7 +1156,7 @@ export function SchedulePage() {
 
               <button
                 onClick={openCreateModal}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 dark:text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all flex items-center gap-2"
               >
                 <Plus size={18} />
                 New Event
@@ -1165,10 +1165,10 @@ export function SchedulePage() {
           </div>
 
           {/* Calendar Grid */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-4">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-4">
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-2">
                   {day}
                 </div>
               ))}
@@ -1184,9 +1184,9 @@ export function SchedulePage() {
                     key={idx}
                     className={`
                       min-h-[100px] p-1.5 rounded-xl transition cursor-pointer
-                      ${isCurrentMonth ? 'bg-white/5' : 'bg-white/2 opacity-40'}
+                      ${isCurrentMonth ? 'bg-gray-100 dark:bg-white/5' : 'bg-white/2 opacity-40'}
                       ${isTodayDate ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-[#14141a]' : ''}
-                      hover:bg-white/10
+                      hover:bg-gray-100 dark:bg-white/10
                     `}
                     onClick={() => {
                       const now = new Date();
@@ -1215,7 +1215,7 @@ export function SchedulePage() {
                       setIsModalOpen(true);
                     }}
                   >
-                    <div className="text-xs font-medium text-gray-400 mb-1">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       {date.getDate()}
                     </div>
                     <div className="space-y-0.5">
@@ -1228,17 +1228,17 @@ export function SchedulePage() {
                           }}
                           className={`
                             text-[10px] px-1.5 py-0.5 rounded truncate cursor-pointer transition hover:scale-105
-                            ${event.priority === 'Urgent' ? 'bg-red-500/20 text-red-300 border-l-2 border-red-500' :
-                              event.priority === 'High' ? 'bg-orange-500/20 text-orange-300 border-l-2 border-orange-500' :
-                              event.priority === 'Medium' ? 'bg-yellow-500/20 text-yellow-300 border-l-2 border-yellow-500' :
-                              'bg-blue-500/20 text-blue-300 border-l-2 border-blue-500'}
+                            ${event.priority === 'Urgent' ? 'bg-red-100 text-red-700 border-l-2 border-red-400 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500' :
+                              event.priority === 'High' ? 'bg-orange-100 text-orange-700 border-l-2 border-orange-400 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500' :
+                              event.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700 border-l-2 border-yellow-400 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500' :
+                              'bg-blue-100 text-blue-700 border-l-2 border-blue-400 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500'}
                           `}
                         >
                           {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {event.title}
                         </div>
                       ))}
                       {dayEvents.length > 3 && (
-                        <div className="text-[10px] text-gray-500 pl-1">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 pl-1">
                           +{dayEvents.length - 3} more
                         </div>
                       )}
@@ -1250,11 +1250,11 @@ export function SchedulePage() {
           </div>
 
           {/* Upcoming Events List */}
-          <div className="bg-[#14141a] rounded-2xl border border-white/5 p-6">
+          <div className="bg-white dark:bg-[#14141a] rounded-2xl border border-gray-200 dark:border-white/5 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-semibold text-white">Upcoming Events</h3>
-                <p className="text-xs text-gray-500">Next 7 days</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Upcoming Events</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Next 7 days</p>
               </div>
               <button className="text-xs text-blue-400 hover:text-blue-300 transition">
                 View All →
@@ -1269,7 +1269,7 @@ export function SchedulePage() {
                   <div
                     key={event.id}
                     onClick={() => openDetails(event)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer group"
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-100 dark:bg-white/10 transition cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-1 h-10 rounded-full ${
@@ -1279,8 +1279,8 @@ export function SchedulePage() {
                         'bg-blue-500'
                       }`} />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{event.title}</p>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{event.title}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                           <span>{event.lead}</span>
                           <span>•</span>
                           <span>{event.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -1298,16 +1298,16 @@ export function SchedulePage() {
                       }`}>
                         {event.priority}
                       </span>
-                      <span className="text-xs text-gray-500">{event.type}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{event.type}</span>
                     </div>
                   </div>
                 ))}
               {getFilteredEvents().filter(e => e.start > new Date() && e.status !== 'Cancelled').length === 0 && (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-3">
-                    <CalendarIcon size={20} className="text-gray-500" />
+                  <div className="w-12 h-12 mx-auto bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-3">
+                    <CalendarIcon size={20} className="text-gray-500 dark:text-gray-400" />
                   </div>
-                  <p className="text-gray-500 text-sm">No upcoming events</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No upcoming events</p>
                   <button
                     onClick={openCreateModal}
                     className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition"
