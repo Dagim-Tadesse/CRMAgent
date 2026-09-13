@@ -17,8 +17,23 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connBuilder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+
+if (connBuilder.Host != "localhost" && connBuilder.Host != "127.0.0.1")
+{
+    connBuilder.SslMode = Npgsql.SslMode.Require;
+    connBuilder.TrustServerCertificate = true;
+    
+    // Handle Supabase PgBouncer if they are using it
+    if (connBuilder.Port == 6543 || (connBuilder.Host != null && connBuilder.Host.Contains("supabase.com")))
+    {
+        connBuilder.Pooling = false;
+    }
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connBuilder.ConnectionString));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
